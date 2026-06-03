@@ -1,6 +1,11 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+let baseApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// Automatically ensure the URL ends with /api/v1 so it works regardless of how it's defined in Vercel
+if (!baseApiUrl.endsWith('/api/v1')) {
+    baseApiUrl = baseApiUrl.replace(/\/$/, '') + '/api/v1';
+}
+const API_URL = baseApiUrl;
 
 export const STORAGE_KEYS = {
     TOKEN: '@laundry_saas_token',
