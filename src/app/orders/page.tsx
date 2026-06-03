@@ -15,6 +15,7 @@ interface Order {
     paymentMethod: string;
     paymentStatus: string;
     grandTotalPaid: number;
+    totalAmount?: number;
     createdAt: string;
 }
 
