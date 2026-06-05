@@ -32,10 +32,14 @@ export async function getAllOrders(
         const token = (await cookies()).get("accessToken")?.value;
         if (!token) throw new Error("Not authenticated");
 
-        let url = `/api/v1/admin/orders?limit=${limit}`;
+        let url = shopId 
+            ? `/api/v1/shops/${shopId}/orders?limit=${limit}` 
+            : `/api/v1/admin/orders?limit=${limit}`;
+            
         if (lastKey) url += `&lastKey=${encodeURIComponent(lastKey)}`;
         if (status) url += `&status=${encodeURIComponent(status)}`;
-        if (shopId) url += `&shopId=${encodeURIComponent(shopId)}`;
+        // if shopId is provided, it's already in the path. Otherwise, we can pass it as a query parameter for admin search
+        if (shopId && !url.includes('/shops/')) url += `&shopId=${encodeURIComponent(shopId)}`;
         if (userId) url += `&userId=${encodeURIComponent(userId)}`;
         if (category) url += `&category=${encodeURIComponent(category)}`;
         if (sortOrder) url += `&sortOrder=${sortOrder}`;
@@ -50,18 +54,136 @@ export async function getAllOrders(
             throw new Error(data.message || "Failed to fetch orders");
         }
 
+        const isArray = Array.isArray(data.data);
+        let rawOrdersList = isArray ? data.data : data.data.orders;
+
+        // Ensure rawOrdersList is always an array
+        if (!Array.isArray(rawOrdersList)) {
+            console.error("[getAllOrders] Expected an array of orders, got:", rawOrdersList);
+            return { orders: [], nextKey: undefined, totalCount: 0, globalCounts: {}, priorityCounts: {} };
+        }
+
+        // Adapter: Map ezyworks-backend Order format to launezy-admin-web Order format expected by the UI
+        const mappedOrdersList = rawOrdersList.map((order: any) => {
+            return {
+                ...order,
+                // 1. Map Customer info
+                user: order.user || {
+                    name: order.customerName || "Unknown Customer",
+                    phoneNumber: order.customerPhoneNumber || "No Phone",
+                },
+                // 2. Map Services and Items
+                services: (order.services || []).map((service: any) => ({
+                    ...service,
+                    // Map deliveryType to deliveryTypes
+                    deliveryTypes: service.deliveryTypes || service.deliveryType || {},
+                    selectedDeliveryKey: service.selectedDeliveryKey || (service.deliveryType ? Object.keys(service.deliveryType)[0] : undefined),
+                    categories: (service.categories || []).map((category: any) => ({
+                        ...category,
+                        items: (category.items || []).map((item: any) => ({
+                            ...item,
+                            totalPrice: item.totalPrice !== undefined ? item.totalPrice : item.itemTotal,
+                            originalUnitPrice: item.originalUnitPrice !== undefined ? item.originalUnitPrice : item.unitPrice,
+                        })),
+                    })),
+                })),
+                // 3. Optional: Map other fields that might be missing but used in the UI
+                shopPayout: order.shopPayout !== undefined ? order.shopPayout : (order.grandTotalPaid || 0),
+            };
+        });
+
+        const ordersList = mappedOrdersList;
+
+        let totalCount = isArray ? ordersList.length : (data.data.totalCount || 0);
+        let globalCounts = isArray ? undefined : (data.data.globalCounts || {});
+        let priorityCounts = isArray ? undefined : (data.data.priorityCounts || {});
+
+        // Compute counts if the backend returned an array instead of an object with counts
+        if (isArray) {
+            globalCounts = {
+                all: 0,
+                user_paid: 0,
+                user_unpaid: 0,
+                shop_paid: 0,
+                shop_unpaid: 0,
+                waiting_confirmation: 0,
+                payment_pending: 0,
+                confirmed: 0,
+                in_pickup: 0,
+                in_process: 0,
+                ready_to_deliver: 0,
+                out_for_delivery: 0,
+                delivered: 0,
+                waiting_user_review: 0,
+                cancelled: 0,
+                scheduled: 0,
+                wait_refund: 0,
+                uncollectible: 0,
+            };
+            priorityCounts = { all: 0 };
+
+            for (const item of ordersList) {
+                globalCounts.all++;
+                
+                const s = item.status;
+                const ps = item.paymentStatus;
+                const sp = item.shopPayout || 0;
+                
+                const paidAmt = (item.amountPaid || 0);
+                const totalAmt = item.grandTotalPaid || 0;
+                const isFullyPaid = paidAmt >= totalAmt - 0.05;
+                const isOverpaid = paidAmt > totalAmt + 0.05;
+
+                if (s !== "cancelled") {
+                    if (ps === "uncollectible") {
+                        globalCounts.uncollectible++;
+                    } else {
+                        if (isFullyPaid) {
+                            globalCounts.user_paid++;
+                            if (ps === "paid") {
+                                if (sp > 0) globalCounts.shop_paid++;
+                                else globalCounts.shop_unpaid++;
+                            }
+                        } else {
+                            globalCounts.user_unpaid++;
+                        }
+                        if (isOverpaid) {
+                            globalCounts.wait_refund++;
+                        }
+                    }
+                }
+
+                if (s && globalCounts[s] !== undefined) {
+                    globalCounts[s]++;
+                }
+
+                const service = item.services?.[0];
+                const key = service?.selectedDeliveryKey || (service?.deliveryTypes ? Object.keys(service.deliveryTypes)[0] : null);
+                if (key) {
+                    if (priorityCounts[key] === undefined) priorityCounts[key] = 0;
+                    priorityCounts[key]++;
+                    priorityCounts.all++;
+                }
+
+                if (item.deliveryScheduledAt && s !== "cancelled" && s !== "delivered") {
+                    globalCounts.scheduled++;
+                }
+            }
+        }
+
         return {
-            orders: data.data.orders as Order[],
-            nextKey: data.data.nextKey as string | undefined,
-            totalCount: data.data.totalCount || 0,
-            globalCounts: data.data.globalCounts || {},
-            priorityCounts: data.data.priorityCounts || {}
+            orders: ordersList as Order[],
+            nextKey: isArray ? undefined : data.data.nextKey as string | undefined,
+            totalCount,
+            globalCounts,
+            priorityCounts
         };
     } catch (error) {
         console.error("[getAllOrders]", error);
         return { orders: [], nextKey: undefined, totalCount: 0, globalCounts: {}, priorityCounts: {} };
     }
 }
+
 
 /* ─────────────────────────────────────────────── */
 /* 🔹 Get order by ID                             */
@@ -93,9 +215,14 @@ export async function updateOrderStatus(formData: FormData) {
     const orderId = formData.get("orderId") as string;
     const orderStatus = formData.get("orderStatus") as OrderStatus;
     const cancelReason = formData.get("cancelReason") as string;
+    const shopId = formData.get("shopId") as string;
 
     try {
-        const res = await apiFetch(`/api/v1/admin/orders/${orderId}/status`, {
+        const url = shopId 
+            ? `/api/v1/shops/${shopId}/orders/${orderId}/status`
+            : `/api/v1/admin/orders/${orderId}/status`;
+            
+        const res = await apiFetch(url, {
             method: "PATCH",
             body: JSON.stringify({ 
                 status: orderStatus,
@@ -118,22 +245,25 @@ export async function updateOrderStatus(formData: FormData) {
 export async function updateOrderPaymentStatus(formData: FormData) {
     const orderId = formData.get("orderId") as string;
     const paymentStatus = formData.get("paymentStatus") as PaymentStatus;
+    const shopId = formData.get("shopId") as string;
 
     if (!orderId || !paymentStatus) {
         return { error: "Missing orderId or paymentStatus" };
     }
 
     try {
-        const res = await apiFetch(
-            `/api/v1/admin/orders/${orderId}/payment-status`,
-            {
+        const url = shopId 
+            ? `/api/v1/shops/${shopId}/orders/${orderId}/payment`
+            : `/api/v1/admin/orders/${orderId}/payment-status`;
+            
+        const res = await apiFetch(url, {
                 method: "PATCH",
                 body: JSON.stringify({ paymentStatus }),
             }
         );
 
         const result = await res.json();
-        revalidatePath("/(admin)/orders", "page");
+        revalidatePath("/orders");
 
         if (!res.ok || !result.success) {
             throw new Error(result.message || "Failed to update payment status");
@@ -456,8 +586,8 @@ export async function updateOrderDetailsByAdmin(
     if (!token) return { error: "You must be logged in." };
 
     try {
-        const res = await apiFetch(`/api/v1/admin/orders/${orderId}/details`, {
-            method: "PATCH",
+        const res = await apiFetch(`/api/v1/shops/${payload.shopId}/orders/${orderId}`, {
+            method: "PUT",
             body: JSON.stringify(payload),
         });
 
@@ -514,7 +644,7 @@ export async function createOrder(payload: CreateOrderPayload) {
     const token = (await cookies()).get("accessToken")?.value;
     if (!token) return { error: "You must be logged in." };
 
-    const res = await apiFetch("/api/v1/admin/orders/create", {
+    const res = await apiFetch(`/api/v1/shops/${payload.shopId}/orders`, {
         method: "POST",
         body: JSON.stringify(payload),
     });
@@ -769,11 +899,15 @@ export async function verifyOrderItemCount(orderId: string, count: number) {
 /* ─────────────────────────────────────────────── */
 /* 🔹 Delete Order (Admin - Cancelled Only)       */
 /* ─────────────────────────────────────────────── */
-export async function deleteOrder(orderId: string) {
+export async function deleteOrder(orderId: string, shopId?: string | null) {
     if (!orderId) return { error: "Missing orderId" };
 
     try {
-        const res = await apiFetch(`/api/v1/admin/orders/${orderId}`, {
+        const url = shopId 
+            ? `/api/v1/shops/${shopId}/orders/${orderId}`
+            : `/api/v1/admin/orders/${orderId}`;
+            
+        const res = await apiFetch(url, {
             method: "DELETE",
         });
 
@@ -783,8 +917,7 @@ export async function deleteOrder(orderId: string) {
             throw new Error(result.message || "Failed to delete order");
         }
 
-        revalidatePath("/(admin)/orders", "page");
-        revalidatePath("/(admin)/orders/[orderId]", "page");
+        revalidatePath("/orders", "page");
         
         return result;
     } catch (error: any) {

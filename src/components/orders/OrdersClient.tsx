@@ -26,6 +26,7 @@ import Pagination from "../tables/Pagination";
 import { useBreadcrumb } from "@/context/BreadcrumbContext";
 import { getAllShops } from "@/lib/actions/shops";
 import { Shop } from "@/types/Shop";
+import { useShop } from "@/context/ShopContext";
 
 const TabButton = ({
     active,
@@ -79,6 +80,9 @@ const OrdersClient = ({
     // Start as loading=true when no initial data is passed (client-only fetch path)
     const [isLoading, setIsLoading] = useState(initialOrders.length === 0);
     const [shopsMap, setShopsMap] = useState<Record<string, Shop>>({});
+    
+    // Auth / Shop Context
+    const { selectedShopId, isLoading: isShopLoading } = useShop();
     
     // Pagination State
     const [page, setPage] = useState(1);
@@ -215,25 +219,24 @@ const OrdersClient = ({
         }
     };
 
-    // Fetch shops for mapping on mount
+    // Fetch shops for mapping on mount (Disabled for shop portal)
     useEffect(() => {
-        const fetchShops = async () => {
-            try {
-                const { shops } = await getAllShops(1000); // Fetch a larger batch for the map
-                const map: Record<string, Shop> = {};
-                shops.forEach((s) => {
-                    map[s.shopId] = s;
-                });
-                setShopsMap(map);
-            } catch (error) {
-                console.error("Failed to fetch shops for map", error);
-            }
-        };
-        fetchShops();
+        // Shop portal doesn't need to fetch all shops. The user only has one shop context.
+        setShopsMap({});
     }, []);
 
     // Consolidated Fetch Logic: Triggered on any filter/search/tab change
     useEffect(() => {
+        if (isShopLoading) return;
+        
+        if (!selectedShopId) {
+            // User has no shop or shop failed to load
+            setOrders([]);
+            setTotalCount(0);
+            setIsLoading(false);
+            return;
+        }
+
         const timeout = setTimeout(() => {
             setPage(1);
             setPageKeys({ 1: undefined });
@@ -242,11 +245,11 @@ const OrdersClient = ({
             const u = searchType === "user" ? searchQuery : undefined;
             const s = searchType === "shop" ? searchQuery : undefined;
 
-            fetchOrdersForPage(1, filters, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
+            fetchOrdersForPage(1, { ...filters, shopId: selectedShopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
         }, 500);
 
         return () => clearTimeout(timeout);
-    }, [selectedTab, selectedStatus, filters.shopId, filters.userId, sortOrder, priorityTab, searchQuery, searchType]);
+    }, [selectedTab, selectedStatus, filters.shopId, filters.userId, sortOrder, priorityTab, searchQuery, searchType, selectedShopId, isShopLoading]);
 
     const handlePageChange = (newPage: number) => {
         if (newPage === page) return;
@@ -385,7 +388,7 @@ const OrdersClient = ({
 
         setIsStatusUpdating(prev => ({ ...prev, [orderId]: true }));
         try {
-            const res = await deleteOrder(orderId);
+            const res = await deleteOrder(orderId, selectedShopId);
             if (res.error) throw new Error(res.error);
 
             // 1. Update Global Status Counts (Top Tabs)
@@ -432,6 +435,11 @@ const OrdersClient = ({
         const formData = new FormData(e.currentTarget);
         const orderId = formData.get("orderId") as string;
         const newStatus = formData.get("orderStatus") as Order["status"];
+        
+        // Append shopId for the shop portal API
+        if (selectedShopId) {
+            formData.append("shopId", selectedShopId);
+        }
         
         // Block consecutive updates and show loading spinner on the table behind the modal
         setIsStatusUpdating(prev => ({ ...prev, [orderId]: true }));
@@ -769,6 +777,9 @@ const OrdersClient = ({
                                 {activeSection === "payment" && (
                                     <form
                                         action={async (formData) => {
+                                            if (selectedShopId) {
+                                                formData.append("shopId", selectedShopId);
+                                            }
                                             await updateOrderPaymentStatus(formData);
                                             router.refresh();
                                             closeModal();

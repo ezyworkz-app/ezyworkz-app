@@ -3,7 +3,16 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL!; // non-null
+let baseApiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+if (!baseApiUrl.endsWith('/api/v1')) {
+    baseApiUrl = baseApiUrl.replace(/\/$/, '') + '/api/v1';
+}
+// For server actions, if baseApiUrl is relative, it will fail unless absolute. 
+// But here it usually comes from NEXT_PUBLIC_API_URL.
+// The base url should NOT include /api/v1 if the path already starts with /api/v1
+// Wait, doFetch does fetch(`${API_URL}${path}`). If path is `/api/v1/admin/shops/...` then we don't want to duplicate `/api/v1`.
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '');
+
 
 export async function apiFetch(
     path: string,
@@ -70,7 +79,7 @@ export async function apiFetch(
             cookieStore.set("refreshToken", "", clearOpts);
             cookieStore.set("id", "", clearOpts);
             cookieStore.set("role", "", clearOpts);
-            redirect("/signin");
+            redirect("/login");
         }
     }
 

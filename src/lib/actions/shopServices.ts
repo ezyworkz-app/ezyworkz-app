@@ -3,11 +3,6 @@
 import { cookies } from "next/headers";
 import { apiFetch } from "../api";
 import { DeliveryKey, DeliveryType } from "@/types/common";
-// import {
-//   GlobalCategory,
-//   GlobalService,
-//   ShopService,
-// } from "@/types/services";
 import { revalidatePath } from "next/cache";
 import { GlobalCategory, GlobalService, ShopService } from "@/types/services";
 

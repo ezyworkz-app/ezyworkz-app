@@ -10,6 +10,7 @@ import {
   useTransition,
 } from "react";
 import { useRouter } from "next/navigation";
+import apiClient from "@/lib/api/client";
 
 import type { DeliveryKey, DeliveryType } from "@/types/common";
 // import { SavedAddress } from "@/types/address";
@@ -264,38 +265,47 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
       if (grouped.length === 0) return;
       setLoadingAddons(true);
       try {
-        const promises = grouped.map((g) => getAddonsForService(g.shopId, g.serviceId));
-        const results = await Promise.all(promises);
-        const map: AvailableAddonsMap = {};
-        grouped.forEach((g, i) => {
-          const key = `${g.shopId}-${g.serviceId}`;
-          if (results[i]?.length) {
-            map[key] = results[i].map((a: any) => ({
-              addonId: a.shopServiceAddonId,
-              name: a.addonName,
-              price: a.price,
-              originalUnitPrice: a.originalUnitPrice,
-              applyMarkup: !!a.applyMarkup,
-              variations: a.variations,
-            }));
-          }
-        });
-        setAvailableAddonsBySvc(map);
-
-        // 🟢 Also fetch full delivery types for each unique shop to get ALL options
         const uniqueShopIds = [...new Set(grouped.map(g => g.shopId))];
-        const shopServiceTrees = await Promise.all(uniqueShopIds.map(sid => getShopServicesTree(sid)));
+        
+        // Fetch public shop JSON for each unique shop
+        const shopResponses = await Promise.all(
+          uniqueShopIds.map(sid => apiClient.get(`/public/shop/json/${sid}`))
+        );
+
+        const shopServiceTrees = shopResponses.map(res => res.data?.services || []);
+
+        const map: AvailableAddonsMap = {};
         const delivMap: Record<string, Record<DeliveryKey, DeliveryType>> = {};
-        uniqueShopIds.forEach((shopId, i) => {
-          const tree = shopServiceTrees[i];
-          tree.forEach((svc: any) => {
-            const key = `${shopId}-${svc.serviceID}`;
-            if (svc.deliveryTypes) delivMap[key] = svc.deliveryTypes;
+
+        uniqueShopIds.forEach((shopId, shopIndex) => {
+          const services = shopServiceTrees[shopIndex];
+          
+          services.forEach((svc: any) => {
+            const key = `${shopId}-${svc.shopServiceId || svc.serviceID}`;
+            
+            // Map Delivery Types
+            if (svc.deliveryTypes) {
+                delivMap[key] = svc.deliveryTypes;
+            }
+
+            // Map Addons
+            if (svc.addons?.length) {
+                map[key] = svc.addons.map((a: any) => ({
+                    addonId: a.shopServiceAddonId,
+                    name: a.name,
+                    price: a.price,
+                    originalUnitPrice: a.originalUnitPrice,
+                    applyMarkup: !!a.applyMarkup,
+                    variations: a.variations,
+                }));
+            }
           });
         });
+
+        setAvailableAddonsBySvc(map);
         setFullDeliveryTypesBySvc(delivMap);
       } catch (err) {
-        console.error("❌ Failed to fetch available addons:", err);
+        console.error("❌ Failed to fetch available addons/services via JSON:", err);
       } finally {
         setLoadingAddons(false);
       }
