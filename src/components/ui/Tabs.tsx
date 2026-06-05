@@ -38,7 +38,7 @@ export const Tabs = ({ children, activeTab: controlledActiveTab, onTabChange }: 
             {/* Mobile Dropdown */}
             <div className="md:hidden mb-4 overflow-hidden">
                 <select
-                    className="w-full h-11 appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm shadow-sm focus:border-teal-300 focus:outline-none focus:ring-3 focus:ring-teal-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                    className="w-full h-11 appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                     value={activeTab}
                     onChange={(e) => handleTabChange(Number(e.target.value))}
                 >
@@ -57,20 +57,20 @@ export const Tabs = ({ children, activeTab: controlledActiveTab, onTabChange }: 
                     <button
                         key={index}
                         className={`shrink-0 py-3 px-0 text-xs font-bold transition-all duration-200 flex items-center gap-2 relative whitespace-nowrap ${activeTab === index
-                            ? "text-teal-600"
+                            ? "text-brand-500"
                             : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                             }`}
                         onClick={() => handleTabChange(index)}
                     >
                         {tab.props.title}
                         {tab.props.count !== undefined && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-black ${activeTab === index ? "bg-teal-50 text-teal-600 dark:bg-teal-500/15" : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-black ${activeTab === index ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15" : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
                                 }`}>
                                 {tab.props.count}
                             </span>
                         )}
                         {activeTab === index && (
-                            <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-teal-500 rounded-t-full" />
+                            <div className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-brand-500 rounded-t-full" />
                         )}
                     </button>
                 ))}
