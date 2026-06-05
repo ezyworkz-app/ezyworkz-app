@@ -6,9 +6,11 @@ import { useShop } from "@/context/ShopContext";
 import apiClient from "@/lib/api/client";
 import { Loader2, AlertCircle, ArrowLeft, Search, Plus, Minus, ShoppingCart, Check } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
-export default function CreateOrderPage() {
+export default function EditOrderPage() {
+    const params = useParams();
+    const orderId = params.orderId as string;
     const { selectedShopId, isLoading: shopLoading } = useShop();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -41,10 +43,11 @@ export default function CreateOrderPage() {
         try {
             setLoading(true);
             setError("");
-            const [custRes, servRes, globalSvcRes] = await Promise.all([
+            const [custRes, servRes, globalSvcRes, orderRes] = await Promise.all([
                 apiClient.get(`/customers/${selectedShopId}`),
                 apiClient.get(`/public/shop/json/${selectedShopId}`),
-                apiClient.get(`/global/services`)
+                apiClient.get(`/global/services`),
+                apiClient.get(`/shops/${selectedShopId}/orders/${orderId}`)
             ]);
             setCustomers(custRes.data.data || custRes.data || []);
             const shopData = servRes.data.data || servRes.data || {};
@@ -56,8 +59,42 @@ export default function CreateOrderPage() {
             }));
             
             setServices(mappedServices);
+
+            // Populate from existing order
+            const order = orderRes.data.order || orderRes.data;
+            if (order) {
+                setSelectedCustomer(order.userId || order.customerId || "");
+                setDeliveryCharges(order.deliveryCharges || 0);
+                setTaxRate(order.taxRate || 0);
+                setCustomerAsks(order.customerAsks || "");
+                
+                const initialCart: any = {};
+                (order.services || []).forEach((svc: any) => {
+                    initialCart[svc.shopServiceId] = {
+                        shopServiceId: svc.shopServiceId,
+                        selectedDeliveryType: svc.selectedDeliveryKey || Object.keys(svc.deliveryType || {})[0] || Object.keys(mappedServices.find((s: any) => s.shopServiceId === svc.shopServiceId)?.deliveryTypes || {})[0] || 'standard',
+                        categories: {}
+                    };
+                    
+                    (svc.categories || []).forEach((cat: any) => {
+                        initialCart[svc.shopServiceId].categories[cat.shopServiceCategoryId] = {
+                            shopServiceCategoryId: cat.shopServiceCategoryId,
+                            items: {}
+                        };
+                        
+                        (cat.items || []).forEach((item: any) => {
+                            initialCart[svc.shopServiceId].categories[cat.shopServiceCategoryId].items[item.shopServiceCategoryItemId] = {
+                                shopServiceCategoryItemId: item.shopServiceCategoryItemId,
+                                quantity: item.qty || item.quantity,
+                                unitPrice: item.unitPrice || item.price || 0
+                            };
+                        });
+                    });
+                });
+                setCart(initialCart);
+            }
         } catch (err: any) {
-            setError(err.message || "Failed to load shop data");
+            setError(err.message || "Failed to load shop data or order");
         } finally {
             setLoading(false);
         }
@@ -140,7 +177,7 @@ export default function CreateOrderPage() {
         return { itemsTotal, tax, total };
     };
 
-    const handlePlaceOrder = async () => {
+    const handleSaveOrder = async () => {
         if (!selectedCustomer) return alert("Please select a customer");
         if (Object.keys(cart).length === 0) return alert("Cart is empty");
         
@@ -168,11 +205,11 @@ export default function CreateOrderPage() {
 
         setSubmitting(true);
         try {
-            await apiClient.post(`/shops/${selectedShopId}/orders`, payload);
-            alert("Order placed successfully!");
-            router.push('/orders');
+            await apiClient.put(`/shops/${selectedShopId}/orders/${orderId}`, payload);
+            alert("Order updated successfully!");
+            router.push(`/orders/${orderId}`);
         } catch (err: any) {
-            alert(err.message || "Failed to place order");
+            alert(err.message || "Failed to update order");
         } finally {
             setSubmitting(false);
         }
@@ -193,7 +230,7 @@ export default function CreateOrderPage() {
                     </Link>
                     <div>
                         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                            Create New Order
+                            Edit Order #{orderId.split('-')[0]}
                         </h1>
                     </div>
                 </div>
@@ -407,11 +444,11 @@ export default function CreateOrderPage() {
                                     </div>
 
                                     <button
-                                        onClick={handlePlaceOrder}
+                                        onClick={handleSaveOrder}
                                         disabled={submitting || Object.keys(cart).length === 0 || !selectedCustomer}
                                         className="w-full mt-4 py-3.5 bg-teal-500 hover:bg-teal-400 text-white font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
-                                        {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
+                                        {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Changes"}
                                     </button>
                                 </div>
                             </div>

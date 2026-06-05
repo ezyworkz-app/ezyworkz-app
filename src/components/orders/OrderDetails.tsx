@@ -308,6 +308,15 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                                 </div>
                             </div>
                         )}
+
+                        {order.customerAsks && (
+                            <div className="pt-4 border-t border-white/10">
+                                <h3 className="text-xs font-semibold text-amber-500/80 uppercase mb-2">Customer Asks / Notes</h3>
+                                <div className="text-sm text-amber-100/90 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 whitespace-pre-wrap">
+                                    {order.customerAsks}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
