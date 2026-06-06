@@ -130,6 +130,11 @@ type Ctx = {
   loadingAddons: boolean;
   // full delivery types (fetched from service tree, overrides stored order data)
   fullDeliveryTypesBySvc: Record<string, Record<DeliveryKey, DeliveryType>>;
+
+  applyDeliveryFee: boolean;
+  setApplyDeliveryFee: (b: boolean) => void;
+  applyGst: boolean;
+  setApplyGst: (b: boolean) => void;
 };
 
 
@@ -174,6 +179,9 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
   const memoSetCouponCode = useMemo(() => setCouponCode, []);
   const memoSetNotes = useMemo(() => setNotes, []);
   const memoSetPaymentMethod = useMemo(() => setPaymentMethod, []);
+
+  const [applyDeliveryFee, setApplyDeliveryFee] = useState(false);
+  const [applyGst, setApplyGst] = useState(false);
 
   /* ---- group cart ---- */
   const grouped = useMemo<Grouped[]>(() => {
@@ -406,10 +414,11 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
             lat: savedAddr?.lat,
             lng: savedAddr?.lng,
           } as any,
-          deliveryCharges: 0,
+          deliveryCharges: applyDeliveryFee ? (initialDistanceFee || 0) : 0,
           baseAmount: 0,
           multiplierUpcharge: 0,
           addonsBySvc: enrichedAddonsBySvc,
+          shopGstRate: applyGst ? undefined : 0, // undefined uses the shop default (e.g. 5%), 0 means no GST
         });
 
 
@@ -444,6 +453,25 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
             shopAddonsTotal: breakdown.shopAddonsTotal || 0,
             shopTotalAmount: breakdown.shopTotalAmount || 0,
           });
+        } else {
+          // Fallback to local computation
+          setTotals({
+            base: tempPayload.totalAmount || 0, // This is basically items + addons in tempPayload
+            addonsTotal: 0, // Not explicitly extracted in tempPayload
+            multiplierUpcharge: 0,
+            distanceFee: tempPayload.deliveryCharges || 0,
+            deliveryTotal: tempPayload.deliveryCharges || 0,
+            lowCartFee: 0,
+            lowCartFeeBreakdown: { total: 0, breakdown: [] },
+            tax: tempPayload.taxAmount || 0,
+            discount: tempPayload.discountAmount || 0,
+            grand: tempPayload.grandTotalPaid || 0,
+            multiplierBreakdown: {},
+            tripCount: 1,
+            shopBaseAmount: 0,
+            shopAddonsTotal: 0,
+            shopTotalAmount: 0,
+          });
         }
       } catch (err) {
         console.error("❌ Failed to fetch backend totals:", err);
@@ -454,7 +482,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
 
     const timeout = setTimeout(fetchTotals, 500);
     return () => clearTimeout(timeout);
-  }, [cartItems, deliveryBySvc, savedAddr, discountAmount, paymentMethod, addonsBySvc]);
+  }, [cartItems, deliveryBySvc, savedAddr, discountAmount, paymentMethod, addonsBySvc, applyDeliveryFee, applyGst]);
 
 
   /* ---- place order (create or update) ---- */
@@ -510,6 +538,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
         discountAmount, // send admin discount to backend
         userId, // ✅ Pass userId if present
         addonsBySvc: enrichedAddonsBySvc, // ✅ Pass correctly mapped addons
+        shopGstRate: applyGst ? undefined : 0,
       });
 
 
@@ -592,6 +621,10 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
     availableAddonsBySvc,
     loadingAddons,
     fullDeliveryTypesBySvc,
+    applyDeliveryFee,
+    setApplyDeliveryFee,
+    applyGst,
+    setApplyGst,
   };
 
 

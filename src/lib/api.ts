@@ -88,13 +88,11 @@ export async function apiFetch(
         let errorMessage = `API error ${res.status} ${res.statusText}`;
 
         try {
-            // Clone the response if we need to read it multiple times or if we're unsure
-            const clonedRes = res.clone();
+            const bodyText = await res.clone().text();
             try {
-                const body = await clonedRes.json();
+                const body = JSON.parse(bodyText);
                 errorMessage = body?.message || errorMessage;
             } catch {
-                const bodyText = await clonedRes.text();
                 console.error(
                     `API error text (${res.status}) ${path}:`,
                     bodyText.slice(0, 200)

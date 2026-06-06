@@ -180,10 +180,10 @@ export default function CheckoutClientPage({ order }: { order: Order }) {
   return (
     <main className="mx-auto max-w-2xl space-y-2 lg:space-y-6 bg-purple-50 p-4 m-4 mb-16 rounded-2xl">
       <Link
-        href={`/shops/${effectiveShopId}?orderId=${order.orderId}&mode=${isFulfillment ? "fulfillment" : "customer"}`}
+        href={`/orders/${order.orderId}/edit/menu?orderId=${order.orderId}&mode=${isFulfillment ? "fulfillment" : "customer"}`}
         className="mt-4 text-purple-700 underline"
       >
-        ← Back to Order
+        ← Back to Menu
       </Link>
 
       <h1 className="text-2xl font-bold">

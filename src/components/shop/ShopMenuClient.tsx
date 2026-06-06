@@ -80,11 +80,11 @@ export default function ShopMenuClient({
     const activeServices = services.filter(s => s.isActive !== false);
 
     const ordered = ORDER.map((name) =>
-      activeServices.find((s) => s.name.toLowerCase() === name.toLowerCase())
+      activeServices.find((s) => (s.name || "").toLowerCase() === name.toLowerCase())
     ).filter(Boolean) as ShopService[];
 
     const leftovers = activeServices.filter(
-      (s) => !ORDER.some((n) => n.toLowerCase() === s.name.toLowerCase())
+      (s) => !ORDER.some((n) => n.toLowerCase() === (s.name || "").toLowerCase())
     );
 
     return [...ordered, ...leftovers];
@@ -172,15 +172,14 @@ export default function ShopMenuClient({
     });
   }, [activeSvc]);
 
-  /* ---- load items when category changes ---- */
-  useEffect(() => {
-    if (!activeCat) {
+    useEffect(() => {
+    if (!activeCat || !activeSvc) {
       setItems([]);
       return;
     }
     setItems([]);
-    fetchCategoryItems(activeCat.shopServiceCategoryId).then(setItems);
-  }, [activeCat]);
+    fetchCategoryItems(shopId, activeSvc.shopServiceId, activeCat.shopServiceCategoryId).then(setItems);
+  }, [activeCat, activeSvc, shopId]);
 
   if (!activeSvc) return null;
 

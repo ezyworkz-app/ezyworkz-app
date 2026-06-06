@@ -7,12 +7,14 @@ import VariantSelectorModal from "./VariantSelectorModal";
 import { useCart } from "@/context/CartContext";
 import { useState, useMemo } from "react";
 
-const getUnitPrice = (item: ShopItem) =>
-  item.unit === "kg"
-    ? item.pricePerKg ?? 0
+const getUnitPrice = (item: ShopItem) => {
+  const p = item.unit === "kg"
+    ? item.pricePerKg
     : item.unit === "sft"
-      ? item.pricePerSft ?? 0
-      : item.pricePerPiece ?? 0;
+      ? item.pricePerSft
+      : item.pricePerPiece;
+  return p ?? (item as any).price ?? 0;
+};
 
 const getOriginalUnitPrice = (item: ShopItem) => {
   const original = item.unit === "kg"
@@ -20,7 +22,7 @@ const getOriginalUnitPrice = (item: ShopItem) => {
     : item.unit === "sft"
       ? (item as any).original_pricePerSft
       : (item as any).original_pricePerPiece;
-  return original != null ? original : getUnitPrice(item);
+  return original != null ? original : ((item as any).original_price ?? getUnitPrice(item));
 };
 
 interface Props {
@@ -53,15 +55,25 @@ export default function ItemCard({
 
   const variants = item.variants || [];
   const hasVariants = variants.length > 0;
+  
+  if (hasVariants) {
+    console.log(`[ItemCard] ${item.name} variants:`, JSON.stringify(variants, null, 2));
+  }
+
+  // Helper to extract variant price robustly
+  const getVariantPrice = (v: any) => {
+    const p = v.price ?? v.pricePerPiece ?? v.pricePerKg ?? v.pricePerSft;
+    return Number(p) || 0;
+  };
 
   // Price display logic
   const priceDisplay = useMemo(() => {
     if (hasVariants) {
       if (variants.length > 1) {
-        const minPrice = Math.min(...variants.map(v => v.price));
+        const minPrice = Math.min(...variants.map(getVariantPrice));
         return `From ₹${minPrice}`;
       }
-      return `₹${variants[0].price}`;
+      return `₹${getVariantPrice(variants[0])}`;
     }
     return `₹${getUnitPrice(item)}`;
   }, [item, variants, hasVariants]);

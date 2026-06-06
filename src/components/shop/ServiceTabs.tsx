@@ -51,7 +51,7 @@ export default function ServiceTabs({
           >
             {/* 🟢 Cart count badge */}
             <span className="flex items-center gap-1.5">
-              <span className="font-medium">{svc.name}</span>
+              <span className="font-medium">{(svc.name && svc.name.trim() !== "" ? svc.name.trim() : null) || (svc as any).globalServiceId || svc.shopServiceId || "Unknown"}</span>
               {count > 0 && (
                 <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-green-500 text-white text-[10px] font-bold leading-none">
                   {count}

@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (typeof window !== 'undefined') {
             localStorage.removeItem(STORAGE_KEYS.TOKEN);
             document.cookie = "accessToken=; path=/; max-age=0;";
+            document.cookie = "id=; path=/; max-age=0;";
         }
         router.push('/login');
     };
@@ -60,6 +61,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 localStorage.setItem(STORAGE_KEYS.TOKEN, response.data.token);
                 // Also set it in a cookie for Server Actions
                 document.cookie = `accessToken=${response.data.token}; path=/; max-age=604800; samesite=lax`;
+                if (response.data.shopOwner?.shopOwnerId) {
+                    document.cookie = `id=${response.data.shopOwner.shopOwnerId}; path=/; max-age=604800; samesite=lax`;
+                }
             }
             setIsAuthenticated(true);
             router.push('/');

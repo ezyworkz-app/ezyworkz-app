@@ -151,19 +151,52 @@ export async function fetchShopServices(
         const token = (await cookies()).get("accessToken")?.value;
         if (!token) throw new Error("Not authenticated");
 
-        const res = await apiFetch(`/api/v1/users/shops/${shopId}/services`, {
+        const res = await apiFetch(`/api/v1/shops/${shopId}/services`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
 
         const data = await res.json();
-        console.log(data);
-        if (!res.ok || !data.success) {
-            throw new Error(data.message || "Failed to fetch shop services");
+        
+        console.log("[fetchShopServices] data:", JSON.stringify(data, null, 2));
+        
+        let services: ShopService[] = [];
+        
+        // Handle different possible response structures
+        if (data.data?.services) {
+            services = data.data.services as ShopService[];
+        } else if (Array.isArray(data.data)) {
+            services = data.data as ShopService[];
+        } else {
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || "Failed to fetch shop services");
+            }
+            services = data.data.services as ShopService[];
         }
 
-        return data.data.services as ShopService[];
+        // 🔵 Fallback: Fetch global services to get missing names
+        try {
+            const globalRes = await apiFetch(`/api/v1/global/services`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const globalData = await globalRes.json();
+            const globalServices = globalData.data?.services || globalData.data || [];
+            
+            services = services.map(s => {
+                if (!s.name || s.name.trim() === "") {
+                    const globalSvc = globalServices.find((g: any) => g.globalServiceId === (s as any).globalServiceId);
+                    if (globalSvc && globalSvc.name) {
+                        return { ...s, name: globalSvc.name };
+                    }
+                }
+                return s;
+            });
+        } catch (e) {
+            console.error("Failed to fetch global services for names fallback", e);
+        }
+
+        return services;
     } catch (error) {
         console.error("[fetchShopServices]", error);
         return [];
@@ -178,7 +211,7 @@ export async function fetchServiceCategories(
         if (!token) throw new Error("Not authenticated");
 
         const res = await apiFetch(
-            `/api/v1/users/shops/services/${shopServiceId}/categories`,
+            `/api/v1/shops/${shopId}/services/${shopServiceId}/categories`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -187,7 +220,13 @@ export async function fetchServiceCategories(
         );
 
         const data = await res.json();
-        console.log(data);
+        
+        // Handle different possible response structures
+        if (data.data?.categories) {
+            return data.data.categories as ShopCategory[];
+        } else if (Array.isArray(data.data)) {
+            return data.data as ShopCategory[];
+        }
         if (!res.ok || !data.success) {
             throw new Error(data.message || "Failed to fetch service categories");
         }
@@ -199,6 +238,8 @@ export async function fetchServiceCategories(
     }
 }
 export async function fetchCategoryItems(
+    shopId: string,
+    shopServiceId: string,
     shopServiceCategoryId: string
 ): Promise<ShopItem[]> {
     try {
@@ -206,7 +247,7 @@ export async function fetchCategoryItems(
         if (!token) throw new Error("Not authenticated");
 
         const res = await apiFetch(
-            `/api/v1/users/shops/services/categories/${shopServiceCategoryId}/items`,
+            `/api/v1/shops/${shopId}/services/${shopServiceId}/categories/${shopServiceCategoryId}/items`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -215,7 +256,15 @@ export async function fetchCategoryItems(
         );
 
         const data = await res.json();
-        console.log(data);
+        console.log("[fetchCategoryItems] items data:", JSON.stringify(data, null, 2));
+        
+        // Handle different possible response structures
+        if (data.data?.items) {
+            return data.data.items as ShopItem[];
+        } else if (Array.isArray(data.data)) {
+            return data.data as ShopItem[];
+        }
+        
         if (!res.ok || !data.success) {
             throw new Error(data.message || "Failed to fetch category items");
         }

@@ -6,6 +6,35 @@ import { revalidatePath } from "next/cache";
 import { CreateOrderPayload } from "@/utils/cartToOrder";
 import { DeliveryKey, DeliveryType } from "@/types/common";
 import { getShopServiceById } from "./shops";
+
+// Adapter: Map ezyworks-backend Order format to launezy-admin-web Order format expected by the UI
+const mapSingleOrder = (order: any): Order => {
+    return {
+        ...order,
+        // 1. Map Customer info
+        user: order.user || {
+            name: order.customerName || "Unknown Customer",
+            phoneNumber: order.customerPhoneNumber || "No Phone",
+        },
+        // 2. Map Services and Items
+        services: (order.services || []).map((service: any) => ({
+            ...service,
+            // Map deliveryType to deliveryTypes
+            deliveryTypes: service.deliveryTypes || service.deliveryType || {},
+            selectedDeliveryKey: service.selectedDeliveryKey || (service.deliveryType ? Object.keys(service.deliveryType)[0] : undefined),
+            categories: (service.categories || []).map((category: any) => ({
+                ...category,
+                items: (category.items || []).map((item: any) => ({
+                    ...item,
+                    totalPrice: item.totalPrice !== undefined ? item.totalPrice : item.itemTotal,
+                    originalUnitPrice: item.originalUnitPrice !== undefined ? item.originalUnitPrice : item.unitPrice,
+                })),
+            })),
+        })),
+        // 3. Optional: Map other fields that might be missing but used in the UI
+        shopPayout: order.shopPayout !== undefined ? order.shopPayout : (order.grandTotalPaid || 0),
+    };
+};
 /* ─────────────────────────────────────────────── */
 /* 🔹 Get all orders (Paginated)                  */
 /* ─────────────────────────────────────────────── */
@@ -32,8 +61,18 @@ export async function getAllOrders(
         const token = (await cookies()).get("accessToken")?.value;
         if (!token) throw new Error("Not authenticated");
 
-        let url = shopId 
-            ? `/api/v1/shops/${shopId}/orders?limit=${limit}` 
+        let resolvedShopId = shopId || (await cookies()).get("id")?.value;
+        if (!resolvedShopId) {
+            try {
+                const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+                resolvedShopId = payload.id || payload.shopOwnerId;
+            } catch (e) {
+                console.warn("[getAllOrders] Failed to decode token to get shopId");
+            }
+        }
+
+        let url = resolvedShopId 
+            ? `/api/v1/shops/${resolvedShopId}/orders?limit=${limit}` 
             : `/api/v1/admin/orders?limit=${limit}`;
             
         if (lastKey) url += `&lastKey=${encodeURIComponent(lastKey)}`;
@@ -63,34 +102,7 @@ export async function getAllOrders(
             return { orders: [], nextKey: undefined, totalCount: 0, globalCounts: {}, priorityCounts: {} };
         }
 
-        // Adapter: Map ezyworks-backend Order format to launezy-admin-web Order format expected by the UI
-        const mappedOrdersList = rawOrdersList.map((order: any) => {
-            return {
-                ...order,
-                // 1. Map Customer info
-                user: order.user || {
-                    name: order.customerName || "Unknown Customer",
-                    phoneNumber: order.customerPhoneNumber || "No Phone",
-                },
-                // 2. Map Services and Items
-                services: (order.services || []).map((service: any) => ({
-                    ...service,
-                    // Map deliveryType to deliveryTypes
-                    deliveryTypes: service.deliveryTypes || service.deliveryType || {},
-                    selectedDeliveryKey: service.selectedDeliveryKey || (service.deliveryType ? Object.keys(service.deliveryType)[0] : undefined),
-                    categories: (service.categories || []).map((category: any) => ({
-                        ...category,
-                        items: (category.items || []).map((item: any) => ({
-                            ...item,
-                            totalPrice: item.totalPrice !== undefined ? item.totalPrice : item.itemTotal,
-                            originalUnitPrice: item.originalUnitPrice !== undefined ? item.originalUnitPrice : item.unitPrice,
-                        })),
-                    })),
-                })),
-                // 3. Optional: Map other fields that might be missing but used in the UI
-                shopPayout: order.shopPayout !== undefined ? order.shopPayout : (order.grandTotalPaid || 0),
-            };
-        });
+        const mappedOrdersList = rawOrdersList.map(mapSingleOrder);
 
         const ordersList = mappedOrdersList;
 
@@ -193,16 +205,43 @@ export async function getOrderByOrderId(
 ): Promise<Order | null> {
     try {
         const token = (await cookies()).get("accessToken")?.value;
+        let shopId = (await cookies()).get("id")?.value;
+        
         if (!token) throw new Error("Not authenticated");
 
-        const res = await apiFetch(`/api/v1/admin/orders/details/${orderId}`);
+        // Fallback: If shopId cookie is missing, decode the token payload
+        if (!shopId) {
+            try {
+                const payloadStr = Buffer.from(token.split('.')[1], 'base64').toString();
+                const payload = JSON.parse(payloadStr);
+                shopId = payload.id || payload.shopOwnerId || payload.shopId;
+                if (!shopId) {
+                    throw new Error(`[DEBUG] Token decoded but no shopId found. Payload: ${payloadStr}`);
+                }
+            } catch (e: any) {
+                if (e.message.includes("[DEBUG]")) throw e;
+                throw new Error(`[DEBUG] Failed to decode token: ${e.message}`);
+            }
+        }
+        
+        const url = shopId 
+            ? `/api/v1/shops/${shopId}/orders/${orderId}`
+            : `/api/v1/admin/orders/details/${orderId}`;
+            
+        const res = await apiFetch(url);
         const data = await res.json();
         if (!res.ok || !data.success) {
             throw new Error(data.message || "Failed to fetch order details");
         }
 
-        return data.data.order as Order;
-    } catch (error) {
+        const orderData = data.data.order || data.data;
+
+        return mapSingleOrder(orderData) as Order;
+    } catch (error: any) {
+        // Forward the DEBUG error so it shows up in the UI overlay
+        if (error.message?.includes("[DEBUG]")) {
+            throw error;
+        }
         console.error("[getOrderByOrderId]", error);
         return null;
     }

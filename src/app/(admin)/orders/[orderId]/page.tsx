@@ -72,7 +72,7 @@ export default function OrderDetailsPage() {
                     </div>
                     <div className="flex gap-3">
                         <Link
-                            href={`/orders/${orderId}/edit`}
+                            href={`/orders/${orderId}/edit/menu?orderId=${orderId}&mode=customer`}
                             className="flex items-center gap-2 px-4 py-2 bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 rounded-xl transition-colors font-medium text-sm border border-teal-500/20"
                         >
                             Edit Order

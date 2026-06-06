@@ -28,6 +28,10 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
     discountAmount,
     setDiscountAmount,
     addonsBySvc,
+    applyDeliveryFee,
+    setApplyDeliveryFee,
+    applyGst,
+    setApplyGst,
   } = useCheckout();
 
   // ✅ Currency formatter (always 2 decimal places)
@@ -39,6 +43,43 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
 
   return (
     <>
+      <section className="space-y-4 rounded-2xl border-2 border-primary-200 bg-white p-4">
+        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Billing Adjustments</h2>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <label className="text-sm font-semibold text-gray-800">Delivery Fee</label>
+              <p className="text-xs text-gray-500">Add delivery charges to the order</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={applyDeliveryFee}
+                onChange={(e) => setApplyDeliveryFee(e.target.checked)}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <label className="text-sm font-semibold text-gray-800">GST / Tax</label>
+              <p className="text-xs text-gray-500">Apply goods and services tax</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={applyGst}
+                onChange={(e) => setApplyGst(e.target.checked)}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+        </div>
+      </section>
+
       <section className="space-y-4 rounded-2xl border-2 border-primary-200 bg-white p-4">
         <div className="space-y-1 text-sm text-gray-700">
           <h2 className="font-bold text-lg">Bill summary</h2>
@@ -131,23 +172,6 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
         </div>
       </section>
 
-      {/* ✅ Shop Facing Totals (for Admin transparency) */}
-      <section className="space-y-4 rounded-2xl border-2 border-purple-200 bg-purple-50 p-4">
-        <div className="space-y-1 text-sm text-purple-900">
-          <h2 className="font-bold text-lg">Shop Earnings (Recalculated)</h2>
-          <Row label="Shop Base Amount" value={shopBaseAmount} formatFn={formatCurrency} />
-          {shopAddonsTotal > 0 && (
-            <Row label="Shop Addons Total" value={shopAddonsTotal} formatFn={formatCurrency} />
-          )}
-          <div className="flex justify-between pt-2 text-base font-bold">
-            <span>Shop Grand Total</span>
-            <span>₹{formatCurrency(shopTotalAmount)}</span>
-          </div>
-          <p className="text-[10px] text-purple-600 mt-2">
-            * These totals use the shop's original base prices without any markup applied.
-          </p>
-        </div>
-      </section>
 
       <div className="fixed bottom-0 inset-x-0 z-40 flex justify-center bg-white/90 backdrop-blur-md border-t border-gray-200 px-4 py-3">
         <button

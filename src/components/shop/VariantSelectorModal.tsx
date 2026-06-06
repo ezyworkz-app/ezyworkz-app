@@ -77,6 +77,9 @@ export default function VariantSelectorModal({
                     {item.variants.map((variant) => {
                         if (!variant.isActive) return null;
                         const combinedName = `${item.name} - ${variant.name}`;
+                        
+                        const variantPrice = Number((variant as any).price ?? (variant as any).pricePerPiece ?? (variant as any).pricePerKg ?? (variant as any).pricePerSft ?? 0);
+                        const originalPrice = Number((variant as any).original_price ?? variantPrice);
 
                         return (
                             <div
@@ -85,7 +88,7 @@ export default function VariantSelectorModal({
                             >
                                 <div>
                                     <p className="font-medium text-slate-800">{variant.name}</p>
-                                    <p className="text-sm text-slate-600 font-semibold mt-0.5">₹{variant.price}</p>
+                                    <p className="text-sm text-slate-600 font-semibold mt-0.5">₹{variantPrice}</p>
                                 </div>
 
                                 <div className="w-32">
@@ -102,8 +105,8 @@ export default function VariantSelectorModal({
                                         itemId={variant.variantId}
                                         itemName={combinedName}
                                         unit={item.unit}
-                                        price={variant.price}
-                                        originalUnitPrice={(variant as any).original_price ?? variant.price}
+                                        price={variantPrice}
+                                        originalUnitPrice={originalPrice}
                                     />
                                 </div>
                             </div>
