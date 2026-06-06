@@ -64,43 +64,43 @@ export default function AddCategoryModal({
 
   if (loading) return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-[#151c2f] p-12 rounded-xl flex flex-col items-center justify-center space-y-3 shadow-2xl">
+      <div className="bg-white p-12 rounded-xl flex flex-col items-center justify-center space-y-3 shadow-2xl">
         <div className="w-8 h-8 border-4 border-teal-500/20 border-t-teal-500 rounded-full animate-spin"></div>
-        <p className="text-sm text-slate-400 font-medium">Loading categories...</p>
+        <p className="text-sm text-gray-500 font-medium">Loading categories...</p>
       </div>
     </div>
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <form onSubmit={handleSubmit} className="bg-[#151c2f] w-full max-w-lg rounded-xl shadow-2xl flex flex-col overflow-hidden">
-        <div className="p-6 border-b border-card-border bg-[#0e1424]">
-          <h2 className="text-xl font-bold tracking-tight text-white text-center">
+      <form onSubmit={handleSubmit} className="bg-white w-full max-w-lg rounded-xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="p-6 border-b border-gray-200 bg-gray-50">
+          <h2 className="text-xl font-bold tracking-tight text-gray-900 text-center">
             Add Category
           </h2>
-          <p className="text-[10px] text-slate-400 text-center mt-1 uppercase tracking-widest font-bold">
-            Adding to <span className="text-teal-400">{service?.name}</span>
+          <p className="text-[10px] text-gray-500 text-center mt-1 uppercase tracking-widest font-bold">
+            Adding to <span className="text-teal-600">{service?.name}</span>
           </p>
         </div>
 
         <div className="flex-1 p-6 flex flex-col justify-center space-y-6">
           {categories.length === 0 ? (
             <div className="text-center space-y-4 py-8">
-              <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center mx-auto text-slate-500">
+              <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto text-gray-400">
                 <Layers size={32} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white">All categories added</h3>
-                <p className="text-sm text-slate-400 mt-1">Every available category has already been added to this service.</p>
+                <h3 className="text-lg font-bold text-gray-900">All categories added</h3>
+                <p className="text-sm text-gray-500 mt-1">Every available category has already been added to this service.</p>
               </div>
             </div>
           ) : (
             <div className="space-y-3">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Template Category</label>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Template Category</label>
               <div className="relative group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-teal-400 transition-colors" size={18} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-teal-500 transition-colors" size={18} />
                 <select
-                  className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-700 bg-slate-800/50 text-sm text-white focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all appearance-none cursor-pointer"
+                  className="w-full h-12 pl-10 pr-4 rounded-xl border border-gray-300 bg-gray-100 text-sm text-gray-900 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all appearance-none cursor-pointer"
                   value={selectedId}
                   onChange={(e) => setSelectedId(e.target.value)}
                   required
@@ -112,7 +112,7 @@ export default function AddCategoryModal({
                     </option>
                   ))}
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                   <PlusCircle size={16} />
                 </div>
               </div>
@@ -120,10 +120,10 @@ export default function AddCategoryModal({
           )}
         </div>
 
-        <div className="p-6 border-t border-card-border bg-[#0e1424] flex items-center gap-4">
+        <div className="p-6 border-t border-gray-200 bg-gray-50 flex items-center gap-4">
           <button 
             type="button"
-            className="flex-1 bg-transparent border border-slate-700 text-slate-300 font-bold hover:bg-slate-800 py-3 rounded-xl transition-colors"
+            className="flex-1 bg-transparent border border-gray-300 text-gray-700 font-bold hover:bg-gray-100 py-3 rounded-xl transition-colors"
             onClick={closeModal}
           >
             Cancel

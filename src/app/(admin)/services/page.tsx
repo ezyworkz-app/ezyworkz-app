@@ -64,8 +64,8 @@ export default function ServicesPage() {
             <main className="flex-1 p-8 h-screen overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between mb-8 flex-shrink-0">
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Services Configuration</h1>
-                        <p className="text-slate-400 mt-1">Manage your shop's services, delivery multipliers, and item prices.</p>
+                        <h1 className="text-2xl font-bold text-gray-900">Services Configuration</h1>
+                        <p className="text-gray-500 mt-1">Manage your shop's services, delivery multipliers, and item prices.</p>
                     </div>
                 </div>
 
@@ -77,11 +77,11 @@ export default function ServicesPage() {
                 )}
 
                 {loading || shopLoading ? (
-                    <div className="flex justify-center items-center flex-1 bg-[#0e1424] rounded-3xl border border-card-border">
+                    <div className="flex justify-center items-center flex-1 bg-white rounded-3xl border border-gray-200">
                         <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
                     </div>
                 ) : (
-                    <div className="flex-1 bg-[#0e1424] rounded-3xl border border-card-border overflow-hidden">
+                    <div className="flex-1 bg-white rounded-3xl border border-gray-200 overflow-hidden">
                         <ShopServices 
                             services={services} 
                             globalServices={globalServices} 

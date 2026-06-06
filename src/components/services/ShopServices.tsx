@@ -51,7 +51,7 @@ export default function ShopServices({ services, globalServices, shopId, onRefre
           onRefresh={onRefresh}
         />
       ) : (
-        <div className="flex-1 p-6 flex flex-col items-center justify-center text-slate-500">
+        <div className="flex-1 p-6 flex flex-col items-center justify-center text-gray-500">
           <p className="mb-4 text-sm font-medium">Select a category to view items.</p>
         </div>
       )}

@@ -55,12 +55,8 @@ const navItems: NavItem[] = [
   },
   {
     icon: <TableIcon />,
-    name: "Shops",
-    subItems: [
-      { name: "Dashboard", path: "/shops/dashboard", pro: false },
-      { name: "Shops List", path: "/shops", pro: false },
-      { name: "Price Approvals", path: "/shops/pending-prices", pro: false },
-    ],
+    name: "Services",
+    path: "/services",
   },
   {
     icon: <GroupIcon />,

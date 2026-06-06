@@ -52,12 +52,12 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'delivered': return 'bg-teal-500/10 text-teal-400 border-teal-500/20';
-            case 'cancelled': return 'bg-red-500/10 text-red-400 border-red-500/20';
-            case 'in_process': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-            case 'ready_to_deliver': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-            case 'out_for_delivery': return 'bg-violet-500/10 text-violet-400 border-violet-500/20';
-            default: return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+            case 'delivered': return 'bg-teal-50 text-teal-600 border-teal-200';
+            case 'cancelled': return 'bg-red-50 text-red-600 border-red-200';
+            case 'in_process': return 'bg-amber-50 text-amber-600 border-amber-200';
+            case 'ready_to_deliver': return 'bg-emerald-50 text-emerald-600 border-emerald-200';
+            case 'out_for_delivery': return 'bg-violet-50 text-violet-600 border-violet-200';
+            default: return 'bg-blue-50 text-blue-600 border-blue-200';
         }
     };
 
@@ -75,19 +75,19 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
             <div className="lg:col-span-2 space-y-6">
                 
                 {/* Services & Items */}
-                <div className="bg-[#0e1424] rounded-3xl border border-card-border p-6 shadow-sm">
-                    <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                        <Package className="w-5 h-5 text-teal-500" />
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-teal-600" />
                         Order Items
                     </h2>
 
                     <div className="space-y-6">
                         {order.services?.map((svc: any, idx: number) => (
                             <div key={idx} className="space-y-4">
-                                <div className="flex justify-between items-center bg-[#151b2b] p-3 rounded-xl border border-white/5">
-                                    <h3 className="font-semibold text-white">{svc.serviceName}</h3>
+                                <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                    <h3 className="font-semibold text-gray-900">{svc.serviceName}</h3>
                                     {svc.deliveryType && (
-                                        <span className="text-xs font-medium px-2 py-1 bg-white/5 rounded-md text-slate-300 capitalize">
+                                        <span className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-md text-gray-600 capitalize">
                                             {Object.keys(svc.deliveryType)[0]} Delivery
                                         </span>
                                     )}
@@ -96,15 +96,15 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                                 <div className="space-y-4 pl-2">
                                     {svc.categories?.map((cat: any, cIdx: number) => (
                                         <div key={cIdx}>
-                                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{cat.categoryName}</p>
+                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{cat.categoryName}</p>
                                             <div className="space-y-2">
                                                 {cat.items?.map((item: any, iIdx: number) => (
-                                                    <div key={iIdx} className="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+                                                    <div key={iIdx} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
                                                         <div>
-                                                            <p className="text-white text-sm font-medium">{item.itemName}</p>
-                                                            <p className="text-slate-400 text-xs mt-0.5">Qty: {item.qty} × ₹{item.unitPrice}</p>
+                                                            <p className="text-gray-900 text-sm font-medium">{item.itemName}</p>
+                                                            <p className="text-gray-500 text-xs mt-0.5">Qty: {item.qty} × ₹{item.unitPrice}</p>
                                                         </div>
-                                                        <p className="text-white font-semibold text-sm">₹{(item.unitPrice * item.qty).toFixed(2)}</p>
+                                                        <p className="text-gray-900 font-semibold text-sm">₹{(item.unitPrice * item.qty).toFixed(2)}</p>
                                                     </div>
                                                 ))}
                                             </div>
@@ -117,25 +117,25 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                 </div>
 
                 {/* Price Breakdown */}
-                <div className="bg-[#0e1424] rounded-3xl border border-card-border p-6 shadow-sm">
-                    <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-teal-500" />
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-teal-600" />
                         Price Breakdown
                     </h2>
 
                     <div className="space-y-3">
-                        <div className="flex justify-between text-sm text-slate-300">
+                        <div className="flex justify-between text-sm text-gray-600">
                             <span>Items Total</span>
                             <span>₹{(order.baseAmount ?? 0).toFixed(2)}</span>
                         </div>
                         {order.deliveryCharges > 0 && (
-                            <div className="flex justify-between text-sm text-slate-300">
+                            <div className="flex justify-between text-sm text-gray-600">
                                 <span>Delivery Charges</span>
                                 <span>₹{(order.deliveryCharges).toFixed(2)}</span>
                             </div>
                         )}
                         {order.taxAmount > 0 && (
-                            <div className="flex justify-between text-sm text-slate-300">
+                            <div className="flex justify-between text-sm text-gray-600">
                                 <span>GST & Tax</span>
                                 <span>₹{(order.taxAmount).toFixed(2)}</span>
                             </div>
@@ -147,14 +147,14 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                             </div>
                         )}
                         {(order.shopDiscountAmount || 0) > 0 && (
-                            <div className="flex justify-between text-sm text-teal-400">
+                            <div className="flex justify-between text-sm text-teal-600">
                                 <span>Shop Discount</span>
                                 <span>-₹{(order.shopDiscountAmount).toFixed(2)}</span>
                             </div>
                         )}
-                        <div className="pt-3 mt-3 border-t border-white/10 flex justify-between items-center">
-                            <span className="text-white font-bold">Grand Total</span>
-                            <span className="text-xl font-bold text-white">₹{totalAmount.toFixed(2)}</span>
+                        <div className="pt-3 mt-3 border-t border-gray-200 flex justify-between items-center">
+                            <span className="text-gray-900 font-bold">Grand Total</span>
+                            <span className="text-xl font-bold text-gray-900">₹{totalAmount.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
@@ -164,22 +164,22 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
             <div className="space-y-6">
                 
                 {/* Status Card */}
-                <div className="bg-[#0e1424] rounded-3xl border border-card-border p-6 shadow-sm">
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
                     <div className="flex justify-between items-start mb-6">
                         <div>
-                            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Order Status</h2>
+                            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Order Status</h2>
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border capitalize ${getStatusColor(order.status)}`}>
                                 {order.status.replace(/_/g, ' ')}
                             </span>
                         </div>
                         <div className="text-right">
-                            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Date</h2>
-                            <span className="text-sm text-white">{formatDate(order.createdAt)}</span>
+                            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Date</h2>
+                            <span className="text-sm text-gray-900">{formatDate(order.createdAt)}</span>
                         </div>
                     </div>
 
-                    <div className="space-y-2 pt-4 border-t border-white/10">
-                        <h3 className="text-sm font-semibold text-white mb-3">Update Status</h3>
+                    <div className="space-y-2 pt-4 border-t border-gray-200">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Update Status</h3>
                         {order.status === 'waiting_confirmation' && (
                             <button 
                                 onClick={() => handleUpdateStatus('in_process')}
@@ -211,18 +211,18 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                             <button 
                                 onClick={() => handleUpdateStatus('cancelled')}
                                 disabled={statusLoading}
-                                className="w-full py-2 text-sm text-red-400 hover:text-red-300 font-medium transition-colors disabled:opacity-50 mt-2"
+                                className="w-full py-2 text-sm text-red-500 hover:text-red-600 font-medium transition-colors disabled:opacity-50 mt-2"
                             >
                                 Cancel Order
                             </button>
                         )}
-                        {statusLoading && <p className="text-xs text-center text-slate-500 mt-2">Updating status...</p>}
+                        {statusLoading && <p className="text-xs text-center text-gray-500 mt-2">Updating status...</p>}
                     </div>
                 </div>
 
                 {/* Payment Card */}
-                <div className="bg-[#0e1424] rounded-3xl border border-card-border p-6 shadow-sm">
-                    <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Payment Status</h2>
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Payment Status</h2>
                     
                     <div className="flex items-center gap-3 mb-6">
                         <div className={`w-3 h-3 rounded-full ${
@@ -230,19 +230,19 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                             order.paymentStatus === 'partial' ? 'bg-amber-500' : 'bg-red-500'
                         }`} />
                         <div>
-                            <p className="text-white font-medium capitalize">{order.paymentStatus}</p>
-                            <p className="text-xs text-slate-500 uppercase">{order.paymentMethod}</p>
+                            <p className="text-gray-900 font-medium capitalize">{order.paymentStatus}</p>
+                            <p className="text-xs text-gray-500 uppercase">{order.paymentMethod}</p>
                         </div>
                         {order.paymentStatus === 'partial' && (
                             <div className="ml-auto text-right">
-                                <p className="text-xs text-slate-400">Paid: <span className="text-emerald-400 font-semibold">₹{order.amountPaid}</span></p>
-                                <p className="text-xs text-slate-400">Due: <span className="text-amber-400 font-semibold">₹{totalAmount - (order.amountPaid || 0)}</span></p>
+                                <p className="text-xs text-gray-500">Paid: <span className="text-emerald-600 font-semibold">₹{order.amountPaid}</span></p>
+                                <p className="text-xs text-gray-500">Due: <span className="text-amber-600 font-semibold">₹{totalAmount - (order.amountPaid || 0)}</span></p>
                             </div>
                         )}
                     </div>
 
-                    <div className="space-y-2 pt-4 border-t border-white/10">
-                        <h3 className="text-sm font-semibold text-white mb-3">Update Payment</h3>
+                    <div className="space-y-2 pt-4 border-t border-gray-200">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Update Payment</h3>
                         
                         <div className="grid grid-cols-2 gap-2">
                             <button 
@@ -268,7 +268,7 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                                     placeholder="Amount received..." 
                                     value={partialAmount}
                                     onChange={(e) => setPartialAmount(e.target.value)}
-                                    className="flex-1 bg-[#151b2b] border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
+                                    className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-500"
                                 />
                                 <button 
                                     onClick={() => handleUpdatePayment('partial', parseFloat(partialAmount))}
@@ -283,7 +283,7 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                         <button 
                             onClick={() => handleUpdatePayment('pending')}
                             disabled={paymentLoading || order.paymentStatus === 'pending'}
-                            className="w-full mt-2 py-2 text-sm text-slate-400 hover:text-white font-medium transition-colors disabled:opacity-50"
+                            className="w-full mt-2 py-2 text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors disabled:opacity-50"
                         >
                             Mark Unpaid
                         </button>
@@ -291,23 +291,23 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                 </div>
 
                 {/* Customer Info */}
-                <div className="bg-[#0e1424] rounded-3xl border border-card-border p-6 shadow-sm">
-                    <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Customer Details</h2>
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Customer Details</h2>
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500 font-bold">
+                            <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 font-bold">
                                 {order.customerName?.charAt(0)?.toUpperCase()}
                             </div>
                             <div>
-                                <p className="text-white font-medium">{order.customerName}</p>
-                                <p className="text-sm text-slate-400">{order.customerPhoneNumber}</p>
+                                <p className="text-gray-900 font-medium">{order.customerName}</p>
+                                <p className="text-sm text-gray-500">{order.customerPhoneNumber}</p>
                             </div>
                         </div>
 
                         {order.address && (
-                            <div className="pt-4 border-t border-white/10">
-                                <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2">Delivery Address</h3>
-                                <div className="text-sm text-slate-300 space-y-0.5">
+                            <div className="pt-4 border-t border-gray-200">
+                                <h3 className="text-xs font-semibold text-gray-400 uppercase mb-2">Delivery Address</h3>
+                                <div className="text-sm text-gray-600 space-y-0.5">
                                     <p>{order.address.houseNo}, {order.address.block}</p>
                                     <p>{order.address.line1}</p>
                                     <p>{order.address.area}, {order.address.city}</p>
@@ -316,9 +316,9 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                         )}
 
                         {order.customerAsks && (
-                            <div className="pt-4 border-t border-white/10">
-                                <h3 className="text-xs font-semibold text-amber-500/80 uppercase mb-2">Customer Asks / Notes</h3>
-                                <div className="text-sm text-amber-100/90 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 whitespace-pre-wrap">
+                            <div className="pt-4 border-t border-gray-200">
+                                <h3 className="text-xs font-semibold text-amber-600 uppercase mb-2">Customer Asks / Notes</h3>
+                                <div className="text-sm text-amber-800 bg-amber-50 p-3 rounded-xl border border-amber-200 whitespace-pre-wrap">
                                     {order.customerAsks}
                                 </div>
                             </div>

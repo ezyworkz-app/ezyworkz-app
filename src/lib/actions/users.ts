@@ -24,6 +24,27 @@ export async function getShopCustomers(shopId: string): Promise<{ users: User[],
     }
 }
 
+export async function createShopCustomer(shopId: string, payload: { name: string; phone: string; email?: string }): Promise<{ success: boolean; data?: User; error?: string }> {
+    try {
+        const token = (await cookies()).get("accessToken")?.value;
+        const res = await apiFetch(`/api/v1/customers/${shopId}`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        
+        if (!res.ok || !data.success) {
+            return { success: false, error: data.message || "Failed to create customer" };
+        }
+        
+        return { success: true, data: data.data };
+    } catch (error: any) {
+        console.error("[createShopCustomer]", error);
+        return { success: false, error: error.message || "Unexpected error occurred" };
+    }
+}
+
 export async function getAllUsers(
     limit: number = 10,
     lastKey?: string,

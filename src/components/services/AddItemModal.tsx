@@ -211,14 +211,14 @@ export default function AddItemModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <form
         onSubmit={handleSubmit}
-        className="bg-[#151c2f] w-full max-w-5xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden text-white"
+        className="bg-white w-full max-w-5xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden text-gray-900"
       >
-        <div className="flex justify-between items-center p-5 border-b border-card-border bg-[#0e1424] shrink-0">
+        <div className="flex justify-between items-center p-5 border-b border-gray-200 bg-gray-50 shrink-0">
           <div className="flex items-center gap-3">
-            <button type="button" onClick={closeModal} className="p-2 hover:bg-slate-800 rounded-lg transition-colors">
-              <X className="w-5 h-5 text-slate-400" />
+            <button type="button" onClick={closeModal} className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
+              <X className="w-5 h-5 text-gray-500" />
             </button>
-            <h2 className="text-lg font-bold text-white tracking-tight">Add product</h2>
+            <h2 className="text-lg font-bold text-gray-900 tracking-tight">Add product</h2>
           </div>
           <div className="flex gap-3">
             <button
@@ -236,11 +236,11 @@ export default function AddItemModal({
             
             <div className="lg:col-span-2 space-y-6">
               
-              <div className="bg-[#0e1424] p-5 rounded-xl border border-card-border space-y-4">
+              <div className="bg-white p-5 rounded-xl border border-gray-200 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Title</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
                   <input
-                    className="w-full border border-slate-700 bg-slate-800/50 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all text-white placeholder:text-slate-500"
+                    className="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all text-gray-900 placeholder:text-gray-400"
                     placeholder="e.g. Cotton Shirt"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -248,9 +248,9 @@ export default function AddItemModal({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1.5">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
                   <textarea
-                    className="w-full border border-slate-700 bg-slate-800/50 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none min-h-[120px] text-white placeholder:text-slate-500"
+                    className="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none min-h-[120px] text-gray-900 placeholder:text-gray-400"
                     placeholder="Product details..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -258,11 +258,11 @@ export default function AddItemModal({
                 </div>
               </div>
 
-              <div className="bg-[#0e1424] p-5 rounded-xl border border-card-border space-y-4">
-                <label className="block text-sm font-medium text-slate-300">Image URL</label>
+              <div className="bg-white p-5 rounded-xl border border-gray-200 space-y-4">
+                <label className="block text-sm font-medium text-gray-700">Image URL</label>
                 <div className="grid grid-cols-1 gap-4">
                   <input
-                    className="w-full border border-slate-700 bg-slate-800/50 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-500"
+                    className="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400"
                     placeholder="https://..."
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
@@ -270,11 +270,11 @@ export default function AddItemModal({
                 </div>
               </div>
 
-              <div className="bg-[#0e1424] p-6 rounded-xl border border-card-border">
+              <div className="bg-white p-6 rounded-xl border border-gray-200">
                 {!hasVariants ? (
                   <div className="space-y-6">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Pricing</h3>
+                      <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Pricing</h3>
                       <button
                         type="button"
                         onClick={() => setHasVariants(true)}
@@ -286,11 +286,11 @@ export default function AddItemModal({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Base Price</label>
+                        <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Base Price</label>
                         <div className="relative">
-                          <span className="absolute left-3.5 top-2 text-slate-400 text-sm font-bold">₹</span>
+                          <span className="absolute left-3.5 top-2 text-gray-500 text-sm font-bold">₹</span>
                           <input
-                            className="w-full border border-slate-700 bg-slate-800/50 rounded-xl px-4 py-2 pl-8 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 transition-all font-medium text-white placeholder:text-slate-500"
+                            className="w-full border border-gray-300 bg-gray-50 rounded-xl px-4 py-2 pl-8 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 transition-all font-medium text-gray-900 placeholder:text-gray-400"
                             placeholder="0.00"
                             value={variants[0]?.price || ""}
                             onChange={(e) => updateVariantPrice(0, e.target.value)}
@@ -298,9 +298,9 @@ export default function AddItemModal({
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Base Unit</label>
+                        <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Base Unit</label>
                         <select
-                          className="w-full border border-slate-700 bg-slate-800/50 rounded-xl px-4 py-2 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 transition-all font-medium text-white appearance-none"
+                          className="w-full border border-gray-300 bg-gray-50 rounded-xl px-4 py-2 text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/50 transition-all font-medium text-gray-900 appearance-none"
                           value={unit}
                           onChange={(e) => setUnit(e.target.value as any)}
                         >
@@ -315,7 +315,7 @@ export default function AddItemModal({
                   <>
                     <div className="flex justify-between items-center mb-6">
                       <div className="flex flex-col gap-1">
-                        <h3 className="text-sm font-bold text-white uppercase tracking-wider">Product Options</h3>
+                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Product Options</h3>
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -327,7 +327,7 @@ export default function AddItemModal({
                               setVariants([{ name: "Default", price: variants[0]?.price || "", isActive: true }]);
                             }
                           }}
-                          className="text-[10px] font-bold text-slate-400 hover:text-red-400 transition-colors px-3 py-1.5 border border-slate-700 rounded-lg uppercase tracking-wider bg-slate-800/50"
+                          className="text-[10px] font-bold text-gray-500 hover:text-red-500 transition-colors px-3 py-1.5 border border-gray-300 rounded-lg uppercase tracking-wider bg-gray-50"
                         >
                           Convert to Single Item
                         </button>
@@ -343,36 +343,36 @@ export default function AddItemModal({
 
                     <div className="space-y-6">
                       {options.map((opt, optIdx) => (
-                        <div key={optIdx} className="pb-6 border-b last:border-0 border-slate-800">
+                        <div key={optIdx} className="pb-6 border-b last:border-0 border-gray-200">
                           <div className="flex justify-between mb-3">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Option Name</label>
-                            <button type="button" onClick={() => removeOption(optIdx)} className="text-[10px] font-bold text-red-400 uppercase tracking-wider hover:bg-red-400/10 px-2 py-1 rounded transition-colors">Remove Option</button>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Option Name</label>
+                            <button type="button" onClick={() => removeOption(optIdx)} className="text-[10px] font-bold text-red-500 uppercase tracking-wider hover:bg-red-50 px-2 py-1 rounded transition-colors">Remove Option</button>
                           </div>
                           <input
-                            className="w-full border border-slate-700 bg-slate-800/50 rounded-xl px-4 py-2 text-sm mb-4 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all font-medium text-white placeholder:text-slate-500"
+                            className="w-full border border-gray-300 bg-gray-50 rounded-xl px-4 py-2 text-sm mb-4 focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all font-medium text-gray-900 placeholder:text-gray-400"
                             value={opt.name}
                             onChange={(e) => updateOptionName(optIdx, e.target.value)}
                             placeholder="e.g. Size, Color..."
                           />
 
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Values</label>
-                          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 min-h-[48px] flex flex-wrap gap-2.5 items-center focus-within:ring-2 focus-within:ring-teal-500/50 focus-within:border-teal-500 transition-all">
+                          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 block">Values</label>
+                          <div className="bg-gray-50 border border-gray-300 rounded-xl p-2.5 min-h-[48px] flex flex-wrap gap-2.5 items-center focus-within:ring-2 focus-within:ring-teal-500/50 focus-within:border-teal-500 transition-all">
                             {opt.values.map((v, vIdx) => (
-                              <div key={vIdx} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold border transition-all ${v.selected ? 'bg-teal-500 text-white border-teal-500' : 'bg-[#0e1424] text-slate-300 border-slate-700'}`}>
+                              <div key={vIdx} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold border transition-all ${v.selected ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-white text-gray-700 border-gray-300'}`}>
                                 <input
                                   type="checkbox"
                                   checked={v.selected}
                                   onChange={() => toggleValueSelection(optIdx, vIdx)}
-                                  className="rounded border-slate-600 bg-transparent text-teal-500 focus:ring-0 focus:ring-offset-0 w-4 h-4 cursor-pointer"
+                                  className="rounded border-gray-300 bg-transparent text-teal-600 focus:ring-0 focus:ring-offset-0 w-4 h-4 cursor-pointer"
                                 />
                                 <span>{v.value}</span>
-                                <button type="button" onClick={() => removeOptionValue(optIdx, vIdx)} className={`ml-1 transition-colors ${v.selected ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-red-400'}`}>
+                                <button type="button" onClick={() => removeOptionValue(optIdx, vIdx)} className={`ml-1 transition-colors ${v.selected ? 'text-teal-600/70 hover:text-teal-800' : 'text-gray-400 hover:text-red-500'}`}>
                                   <X className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             ))}
                             <input
-                              className="flex-1 min-w-[140px] outline-none text-sm bg-transparent h-full py-1.5 px-2 font-medium text-white placeholder:text-slate-500"
+                              className="flex-1 min-w-[140px] outline-none text-sm bg-transparent h-full py-1.5 px-2 font-medium text-gray-900 placeholder:text-gray-400"
                               placeholder="Type and press Enter..."
                               value={pendingValues[optIdx] || ""}
                               onChange={(e) => handlePendingValueChange(optIdx, e.target.value)}
@@ -391,33 +391,33 @@ export default function AddItemModal({
                       <button
                         type="button"
                         onClick={generateVariants}
-                        className="w-full py-3 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-700 transition-all flex items-center justify-center gap-2 mt-4 border border-slate-700"
+                        className="w-full py-3 bg-gray-100 text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all flex items-center justify-center gap-2 mt-4 border border-gray-300"
                       >
                         <Plus className="w-4 h-4" /> GENERATE VARIANTS
                       </button>
 
                       {variants.length > 0 && combinationsExist(options) && (
                         <div className="mt-8">
-                          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Variant Matrix ({variants.length})</h3>
-                          <div className="border border-slate-700 rounded-2xl overflow-hidden bg-[#0e1424]">
+                          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Variant Matrix ({variants.length})</h3>
+                          <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
                             <table className="w-full text-sm text-left">
-                              <thead className="bg-slate-800/50 border-b border-slate-700">
+                              <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                  <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider text-[10px]">Combination</th>
-                                  <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider text-[10px] w-32">Price</th>
-                                  <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider text-[10px] w-32">Unit Override</th>
-                                  <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider text-[10px] w-24 text-center">Status</th>
+                                  <th className="px-4 py-3 font-bold text-gray-500 uppercase tracking-wider text-[10px]">Combination</th>
+                                  <th className="px-4 py-3 font-bold text-gray-500 uppercase tracking-wider text-[10px] w-32">Price</th>
+                                  <th className="px-4 py-3 font-bold text-gray-500 uppercase tracking-wider text-[10px] w-32">Unit Override</th>
+                                  <th className="px-4 py-3 font-bold text-gray-500 uppercase tracking-wider text-[10px] w-24 text-center">Status</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-800/50">
+                              <tbody className="divide-y divide-gray-200">
                                 {variants.map((v, idx) => (
-                                  <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                                    <td className="px-4 py-3 font-bold text-white">{v.name}</td>
+                                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-4 py-3 font-bold text-gray-900">{v.name}</td>
                                     <td className="px-4 py-3">
                                       <div className="relative group">
-                                        <span className="absolute left-3 top-2 text-slate-500 text-xs font-bold transition-colors group-focus-within:text-teal-400">₹</span>
+                                        <span className="absolute left-3 top-2 text-gray-400 text-xs font-bold transition-colors group-focus-within:text-teal-600">₹</span>
                                         <input
-                                          className="w-full border border-slate-700 bg-slate-800/50 rounded-lg px-2 py-1.5 pl-6 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium text-white placeholder:text-slate-500"
+                                          className="w-full border border-gray-300 bg-gray-50 rounded-lg px-2 py-1.5 pl-6 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium text-gray-900 placeholder:text-gray-400"
                                           placeholder="0"
                                           value={v.price}
                                           onChange={(e) => updateVariantPrice(idx, e.target.value)}
@@ -426,7 +426,7 @@ export default function AddItemModal({
                                     </td>
                                     <td className="px-4 py-3">
                                       <select
-                                        className="w-full border border-slate-700 bg-slate-800/50 rounded-lg px-2 py-1.5 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium appearance-none text-white"
+                                        className="w-full border border-gray-300 bg-gray-50 rounded-lg px-2 py-1.5 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all font-medium appearance-none text-gray-900"
                                         value={v.unit || ""}
                                         onChange={(e) => updateVariantUnit(idx, e.target.value as any)}
                                       >
@@ -440,7 +440,7 @@ export default function AddItemModal({
                                       <button
                                         type="button"
                                         onClick={() => toggleVariantStatus(idx)}
-                                        className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border transition-all ${v.isActive ? 'bg-teal-500/20 text-teal-400 border-teal-500/20' : 'bg-slate-800 text-slate-500 border-slate-700'}`}
+                                        className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border transition-all ${v.isActive ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-gray-100 text-gray-500 border-gray-300'}`}
                                       >
                                         {v.isActive ? 'Active' : 'Draft'}
                                       </button>
@@ -459,20 +459,20 @@ export default function AddItemModal({
             </div>
 
             <div className="space-y-6">
-              <div className="bg-[#0e1424] p-5 rounded-xl border border-card-border space-y-4">
-                <h3 className="font-semibold text-white text-sm">Organization</h3>
+              <div className="bg-white p-5 rounded-xl border border-gray-200 space-y-4">
+                <h3 className="font-semibold text-gray-900 text-sm">Organization</h3>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase">Category</label>
-                  <div className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300">
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase">Category</label>
+                  <div className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700">
                     {category.name}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase">Base Pricing Unit</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase">Base Pricing Unit</label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value as any)}
-                    className="w-full border border-slate-700 bg-slate-800/50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 text-white"
+                    className="w-full border border-gray-300 bg-gray-50 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 text-gray-900"
                   >
                     <option value="piece">Per Piece</option>
                     <option value="kg">Per Kilogram</option>

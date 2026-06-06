@@ -926,7 +926,7 @@ const OrderTable: React.FC<OrderTableProps> = ({
                             <TableRow>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Order</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Customer</TableCell>
-                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Shop</TableCell>
+
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Logistics</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 min-w-[200px]">Notes</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Financial Audit</TableCell>
@@ -1279,151 +1279,8 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                 </div>
                                             </TableCell>
 
-                                            {/* Shop Info */}
-                                            <TableCell className="px-4 py-3 text-start">
-                                                <div className="flex flex-col gap-4 min-w-[150px]">
-                                                    {(() => {
-                                                        const isB2B = !!(order.originalShopId && order.originalShopId !== order.shopId);
-                                                        const leadShop = isB2B ? shopsMap[order.originalShopId!] : null;
-                                                        const fulfillerShop = shopsMap[order.shopId];
 
-                                                        const renderShopDetails = (shop: Shop | null | undefined, shopId: string, label?: string, isGrayed?: boolean) => {
-                                                            const s = shop;
-                                                            return (
-                                                                <div className={`space-y-3 ${isGrayed ? 'opacity-40 grayscale-[0.5]' : ''}`}>
-                                                                    {label && (
-                                                                        <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${isGrayed ? 'text-gray-400' : 'text-brand-500'}`}>
-                                                                            {label}
-                                                                        </div>
-                                                                    )}
-                                                                    {s ? (
-                                                                        <>
-                                                                            {/* Shop Name & Phone */}
-                                                                            <div className="space-y-1">
-                                                                                <button
-                                                                                    onClick={() => handleCopy(s.name, "Shop Name")}
-                                                                                    className="block font-medium text-gray-800 text-theme-sm dark:text-white/90 leading-tight hover:text-brand-500 transition-colors text-left"
-                                                                                >
-                                                                                    {s.name}
-                                                                                </button>
-                                                                                {s.phone && (
-                                                                                    <div className="flex items-center gap-1.5 mt-1">
-                                                                                        <button
-                                                                                            onClick={() => handleCopy(s.phone!, "Shop Phone")}
-                                                                                            className="text-theme-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 transition-colors"
-                                                                                        >
-                                                                                            {s.phone}
-                                                                                        </button>
-                                                                                        <a
-                                                                                            href={getWhatsAppLink(s.phone, getStatusMessage(order, "shop"))}
-                                                                                            target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            className="p-1 text-success-600 hover:bg-success-50 rounded transition-all"
-                                                                                        >
-                                                                                            <MessageCircle size={11} />
-                                                                                        </a>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
 
-                                                                            {/* Address & Coordinates */}
-                                                                            <div className="space-y-2 pt-2 border-t border-gray-50 dark:border-gray-800">
-                                                                                {s.address && (
-                                                                                    <button
-                                                                                        onClick={() => handleCopy(`${s.address?.area || ""} ${s.address?.locality || ""} ${s.address?.city || ""}`.trim(), "Shop Address")}
-                                                                                        className="text-theme-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 transition-colors text-left block"
-                                                                                    >
-                                                                                        <div className="flex items-center gap-1 font-medium italic">
-                                                                                            <MapPin className="w-2.5 h-2.5 text-gray-400 shrink-0" />
-                                                                                            <span className="truncate">{s.address?.area || s.address?.locality || s.address?.city}</span>
-                                                                                        </div>
-                                                                                    </button>
-                                                                                )}
-
-                                                                                {/* Coordinates */}
-                                                                                {(s.address?.lat !== undefined && s.address?.lng !== undefined) && (
-                                                                                    <div className="flex items-center gap-1">
-                                                                                        <button
-                                                                                            onClick={() => handleCopy(`${s.address?.lat},${s.address?.lng}`, "Coordinates")}
-                                                                                            className="text-theme-sm font-bold text-gray-400 hover:text-brand-500 transition-colors block text-left pt-1"
-                                                                                        >
-                                                                                            {s.address.lat.toFixed(5)}, {s.address.lng.toFixed(5)}
-                                                                                        </button>
-                                                                                        {copiedText === `${s.address?.lat},${s.address?.lng}` && (
-                                                                                            <Check size={10} className="text-success-500 animate-in fade-in zoom-in duration-200" />
-                                                                                        )}
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-
-                                                                            {/* Shop ID */}
-                                                                            <div className="pt-1 flex flex-col gap-2">
-                                                                                <Link
-                                                                                    href={`/shops/${shopId}/details`}
-                                                                                    className="text-[10px] text-gray-400 font-mono tracking-tighter truncate max-w-[140px] hover:text-brand-500 hover:underline transition-colors block text-left"
-                                                                                    title="View Shop Details"
-                                                                                >
-                                                                                    {shopId}
-                                                                                </Link>
-                                                                            </div>
-                                                                        </>
-                                                                    ) : (
-                                                                        <div className="space-y-2">
-                                                                            <button
-                                                                                onClick={() => handleCopy(order.shopName || "Unknown Shop", "Shop Name")}
-                                                                                className="block font-medium text-gray-800 text-theme-sm dark:text-white/90 hover:text-brand-500 transition-colors text-left"
-                                                                            >
-                                                                                {order.shopName || "Unknown Shop"}
-                                                                            </button>
-                                                                            <Link
-                                                                                href={`/shops/${shopId}/details`}
-                                                                                className="text-[10px] text-gray-400 font-mono tracking-tighter hover:text-brand-500 hover:underline transition-colors block text-left"
-                                                                                title="View Shop Details"
-                                                                            >
-                                                                                {shopId}
-                                                                            </Link>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        };
-
-                                                        if (isB2B) {
-                                                            return (
-                                                                <div className="space-y-6">
-                                                                    {renderShopDetails(leadShop, order.originalShopId!, "ORIGINAL SHOP (Lead)", true)}
-                                                                    <div className="flex justify-center -my-3 relative z-10">
-                                                                        <div className="bg-white dark:bg-gray-900 p-1.5 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm">
-                                                                            <ArrowDown size={14} className="text-brand-500" />
-                                                                        </div>
-                                                                    </div>
-                                                                    {renderShopDetails(fulfillerShop, order.shopId, "FULLFILLMENT SHOP")}
-                                                                    {order.fulfillmentStatus && (
-                                                                        <div className="mt-2">
-                                                                            <Badge 
-                                                                                variant="solid" 
-                                                                                size="sm"
-                                                                                className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-tighter border-none ${
-                                                                                    order.fulfillmentStatus === 'reconciled' 
-                                                                                    ? 'bg-emerald-500 text-white' 
-                                                                                    : order.fulfillmentStatus === 'built_unverified'
-                                                                                    ? 'bg-amber-500 text-white animate-pulse'
-                                                                                    : 'bg-gray-400 text-white'
-                                                                                }`}
-                                                                            >
-                                                                                {order.fulfillmentStatus === 'built_unverified' ? 'B2B BUILT' : order.fulfillmentStatus.replace(/_/g, ' ')}
-                                                                            </Badge>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        }
-
-                                                        // Standard Order Flow
-                                                        return renderShopDetails(fulfillerShop, order.shopId);
-                                                    })()}
-                                                </div>
-                                            </TableCell>
 
                                             {/* Logistics */}
                                             <TableCell className="px-4 py-3 text-start">

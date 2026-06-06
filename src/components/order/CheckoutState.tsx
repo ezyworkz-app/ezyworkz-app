@@ -405,7 +405,6 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
           });
         }
 
-        // Build a temporary payload using the existing utility
         const tempPayload = cartToOrderPayload(cartItems, deliveryBySvc, {
           paymentMethod,
           address: {
@@ -419,7 +418,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
             lat: savedAddr?.lat,
             lng: savedAddr?.lng,
           } as any,
-          deliveryCharges: applyDeliveryFee ? (initialDistanceFee || 0) : 0,
+          deliveryCharges: applyDeliveryFee ? (initialDistanceFee ?? undefined) : 0,
           discountAmount: discountAmount || 0,
           shopDiscountAmount: shopDiscountAmount || 0,
           baseAmount: 0,
@@ -581,7 +580,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
           lat: savedAddr.lat,
           lng: savedAddr.lng,
         },
-        deliveryCharges: applyDeliveryFee ? (initialDistanceFee ?? totals.deliveryTotal ?? 0) : 0,
+        deliveryCharges: applyDeliveryFee ? (initialDistanceFee ?? totals.deliveryTotal ?? undefined) : 0,
         couponCode,
         notes,
         baseAmount: totals.base,

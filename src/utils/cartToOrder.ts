@@ -67,7 +67,7 @@ export function cartToOrderPayload(
   opts: {
     paymentMethod: "cod" | "upi" | "card";
     address: Address;
-    deliveryCharges: number;
+    deliveryCharges: number | undefined;
     baseAmount: number;
     multiplierUpcharge: number;
     multiplierBreakdown?: {
@@ -220,7 +220,7 @@ export function cartToOrderPayload(
 
   // 🔹 TAX CALCULATION (discount does NOT affect taxable value)
   const gstRate = (opts.shopGstRate ?? 5) / 100;
-  const taxablePreDiscount = totalAmount + (opts.deliveryCharges * tripCount) + lowCartFee;
+  const taxablePreDiscount = totalAmount + ((opts.deliveryCharges || 0) * tripCount) + lowCartFee;
   const taxAmount = +(taxablePreDiscount * gstRate).toFixed(2);
 
   const walletAmountUsed = opts.walletAmountUsed ?? 0;
@@ -279,6 +279,6 @@ export function cartToOrderPayload(
     // Always include these to overwrite stale DB values
     lowCartFee,
     lowCartFeeBreakdown,
-    taxRate: opts.shopGstRate ?? 5,
+    taxRate: opts.shopGstRate,
   };
 }

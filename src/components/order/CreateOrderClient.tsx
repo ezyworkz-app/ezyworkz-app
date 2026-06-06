@@ -9,7 +9,7 @@ import CreateOrderCheckout from "./CreateOrderCheckout";
 import { useCart } from "@/context/CartContext";
 import { useCheckout } from "./CheckoutState";
 import { SavedAddress } from "@/types/address";
-import { getUserAddresses, getShopCustomers } from "@/lib/actions/users";
+import { getUserAddresses, getShopCustomers, createShopCustomer } from "@/lib/actions/users";
 import { ShopService } from "@/types/shop-menu";
 import { fetchShopServices } from "@/lib/actions/shops";
 import { useShop } from "@/context/ShopContext";
@@ -81,6 +81,12 @@ export default function CreateOrderClient() {
                 const shopDetails = shops.find((s: any) => s.shopId === selectedShopId);
                 if (shopDetails) {
                     setSelectedShop(shopDetails as Shop);
+                    if (shopDetails.gstEnabled) {
+                        setApplyGst(true);
+                    }
+                    if (shopDetails.deliveryFeeEnabled) {
+                        setApplyDeliveryFee(true);
+                    }
                 }
                 setShopServices(services);
             } catch (error) {
@@ -151,7 +157,21 @@ export default function CreateOrderClient() {
 
             <div className="mx-auto max-w-5xl px-6 py-8">
                 {step === "user" && (
-                    <UserSelector users={users} onSelect={handleUserSelect} />
+                    <UserSelector 
+                        users={users} 
+                        onSelect={handleUserSelect} 
+                        onCreateNewUser={async (name, phone, email) => {
+                            if (!selectedShopId) return null;
+                            const res = await createShopCustomer(selectedShopId, { name, phone, email });
+                            if (res.success && res.data) {
+                                setUsers(prev => [res.data as User, ...prev]);
+                                return res.data as User;
+                            } else {
+                                alert(res.error || "Failed to create user");
+                                return null;
+                            }
+                        }}
+                    />
                 )}
 
                 {step === "address" && (
