@@ -2,6 +2,27 @@
 
 import { User } from "../../types/user";
 import { apiFetch } from "../api";
+import { cookies } from "next/headers";
+
+export async function getShopCustomers(shopId: string): Promise<{ users: User[], totalCount: number }> {
+    try {
+        const token = (await cookies()).get("accessToken")?.value;
+        const res = await apiFetch(`/api/v1/customers/${shopId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            throw new Error(data.message || "Failed to fetch customers");
+        }
+        return {
+            users: data.data || [],
+            totalCount: data.data?.length || 0,
+        };
+    } catch (error) {
+        console.error("[getShopCustomers]", error);
+        return { users: [], totalCount: 0 };
+    }
+}
 
 export async function getAllUsers(
     limit: number = 10,
@@ -50,19 +71,19 @@ export async function getUserLocationClusters(): Promise<{ lat: number; lng: num
     }
 }
 
-export async function getUserAddresses(userId: string): Promise<any[]> {
+export async function getUserAddresses(shopId: string, userId: string): Promise<any[]> {
     try {
-        const res = await apiFetch(`/api/v1/admin/users/${userId}/addresses`);
+        const res = await apiFetch(`/api/v1/customers/${shopId}/${userId}`);
         const data = await res.json();
 
         if (!res.ok || !data.success) {
             throw new Error(data.message || "Failed to fetch user addresses");
         }
 
-        return data.data.addresses || [];
+        return data.data.savedAddresses || [];
     } catch (error) {
         console.error("[getUserAddresses]", error);
-        throw error;
+        return []; // Return empty array instead of throwing so the UI can handle it gracefully
     }
 }
 

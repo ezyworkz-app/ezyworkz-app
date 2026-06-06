@@ -31,6 +31,9 @@ export default function CheckoutClientPage({ order }: { order: Order }) {
     lastLoadedUpdatedAt,
     setLastLoadedUpdatedAt,
     setAddonsBySvc,
+    setApplyDeliveryFee,
+    setApplyGst,
+    setShopDiscountAmount,
   } = useCheckout();
 
   const searchParams = useSearchParams();
@@ -147,11 +150,22 @@ export default function CheckoutClientPage({ order }: { order: Order }) {
       if (order.orderId) {
         setEditingOrderId(order.orderId);
         setUserId(order.userId);
-        if (order.deliveryCharges != null) {
+        if (order.deliveryCharges != null && order.deliveryCharges > 0) {
           setInitialDistanceFee(order.deliveryCharges);
+          setApplyDeliveryFee(true);
+        } else {
+          setApplyDeliveryFee(false);
         }
-        // ✅ Prefill admin discount if present on order
+        
+        if (order.taxAmount && order.taxAmount > 0) {
+          setApplyGst(true);
+        } else {
+          setApplyGst(false);
+        }
+
+        // ✅ Prefill admin and shop discounts if present on order
         setDiscountAmount(order.discountAmount ?? 0);
+        setShopDiscountAmount(order.shopDiscountAmount ?? 0);
       }
     } else if (cartItems.length === 0) {
       // Emergency catch for empty cart if something went wrong
@@ -169,6 +183,9 @@ export default function CheckoutClientPage({ order }: { order: Order }) {
     setEditingOrderId,
     setInitialDistanceFee,
     setDiscountAmount,
+    setShopDiscountAmount,
+    setApplyDeliveryFee,
+    setApplyGst,
     lastLoadedOrderId,
     setLastLoadedOrderId,
     lastLoadedFulfillmentMode,

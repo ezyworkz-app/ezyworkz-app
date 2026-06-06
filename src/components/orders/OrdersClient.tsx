@@ -618,6 +618,13 @@ const OrdersClient = ({
                     </div>
 
                     <Button
+                        onClick={() => router.push("/orders/create")}
+                        variant="primary"
+                        className="h-11 font-bold px-4 whitespace-nowrap shadow-sm"
+                    >
+                        Create New Order
+                    </Button>
+                    <Button
                         onClick={handleManualRefresh}
                         disabled={isLoading}
                         variant="outline"

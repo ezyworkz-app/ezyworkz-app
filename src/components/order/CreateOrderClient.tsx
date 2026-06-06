@@ -3,28 +3,28 @@
 import { useState, useEffect } from "react";
 import { User } from "@/types/user";
 import { Shop } from "@/types/Shop";
-// import { ShopService } from "@/types/shop-menu";
-// import { fetchShopServices } from "@/lib/actions/shops";
 import UserSelector from "@/components/admin/UserSelector";
-import ShopSelector from "@/components/admin/ShopSelector";
 import ShopMenuClient from "@/components/shop/ShopMenuClient";
 import CreateOrderCheckout from "./CreateOrderCheckout";
 import { useCart } from "@/context/CartContext";
 import { useCheckout } from "./CheckoutState";
 import { SavedAddress } from "@/types/address";
-import { getUserAddresses } from "@/lib/actions/users";
+import { getUserAddresses, getShopCustomers } from "@/lib/actions/users";
 import { ShopService } from "@/types/shop-menu";
 import { fetchShopServices } from "@/lib/actions/shops";
+import { useShop } from "@/context/ShopContext";
+import apiClient from "@/lib/api/client";
 
-interface Props {
-    users: User[];
-    shops: Shop[];
-}
+type Step = "user" | "address" | "items" | "checkout";
 
-type Step = "user" | "address" | "shop" | "items" | "checkout";
-
-export default function CreateOrderClient({ users, shops }: Props) {
+export default function CreateOrderClient() {
+    const { selectedShopId } = useShop();
     const [step, setStep] = useState<Step>("user");
+    
+    // Data states
+    const [users, setUsers] = useState<User[]>([]);
+    const [loadingData, setLoadingData] = useState(true);
+
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [userAddresses, setUserAddresses] = useState<SavedAddress[]>([]);
     const [loadingAddresses, setLoadingAddresses] = useState(false);
@@ -33,7 +33,19 @@ export default function CreateOrderClient({ users, shops }: Props) {
     const [loadingServices, setLoadingServices] = useState(false);
 
     const { clear: clearCart, cartItems } = useCart();
-    const { setSavedAddr, setUserId, setPaymentMethod, setNotes, setCouponCode, setDiscountAmount } = useCheckout();
+    const { 
+        setSavedAddr, 
+        setUserId, 
+        setPaymentMethod, 
+        setNotes, 
+        setCouponCode, 
+        setDiscountAmount,
+        setShopDiscountAmount,
+        setEditingOrderId,
+        setApplyDeliveryFee,
+        setApplyGst,
+        setInitialDistanceFee
+    } = useCheckout();
 
     // Clear cart and checkout state on mount
     useEffect(() => {
@@ -44,7 +56,41 @@ export default function CreateOrderClient({ users, shops }: Props) {
         setNotes(undefined);
         setCouponCode(undefined);
         setDiscountAmount(0);
+        setShopDiscountAmount(0);
+        setEditingOrderId(undefined);
+        setApplyDeliveryFee(false);
+        setApplyGst(false);
+        setInitialDistanceFee(undefined);
     }, []);
+
+    // Fetch initial data (customers + shop details + services) based on shop
+    useEffect(() => {
+        if (!selectedShopId) return;
+        const loadInitialData = async () => {
+            setLoadingData(true);
+            try {
+                // Use client-side apiClient for shop details (shop-owner endpoint)
+                const [customersRes, myShopsRes, services] = await Promise.all([
+                    getShopCustomers(selectedShopId),
+                    apiClient.get('/shops/my-shops'),
+                    fetchShopServices(selectedShopId),
+                ]);
+                setUsers(customersRes.users || []);
+                // myShopsRes.data is the array of shops (interceptor unwraps data.data)
+                const shops = Array.isArray(myShopsRes.data) ? myShopsRes.data : [];
+                const shopDetails = shops.find((s: any) => s.shopId === selectedShopId);
+                if (shopDetails) {
+                    setSelectedShop(shopDetails as Shop);
+                }
+                setShopServices(services);
+            } catch (error) {
+                console.error("Failed to load shop data", error);
+            } finally {
+                setLoadingData(false);
+            }
+        };
+        loadInitialData();
+    }, [selectedShopId]);
 
     const handleUserSelect = async (user: User) => {
         setSelectedUser(user);
@@ -52,11 +98,7 @@ export default function CreateOrderClient({ users, shops }: Props) {
         setLoadingAddresses(true);
 
         try {
-            const addresses = await getUserAddresses(user.userId);
-            // Map API address to SavedAddress if needed, assuming they match for now or are compatible
-            // The API likely returns objects with _id, etc. We need to ensure they match SavedAddress
-            // Let's assume the API returns a list of objects that have the required fields.
-            // We might need to map them.
+            const addresses = await getUserAddresses(selectedShopId!, user.userId);
             const mappedAddresses: SavedAddress[] = addresses.map((addr: any) => ({
                 label: addr.label || "Home",
                 line1: addr.line1 || addr.street || "",
@@ -77,8 +119,6 @@ export default function CreateOrderClient({ users, shops }: Props) {
             setStep("address");
         } catch (err) {
             console.error("Failed to fetch addresses", err);
-            // Fallback or error? Let's just go to address step with empty list and maybe allow manual entry later?
-            // For now, let's just proceed to shop if no addresses, but better to show the address step even if empty so they know.
             setUserAddresses([]);
             setStep("address");
         } finally {
@@ -88,22 +128,7 @@ export default function CreateOrderClient({ users, shops }: Props) {
 
     const handleAddressSelect = (addr: SavedAddress) => {
         setSavedAddr(addr);
-        setStep("shop");
-    };
-
-    const handleShopSelect = async (shop: Shop) => {
-        setSelectedShop(shop);
-        setLoadingServices(true);
-        try {
-            const services = await fetchShopServices(shop.shopId);
-            setShopServices(services);
-            setStep("items");
-        } catch (err) {
-            console.error("Failed to fetch services", err);
-            alert("Failed to load shop services");
-        } finally {
-            setLoadingServices(false);
-        }
+        setStep("items");
     };
 
     return (
@@ -117,11 +142,9 @@ export default function CreateOrderClient({ users, shops }: Props) {
                         <span className="text-gray-300">→</span>
                         <span className={step === "address" ? "font-bold text-purple-600" : "text-gray-500"}>2. Address</span>
                         <span className="text-gray-300">→</span>
-                        <span className={step === "shop" ? "font-bold text-purple-600" : "text-gray-500"}>3. Shop</span>
+                        <span className={step === "items" ? "font-bold text-purple-600" : "text-gray-500"}>3. Items</span>
                         <span className="text-gray-300">→</span>
-                        <span className={step === "items" ? "font-bold text-purple-600" : "text-gray-500"}>4. Items</span>
-                        <span className="text-gray-300">→</span>
-                        <span className={step === "checkout" ? "font-bold text-purple-600" : "text-gray-500"}>5. Checkout</span>
+                        <span className={step === "checkout" ? "font-bold text-purple-600" : "text-gray-500"}>4. Checkout</span>
                     </div>
                 </div>
             </div>
@@ -142,8 +165,6 @@ export default function CreateOrderClient({ users, shops }: Props) {
                                 <p className="text-gray-500 mb-4">No saved addresses found for this user.</p>
                                 <button
                                     onClick={() => {
-                                        // Create a dummy address or handle manual entry
-                                        // For now, let's use user's lat/lng if available or just empty
                                         const addr: SavedAddress = {
                                             label: "others",
                                             line1: "",
@@ -202,17 +223,10 @@ export default function CreateOrderClient({ users, shops }: Props) {
                     </div>
                 )}
 
-                {step === "shop" && (
-                    <div>
-                        <button onClick={() => setStep("address")} className="mb-4 text-sm text-gray-500 hover:text-gray-700">← Back to Address</button>
-                        <ShopSelector shops={shops} onSelect={handleShopSelect} />
-                    </div>
-                )}
-
                 {step === "items" && selectedShop && (
                     <div className="flex flex-col h-full">
                         <div className="mb-4 flex items-center justify-between">
-                            <button onClick={() => setStep("shop")} className="text-sm text-gray-500 hover:text-gray-700">← Back to Shops</button>
+                            <button onClick={() => setStep("address")} className="text-sm text-gray-500 hover:text-gray-700">← Back to Address</button>
                             <button
                                 onClick={() => setStep("checkout")}
                                 disabled={cartItems.length === 0}

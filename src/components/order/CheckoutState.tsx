@@ -98,6 +98,9 @@ type Ctx = {
   discountAmount: number;
   setDiscountAmount: (n: number) => void;
 
+  shopDiscountAmount: number;
+  setShopDiscountAmount: (n: number) => void;
+
   userId?: string;
   setUserId: (id: string | undefined) => void;
 
@@ -152,6 +155,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
   const [editingOrderId, setEditingOrderId] = useState<string | undefined>();
   const [initialDistanceFee, setInitialDistanceFee] = useState<number>();
   const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [shopDiscountAmount, setShopDiscountAmount] = useState<number>(0);
   const [userId, setUserId] = useState<string | undefined>();
   const [isFulfillmentMode, setIsFulfillmentMode] = useState(false);
 
@@ -376,6 +380,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
     lowCartFeeBreakdown: { total: 0, breakdown: [] },
     tax: 0,
     discount: 0,
+    shopDiscount: 0,
     grand: 0,
     multiplierBreakdown: {},
     tripCount: 0,
@@ -415,6 +420,8 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
             lng: savedAddr?.lng,
           } as any,
           deliveryCharges: applyDeliveryFee ? (initialDistanceFee || 0) : 0,
+          discountAmount: discountAmount || 0,
+          shopDiscountAmount: shopDiscountAmount || 0,
           baseAmount: 0,
           multiplierUpcharge: 0,
           addonsBySvc: enrichedAddonsBySvc,
@@ -445,6 +452,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
             lowCartFeeBreakdown: breakdown.lowCartFeeBreakdown || { total: 0, breakdown: [] },
             tax: breakdown.taxAmount,
             discount: breakdown.discountAmount,
+            shopDiscount: breakdown.shopDiscountAmount || 0,
             grand: breakdown.grandTotal,
             multiplierLabel: breakdown.multiplierLabel,
             multiplierBreakdown: breakdown.multiplierBreakdown || {},
@@ -454,19 +462,66 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
             shopTotalAmount: breakdown.shopTotalAmount || 0,
           });
         } else {
-          // Fallback to local computation
+          // Fallback to local computation (backend calculate endpoint unavailable)
+          let preMultiplierTotal = 0;
+          let upcharge = 0;
+          let maxMultiplier = 1;
+          const mBreakdown: Record<string, { amount: number; label: string }> = {};
+
+          // Compute addons total from current selections
+          let fallbackAddonsTotal = 0;
+          Object.values(addonsBySvc).forEach(addons => {
+            fallbackAddonsTotal += addons.reduce((s, a) => s + a.price * a.qty, 0);
+          });
+
+          tempPayload.services.forEach((svc: any) => {
+            preMultiplierTotal += svc.baseAmount || 0;
+            const svcUpcharge = (svc.serviceTotal || 0) - (svc.baseAmount || 0);
+            upcharge += svcUpcharge;
+            const dKey = svc.selectedDeliveryKey;
+            const mult = svc.deliveryTypes?.[dKey]?.priceMultiplier || 1;
+            if (mult > maxMultiplier) {
+              maxMultiplier = mult;
+            }
+
+            // Build per-service multiplier breakdown with real values
+            if (mult > 1 && svcUpcharge > 0) {
+              let typeLabel = "Priority";
+              if (dKey === "express") typeLabel = "Express";
+              else if (dKey === "oneDay") typeLabel = "One Day";
+              const svcKey = svc.shopServiceId || svc.serviceName;
+              mBreakdown[svcKey] = {
+                amount: svcUpcharge,
+                label: `${svc.serviceName} - ${typeLabel} X${mult}`,
+              };
+            }
+          });
+
+          // Simple label for when breakdown is empty but upcharge exists
+          let mLabel = "";
+          if (upcharge > 0 && Object.keys(mBreakdown).length === 0) {
+            const hasExpress = Object.values(deliveryBySvc).some(k => k === "express");
+            const hasOneDay = Object.values(deliveryBySvc).some(k => k === "oneDay");
+            if (hasExpress) mLabel = "Express fee";
+            else if (hasOneDay) mLabel = "One Day fee";
+            else mLabel = "Priority fee";
+            if (maxMultiplier > 1) mLabel += ` X${maxMultiplier}`;
+          }
+
           setTotals({
-            base: tempPayload.totalAmount || 0, // This is basically items + addons in tempPayload
-            addonsTotal: 0, // Not explicitly extracted in tempPayload
-            multiplierUpcharge: 0,
+            base: preMultiplierTotal || 0,
+            addonsTotal: fallbackAddonsTotal,
+            multiplierUpcharge: upcharge || 0,
+            multiplierLabel: mLabel || undefined,
             distanceFee: tempPayload.deliveryCharges || 0,
             deliveryTotal: tempPayload.deliveryCharges || 0,
             lowCartFee: 0,
             lowCartFeeBreakdown: { total: 0, breakdown: [] },
             tax: tempPayload.taxAmount || 0,
             discount: tempPayload.discountAmount || 0,
+            shopDiscount: tempPayload.shopDiscountAmount || 0,
             grand: tempPayload.grandTotalPaid || 0,
-            multiplierBreakdown: {},
+            multiplierBreakdown: mBreakdown,
             tripCount: 1,
             shopBaseAmount: 0,
             shopAddonsTotal: 0,
@@ -482,7 +537,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
 
     const timeout = setTimeout(fetchTotals, 500);
     return () => clearTimeout(timeout);
-  }, [cartItems, deliveryBySvc, savedAddr, discountAmount, paymentMethod, addonsBySvc, applyDeliveryFee, applyGst]);
+  }, [cartItems, deliveryBySvc, savedAddr, discountAmount, shopDiscountAmount, paymentMethod, addonsBySvc, applyDeliveryFee, applyGst, initialDistanceFee]);
 
 
   /* ---- place order (create or update) ---- */
@@ -526,7 +581,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
           lat: savedAddr.lat,
           lng: savedAddr.lng,
         },
-        deliveryCharges: totals.deliveryTotal ?? initialDistanceFee ?? 0,
+        deliveryCharges: applyDeliveryFee ? (initialDistanceFee ?? totals.deliveryTotal ?? 0) : 0,
         couponCode,
         notes,
         baseAmount: totals.base,
@@ -536,6 +591,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
         lowCartFee: lcFee,
         lowCartFeeBreakdown: lcBreakdown,
         discountAmount, // send admin discount to backend
+        shopDiscountAmount, // send shop discount to backend
         userId, // ✅ Pass userId if present
         addonsBySvc: enrichedAddonsBySvc, // ✅ Pass correctly mapped addons
         shopGstRate: applyGst ? undefined : 0,
@@ -601,6 +657,8 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
     setInitialDistanceFee: memoSetInitialDistanceFee,
     discountAmount,
     setDiscountAmount: memoSetDiscountAmount,
+    shopDiscountAmount,
+    setShopDiscountAmount,
     userId,
     setUserId: memoSetUserId,
     isFulfillmentMode,

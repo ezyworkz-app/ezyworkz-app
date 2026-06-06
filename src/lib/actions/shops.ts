@@ -116,7 +116,7 @@ export async function getShopServiceById(
             throw new Error(data.message || "Failed to fetch shop service");
         }
 
-        return data.data.shopService as ShopService;
+        return (data.data.shopService || data.data) as ShopService;
     } catch (error) {
         console.error("[getShopServiceById]", error);
         return null;

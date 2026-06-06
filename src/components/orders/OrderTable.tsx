@@ -178,7 +178,13 @@ const OrderServiceView = ({
                 
                 // For fulfillment user bill, speed fee is embedded in marked-up totalPrice already
                 // Only compute speed fee for the shop payout side (which doesn't apply)
-                const speedFee = 0;
+                const multiplier = service.deliveryTypes?.[deliveryKey as any]?.priceMultiplier || 1;
+                const isFulfillmentUserBill = title === "Fulfillment User Bill";
+                
+                let speedFee = 0;
+                if (multiplier > 1 && !isFulfillmentUserBill) {
+                    speedFee = (itemTotal + addonTotal) * (multiplier - 1);
+                }
 
                 // Delivery Badge Color Logic
                 let deliveryBadgeClassName = "text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-400"; // Standard
@@ -254,7 +260,7 @@ const OrderServiceView = ({
                         <div className={`pt-2 mt-2 border-t ${borderClass} flex justify-between items-center`}>
                             <span className={`text-[10px] font-bold uppercase ${isGray ? 'text-gray-400' : 'text-brand-500'}`}>{showShopPrices ? 'Shop Payout' : 'Total'}</span>
                             <span className={`text-theme-sm font-black ${totalTextClass}`}>
-                            ₹{(showShopPrices ? (itemTotalShop + addonTotalShop) : (itemTotalRaw + addonTotalRaw)).toFixed(2)}
+                            ₹{(showShopPrices ? (itemTotalShop + addonTotalShop + speedFee) : (itemTotalRaw + addonTotalRaw + speedFee)).toFixed(2)}
                             </span>
                         </div>
                     </div>
@@ -1569,8 +1575,23 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                         <div className="space-y-1.5">
                                                             <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
                                                                 <span>Original Base</span>
-                                                                <span className="font-medium text-gray-800 dark:text-white/90">₹{(order.totalAmount || 0).toFixed(2)}</span>
+                                                                <span className="font-medium text-gray-800 dark:text-white/90">₹{(order.baseAmount || 0).toFixed(2)}</span>
                                                             </div>
+                                                            {order.multiplierBreakdown && Object.keys(order.multiplierBreakdown).length > 0 ? (
+                                                                Object.values(order.multiplierBreakdown).map((item: any, idx: number) => (
+                                                                    <div key={idx} className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
+                                                                        <span>{item.label}</span>
+                                                                        <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">+₹{(item.amount || 0).toFixed(2)}</span>
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                !order.multiplierBreakdown && (order.multiplierUpcharge || 0) !== 0 && (
+                                                                    <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
+                                                                        <span>{order.multiplierLabel || "Priority Fee"}</span>
+                                                                        <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">+₹{(order.multiplierUpcharge || 0).toFixed(2)}</span>
+                                                                    </div>
+                                                                )
+                                                            )}
                                                             <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
                                                                 <span>Logistics Fee</span>
                                                                 <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">+₹{(order.deliveryCharges || 0).toFixed(2)}</span>
@@ -1583,10 +1604,24 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                                 <span>Low Cart Fee</span>
                                                                 <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">+₹{(order.lowCartFee || 0).toFixed(2)}</span>
                                                             </div>
-                                                            <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
-                                                                <span>Discount</span>
-                                                                <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">-₹{(order.discountAmount || 0).toFixed(2)}</span>
-                                                            </div>
+                                                            {(order.discountAmount || 0) > 0 && (
+                                                                <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
+                                                                    <span>Admin Discount</span>
+                                                                    <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">-₹{(order.discountAmount || 0).toFixed(2)}</span>
+                                                                </div>
+                                                            )}
+                                                            {(order.shopDiscountAmount || 0) > 0 && (
+                                                                <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
+                                                                    <span>Shop Discount</span>
+                                                                    <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">-₹{(order.shopDiscountAmount || 0).toFixed(2)}</span>
+                                                                </div>
+                                                            )}
+                                                            {!(order.discountAmount || 0) && !(order.shopDiscountAmount || 0) && (
+                                                                <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
+                                                                    <span>Discount</span>
+                                                                    <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">-₹0.00</span>
+                                                                </div>
+                                                            )}
                                                             <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
                                                                 <span>Wallet Amount Used</span>
                                                                 <span className="font-medium text-gray-500 dark:text-gray-400 font-mono">-₹{(order.walletAmountUsed || 0).toFixed(2)}</span>

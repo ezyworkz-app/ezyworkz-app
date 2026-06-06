@@ -721,16 +721,19 @@ export async function enrichOrderWithDeliveryTypes(order: Order) {
                 order.shopId
             );
 
-            const deliveryTypes: Record<DeliveryKey, DeliveryType> =
-                serviceData?.deliveryTypes ?? {
-                    express: { priceMultiplier: 2, duration: "2 hours" },
-                    oneDay: { priceMultiplier: 1.5, duration: "1 day" },
-                    standard: { priceMultiplier: 1, duration: "2-3 days" },
-                };
+            const defaultDeliveryTypes = {
+                express: { priceMultiplier: 2, duration: "2 hours" },
+                oneDay: { priceMultiplier: 1.5, duration: "1 day" },
+                standard: { priceMultiplier: 1, duration: "2-3 days" },
+            };
 
-            const selectedDeliveryKey = Object.keys(svc.deliveryTypes ?? {})[0] as
-                | DeliveryKey
-                | undefined;
+            const historicalDeliveryTypes = (svc as any).deliveryType || svc.deliveryTypes || {};
+            const selectedDeliveryKey = Object.keys(historicalDeliveryTypes)[0] as DeliveryKey | undefined;
+
+            const deliveryTypes: Record<DeliveryKey, DeliveryType> = {
+                ...(serviceData?.deliveryTypes ?? defaultDeliveryTypes),
+                ...historicalDeliveryTypes
+            };
 
             return {
                 ...svc,

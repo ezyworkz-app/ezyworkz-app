@@ -140,10 +140,16 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                                 <span>₹{(order.taxAmount).toFixed(2)}</span>
                             </div>
                         )}
-                        {order.discountAmount > 0 && (
+                        {(order.discountAmount || 0) > 0 && (
                             <div className="flex justify-between text-sm text-teal-400">
-                                <span>Discount</span>
+                                <span>Admin Discount</span>
                                 <span>-₹{(order.discountAmount).toFixed(2)}</span>
+                            </div>
+                        )}
+                        {(order.shopDiscountAmount || 0) > 0 && (
+                            <div className="flex justify-between text-sm text-teal-400">
+                                <span>Shop Discount</span>
+                                <span>-₹{(order.shopDiscountAmount).toFixed(2)}</span>
                             </div>
                         )}
                         <div className="pt-3 mt-3 border-t border-white/10 flex justify-between items-center">

@@ -616,8 +616,12 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
             </div>
           )}
 
-          {displayData.discountAmount !== 0 && displayData.discountAmount != null && (
-            <PriceRow label="Discount" value={-displayData.discountAmount} />
+          {(displayData.discountAmount || 0) > 0 && (
+            <PriceRow label="Admin Discount" value={-displayData.discountAmount} />
+          )}
+
+          {(order.shopDiscountAmount || 0) > 0 && (
+            <PriceRow label="Shop Discount" value={-(order.shopDiscountAmount || 0)} />
           )}
 
           {order.walletAmountUsed! > 0 && (

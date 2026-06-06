@@ -15,6 +15,7 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
       lowCartFeeBreakdown,
       tax,
       discount,
+      shopDiscount,
       grand,
       multiplierLabel,
       multiplierBreakdown,
@@ -27,11 +28,15 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
     pending,
     discountAmount,
     setDiscountAmount,
+    shopDiscountAmount,
+    setShopDiscountAmount,
     addonsBySvc,
     applyDeliveryFee,
     setApplyDeliveryFee,
     applyGst,
     setApplyGst,
+    initialDistanceFee,
+    setInitialDistanceFee,
   } = useCheckout();
 
   // ✅ Currency formatter (always 2 decimal places)
@@ -46,20 +51,37 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
       <section className="space-y-4 rounded-2xl border-2 border-primary-200 bg-white p-4">
         <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Billing Adjustments</h2>
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <label className="text-sm font-semibold text-gray-800">Delivery Fee</label>
-              <p className="text-xs text-gray-500">Add delivery charges to the order</p>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <label className="text-sm font-semibold text-gray-800">Delivery Fee</label>
+                <p className="text-xs text-gray-500">Add delivery charges to the order</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={applyDeliveryFee}
+                  onChange={(e) => setApplyDeliveryFee(e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              </label>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={applyDeliveryFee}
-                onChange={(e) => setApplyDeliveryFee(e.target.checked)}
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-            </label>
+            {applyDeliveryFee && (
+              <div className="flex justify-between items-center mt-1">
+                <label className="text-xs font-medium text-gray-600">Delivery Amount</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                  <input
+                    type="number"
+                    value={initialDistanceFee || ""}
+                    onChange={(e) => setInitialDistanceFee(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-24 pl-7 pr-2 py-1 border border-gray-300 rounded-lg text-right text-sm"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between">
@@ -148,22 +170,22 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
 
           <Row label="GST & Tax" value={tax} formatFn={formatCurrency} />
 
-          {/* Admin Discount input */}
+          {/* Shop Discount input */}
           <div className="flex justify-between items-center mt-2">
-            <label className="font-medium">Discount (Admin)</label>
+            <label className="font-medium">Discount</label>
             <input
               type="number"
-              value={discountAmount}
+              value={shopDiscountAmount}
               onChange={(e) =>
-                setDiscountAmount(Math.max(0, Number(e.target.value) || 0))
+                setShopDiscountAmount(Math.max(0, Number(e.target.value) || 0))
               }
               className="w-28 border border-gray-300 rounded-lg text-right px-2 py-1"
               placeholder="0"
             />
           </div>
 
-          {/* Show discount as negative value */}
-          <Row label="Discount" value={-discount} formatFn={formatCurrency} />
+          {/* Show discount as negative value (both combined) */}
+          <Row label="Discount" value={-(discount + shopDiscount)} formatFn={formatCurrency} />
 
           <div className="flex justify-between pt-2 text-base font-semibold">
             <span>Grand Total</span>

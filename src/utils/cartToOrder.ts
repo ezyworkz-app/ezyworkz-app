@@ -27,6 +27,7 @@ export type CreateOrderPayload = Pick<
   | "grandTotalPaid"
   | "taxAmount"
   | "discountAmount"
+  | "shopDiscountAmount"
   | "lowCartFee"
 > & {
   deliveryScheduledAt: string;
@@ -44,6 +45,8 @@ export type CreateOrderPayload = Pick<
     breakdown: { service: string; fee: number }[];
   };
   userId?: string;
+  customerId?: string; // backend mapping
+  taxRate?: number;
 };
 
 const DEFAULT_DELIVERY: DeliveryKey = "standard";
@@ -84,6 +87,7 @@ export function cartToOrderPayload(
     pickupType?: "instant" | "schedule";
     pickupScheduledAt?: string;
     discountAmount?: number;
+    shopDiscountAmount?: number;
     userId?: string;
     addonsBySvc?: Record<string, { addonId: string; variationId?: string; variationName?: string; name?: string; price: number; originalUnitPrice?: number; applyMarkup?: boolean; qty: number }[]>;
     shopGstRate?: number;
@@ -121,7 +125,8 @@ export function cartToOrderPayload(
         baseAmount: 0,
         serviceTotal: 0,
         selectedDeliveryKey: dKey,
-      };
+        selectedDeliveryType: dKey,  // backend expects this field name
+      } as any;
     }
 
     let cat = svc.categories.find(
@@ -142,10 +147,11 @@ export function cartToOrderPayload(
       shopServiceCategoryItemId: line.itemId,
       itemName: line.itemName,
       qty: line.qty,
+      quantity: line.qty, // backend CreateOrderItemInput expects 'quantity'
       unit: line.unit,
       totalPrice: itemTotal,
       originalUnitPrice: line.originalUnitPrice,
-    };
+    } as any;
 
     cat.items.push(item);
     cat.baseAmount += itemTotal;
@@ -202,6 +208,7 @@ export function cartToOrderPayload(
   );
 
   const discountAmount = opts.discountAmount ?? 0;
+  const shopDiscountAmount = opts.shopDiscountAmount ?? 0;
   const tripCount = opts.tripCount || 1;
 
   // 🔹 Normalize low-cart values
@@ -224,6 +231,7 @@ export function cartToOrderPayload(
     taxablePreDiscount +
     taxAmount -
     discountAmount -
+    shopDiscountAmount -
     walletAmountUsed -
     ezyAmountUsed
   ).toFixed(2);
@@ -254,6 +262,7 @@ export function cartToOrderPayload(
     deliveryCharges: opts.deliveryCharges,
     taxAmount, // tax stays pre-discount
     discountAmount, // explicit admin discount
+    shopDiscountAmount, // explicit shop discount
     grandTotalPaid, // final after discount
     deliveryScheduledAt: deliveryScheduledAtIso,
     pickupType: opts.pickupType ?? "instant",
@@ -265,9 +274,11 @@ export function cartToOrderPayload(
     couponCode: opts.couponCode,
     notes: opts.notes,
     userId: opts.userId,
+    customerId: opts.userId, // backend expects customerId
 
     // Always include these to overwrite stale DB values
     lowCartFee,
     lowCartFeeBreakdown,
+    taxRate: opts.shopGstRate ?? 5,
   };
 }

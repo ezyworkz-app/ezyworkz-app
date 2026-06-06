@@ -181,6 +181,7 @@ export interface Order {
     totalAmount: number;
     taxAmount: number;
     discountAmount: number;
+    shopDiscountAmount?: number;
     deliveryCharges: number;
     lowCartFee?: number;
     grandTotalPaid: number;

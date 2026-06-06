@@ -14,6 +14,7 @@ export type Totals = {
   };
   tax: number;
   discount: number;
+  shopDiscount: number;
   grand: number;
   deliveryTotal: number;
   multiplierLabel?: string;
