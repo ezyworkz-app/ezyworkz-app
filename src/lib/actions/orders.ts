@@ -953,6 +953,11 @@ export async function deleteOrder(orderId: string, shopId?: string | null) {
             method: "DELETE",
         });
 
+        if (res.status === 204) {
+            revalidatePath("/orders", "page");
+            return { success: true };
+        }
+
         const result = await res.json();
         
         if (!res.ok || !result.success) {

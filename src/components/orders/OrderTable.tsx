@@ -995,15 +995,13 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                             )}
                                                         </button>
 
-                                                        {order.status === "cancelled" && (
-                                                            <button
-                                                                onClick={() => onDelete(order.orderId)}
-                                                                className="w-fit px-4 py-1.5 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase rounded-lg transition-all shadow-sm border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 active:scale-95"
-                                                            >
-                                                                <Trash2 size={12} />
-                                                                Delete Order
-                                                            </button>
-                                                        )}
+                                                        <button
+                                                            onClick={() => onDelete(order.orderId)}
+                                                            className="w-fit px-4 py-1.5 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase rounded-lg transition-all shadow-sm border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 active:scale-95"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                            Delete Order
+                                                        </button>
                                                         
                                                         {(() => {
                                                             const amountPaid = order.amountPaid || 0;

@@ -59,6 +59,15 @@ const navItems: NavItem[] = [
     path: "/services",
   },
   {
+    icon: <PieChartIcon />,
+    name: "Expenses",
+    subItems: [
+      { name: "Overview", path: "/expenses", pro: false },
+      { name: "Running Costs", path: "/expenses/running", pro: false },
+      { name: "Fixed Costs", path: "/expenses/fixed", pro: false },
+    ],
+  },
+  {
     icon: <GroupIcon />,
     name: "Staffing",
     subItems: [
