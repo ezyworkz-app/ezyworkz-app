@@ -263,7 +263,7 @@ const OrdersClient = ({
         const q = searchType === "all" ? searchQuery : undefined;
         const u = searchType === "user" ? searchQuery : undefined;
         const s = searchType === "shop" ? searchQuery : undefined;
-        fetchOrdersForPage(page, filters, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
+        fetchOrdersForPage(page, { ...filters, shopId: selectedShopId || filters.shopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
     };
 
     const handleClearSearch = () => {
@@ -784,12 +784,37 @@ const OrdersClient = ({
                                 {activeSection === "payment" && (
                                     <form
                                         action={async (formData) => {
-                                            if (selectedShopId) {
-                                                formData.append("shopId", selectedShopId);
+                                            if (isFormSubmitting) return;
+                                            setIsFormSubmitting(true);
+                                            try {
+                                                if (selectedShopId) {
+                                                    formData.append("shopId", selectedShopId);
+                                                }
+                                                const res = await updateOrderPaymentStatus(formData);
+                                                if (res && res.success) {
+                                                    const paymentStatus = formData.get("paymentStatus") as string;
+                                                    let amountPaid = selectedOrder.amountPaid || 0;
+                                                    if (paymentStatus === "paid") {
+                                                        amountPaid = selectedOrder.grandTotalPaid || 0;
+                                                    } else if (paymentStatus === "pending" || paymentStatus === "failed") {
+                                                        amountPaid = 0;
+                                                    }
+
+                                                    setOrders(prev => prev.map(o => o.orderId === selectedOrder.orderId ? { 
+                                                        ...o, 
+                                                        paymentStatus: paymentStatus as any,
+                                                        amountPaid 
+                                                    } : o));
+                                                    closeModal();
+                                                } else {
+                                                    alert(res?.error || "Failed to update payment status");
+                                                }
+                                            } catch (e) {
+                                                console.error(e);
+                                                alert("Unexpected error updating payment status");
+                                            } finally {
+                                                setIsFormSubmitting(false);
                                             }
-                                            await updateOrderPaymentStatus(formData);
-                                            router.refresh();
-                                            closeModal();
                                         }}
                                         className="space-y-6"
                                     >
