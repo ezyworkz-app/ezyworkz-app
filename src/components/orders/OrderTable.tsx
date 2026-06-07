@@ -6,7 +6,7 @@ import InputField from "@/components/form/input/InputField";
 import { Order, OrderService } from "@/types/order";
 import { Shop } from "@/types/Shop";
 import { getAllShops } from "@/lib/actions/shops";
-import { updateOrderAdminNotes, updateOrderLogisticsType, updateOrderChatType, refundManual, refundOverpaidAmount, refundViaCashfree, updateOrderDetailsByAdmin, verifyOrderItemCount, deleteOrder, updateRiderAssignment } from "@/lib/actions/orders";
+import { updateOrderAdminNotes, updateOrderLogisticsType, updateOrderChatType, refundManual, refundOverpaidAmount, refundViaCashfree, updateOrderDetailsByAdmin, verifyOrderItemCount, deleteOrder, updateRiderAssignment, updateOrderDate } from "@/lib/actions/orders";
 import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
@@ -121,6 +121,68 @@ const LogisticsToggleCell = ({ orderId, initialValue }: { orderId: string, initi
                     {isShopHandling ? "YES (Shop)" : "NO (System)"}
                 </span>
             </div>
+        </div>
+    );
+};
+
+const DateEditorCell = ({ orderId, shopId, initialDate }: { orderId: string, shopId: string, initialDate: string }) => {
+    const getLocalDatetimeString = (isoString: string) => {
+        const d = new Date(isoString);
+        if (isNaN(d.getTime())) return "";
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    const [date, setDate] = useState(getLocalDatetimeString(initialDate));
+    const [isSaving, setIsSaving] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+    const handleSave = async () => {
+        if (!hasUnsavedChanges) return;
+        setIsSaving(true);
+        try {
+            const newDate = new Date(date);
+            if (isNaN(newDate.getTime())) throw new Error("Invalid date");
+
+            const res = await updateOrderDate(orderId, shopId, newDate.toISOString());
+            if (res.error) throw new Error(res.error);
+            setHasUnsavedChanges(false);
+            window.location.reload(); // Refresh to ensure data sync
+        } catch (error: any) {
+            console.error("Failed to save date", error);
+            alert(error.message || "Failed to update date");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col gap-1 relative w-fit z-10">
+            <input
+                type="datetime-local"
+                value={date}
+                onChange={(e) => {
+                    setDate(e.target.value);
+                    setHasUnsavedChanges(true);
+                }}
+                className={`text-[10px] p-1 pr-6 rounded border transition-all h-6 outline-none ${hasUnsavedChanges
+                    ? "border-warning-300 bg-warning-50/30 text-warning-700"
+                    : "border-transparent bg-transparent hover:bg-gray-50 focus:bg-white text-gray-500"
+                    }`}
+            />
+            {isSaving ? (
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <Loader2 size={10} className="animate-spin text-brand-500" />
+                </div>
+            ) : hasUnsavedChanges && (
+                <button
+                    onClick={handleSave}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 bg-warning-500 text-white rounded hover:bg-warning-600 shadow-sm"
+                    title="Save changes"
+                >
+                    <Check size={8} />
+                </button>
+            )}
         </div>
     );
 };
@@ -957,8 +1019,8 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                         </button>
                                                     </div>
 
-                                                    <div className="block text-gray-500 text-theme-xs dark:text-gray-400 mt-1">
-                                                        {formatDate(order.createdAt)}
+                                                    <div className="block mt-1">
+                                                        <DateEditorCell orderId={order.orderId} shopId={order.shopId} initialDate={order.createdAt} />
                                                     </div>
 
                                                     {/* Item Counts Verification */}

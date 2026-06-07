@@ -74,16 +74,17 @@ export default function VariantSelectorModal({
                 </p>
 
                 <div className="max-h-[60vh] overflow-y-auto space-y-0 pr-2 -mr-2">
-                    {item.variants.map((variant) => {
+                    {item.variants.map((variant, index) => {
                         if (!variant.isActive) return null;
                         const combinedName = `${item.name} - ${variant.name}`;
                         
                         const variantPrice = Number((variant as any).price ?? (variant as any).pricePerPiece ?? (variant as any).pricePerKg ?? (variant as any).pricePerSft ?? 0);
                         const originalPrice = Number((variant as any).original_price ?? variantPrice);
+                        const uniqueId = variant.variantId || `variant-${item.shopServiceCategoryItemId}-${index}`;
 
                         return (
                             <div
-                                key={variant.variantId}
+                                key={uniqueId}
                                 className="flex items-center justify-between py-4 border-b border-slate-100 last:border-0"
                             >
                                 <div>
@@ -102,7 +103,7 @@ export default function VariantSelectorModal({
                                         deliveryTypes={deliveryTypes}
                                         categoryId={categoryId}
                                         categoryName={categoryName}
-                                        itemId={variant.variantId}
+                                        itemId={uniqueId}
                                         itemName={combinedName}
                                         unit={item.unit}
                                         price={variantPrice}

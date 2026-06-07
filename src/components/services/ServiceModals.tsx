@@ -3,7 +3,7 @@
 import { useState } from "react";
 import apiClient from "@/lib/api/client";
 import { Modal } from "@/components/ui/modal";
-import { Loader2, Plus, Settings } from "lucide-react";
+import { Loader2, Plus, Settings, Trash2 } from "lucide-react";
 import AddCategoryModal from "./AddCategoryModal";
 import AddItemModal from "./AddItemModal";
 
@@ -292,6 +292,13 @@ function EditItemModal({ shopId, data, closeModal, onRefresh }: any) {
                         className="w-full bg-[#0e1424] border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-white focus:border-teal-500 outline-none"
                     />
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setVariants(variants.filter((_, idx) => idx !== i))}
+                  className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             ))}
           </div>

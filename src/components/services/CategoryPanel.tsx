@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import apiClient from "@/lib/api/client";
-import { Loader2, Search, Edit2, Plus } from "lucide-react";
+import { Loader2, Search, Edit2, Plus, Trash2 } from "lucide-react";
 
 export default function CategoryPanel({
   shopId,
@@ -52,6 +52,29 @@ export default function CategoryPanel({
       console.error("Failed to toggle status", err);
       alert("Failed to toggle status");
     } finally {
+      setLoadingMap((m) => {
+        const copy = { ...m };
+        delete copy[id];
+        return copy;
+      });
+    }
+  };
+
+  const handleDeleteItem = async (item: any) => {
+    const id = item.shopServiceCategoryItemId || item.id || item.itemName;
+    if (!id) return;
+    if (!confirm("Are you sure you want to delete this item?")) return;
+
+    setLoadingMap((m) => ({ ...m, [id]: true }));
+
+    try {
+      await apiClient.delete(
+        `/shops/${shopId}/services/${service.serviceID}/categories/${selectedCategory.categoryId}/items/${id}`
+      );
+      onRefresh(); // trigger refetch
+    } catch (err) {
+      console.error("Failed to delete item", err);
+      alert("Failed to delete item");
       setLoadingMap((m) => {
         const copy = { ...m };
         delete copy[id];
@@ -179,21 +202,30 @@ export default function CategoryPanel({
                         </button>
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <button
-                          onClick={() =>
-                            setModal({
-                              type: "edit-item",
-                              data: {
-                                service,
-                                category: selectedCategory,
-                                item,
-                              },
-                            })
-                          }
-                          className="inline-flex items-center justify-center p-2 rounded-lg bg-gray-100 text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors"
-                        >
-                          <Edit2 size={16} />
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() =>
+                              setModal({
+                                type: "edit-item",
+                                data: {
+                                  service,
+                                  category: selectedCategory,
+                                  item,
+                                },
+                              })
+                            }
+                            className="inline-flex items-center justify-center p-2 rounded-lg bg-gray-100 text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item)}
+                            disabled={loading}
+                            className="inline-flex items-center justify-center p-2 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100 transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

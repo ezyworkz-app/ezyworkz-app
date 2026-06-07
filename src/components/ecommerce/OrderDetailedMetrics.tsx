@@ -349,12 +349,24 @@ export const OrderDetailedMetrics = ({ stats }: DetailedMetricsProps) => {
                     </div>
                     <div className="grid grid-cols-12 gap-6 items-start">
                         <div className="col-span-12 md:col-span-4 flex justify-center">
-                            <ReactApexChart 
-                                options={getDonutOptions('revenue')} 
-                                series={[financials.totalServiceRevenue, financials.totalTaxRevenue, financials.totalDeliveryRevenue, financials.totalFeesRevenue]} 
-                                type="donut" 
-                                height={200} 
-                            />
+                            {(() => {
+                                const revSeries = [(financials.totalServiceRevenue || 0), (financials.totalTaxRevenue || 0), (financials.totalDeliveryRevenue || 0), (financials.totalFeesRevenue || 0)];
+                                const hasData = revSeries.some(v => v > 0);
+                                return hasData ? (
+                                    <ReactApexChart 
+                                        options={getDonutOptions('revenue')} 
+                                        series={revSeries} 
+                                        type="donut" 
+                                        height={200} 
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-[200px] text-gray-300 dark:text-gray-600">
+                                        <div className="w-24 h-24 rounded-full border-4 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-center">No Data</span>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                         <div className="col-span-12 md:col-span-8">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -372,12 +384,24 @@ export const OrderDetailedMetrics = ({ stats }: DetailedMetricsProps) => {
                     </div>
                     <div className="grid grid-cols-12 gap-6 items-start">
                         <div className="col-span-12 md:col-span-4 flex justify-center">
-                            <ReactApexChart 
-                                options={getDonutOptions('audit')} 
-                                series={[financials.totalProfitStored, financials.totalPayout, financials.totalLogistics, financials.totalMarketingSpend, financials.totalDiscount, financials.totalComp]} 
-                                type="donut" 
-                                height={200} 
-                            />
+                            {(() => {
+                                const auditSeries = [(financials.totalProfitStored || 0), (financials.totalPayout || 0), (financials.totalLogistics || 0), (financials.totalMarketingSpend || 0), (financials.totalDiscount || 0), (financials.totalComp || 0)];
+                                const hasData = auditSeries.some(v => v > 0);
+                                return hasData ? (
+                                    <ReactApexChart 
+                                        options={getDonutOptions('audit')} 
+                                        series={auditSeries} 
+                                        type="donut" 
+                                        height={200} 
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-[200px] text-gray-300 dark:text-gray-600">
+                                        <div className="w-24 h-24 rounded-full border-4 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-center">No Data</span>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                         <div className="col-span-12 md:col-span-8">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

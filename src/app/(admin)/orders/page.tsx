@@ -4,8 +4,8 @@ import OrdersClient from "@/components/orders/OrdersClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-    title: "Orders | Launezy Admin",
-    description: "Manage laundry orders",
+    title: "Orders | Ezyworkz Shops",
+    description: "Manage shop orders",
 };
 
 export default function OrdersPage() {

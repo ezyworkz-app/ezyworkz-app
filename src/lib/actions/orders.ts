@@ -972,3 +972,30 @@ export async function deleteOrder(orderId: string, shopId?: string | null) {
         return { error: error.message || "Unexpected error" };
     }
 }
+
+/* ─────────────────────────────────────────────── */
+/* 🔹 Update Order Date                           */
+/* ─────────────────────────────────────────────── */
+export async function updateOrderDate(orderId: string, shopId: string, createdAt: string) {
+    if (!orderId) return { error: "Missing orderId" };
+
+    try {
+        const res = await apiFetch(`/api/v1/shops/${shopId}/orders/${orderId}/date`, {
+            method: "PATCH",
+            body: JSON.stringify({ createdAt }),
+        });
+
+        const result = await res.json();
+        
+        if (!res.ok || !result.success) {
+            throw new Error(result.message || "Failed to update order date");
+        }
+
+        revalidatePath("/orders", "page");
+        
+        return result;
+    } catch (error: any) {
+        console.error("[updateOrderDate]", error);
+        return { error: error.message || "Unexpected error" };
+    }
+}

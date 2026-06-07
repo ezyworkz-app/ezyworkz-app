@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { editShopItem } from "@/lib/actions/shopServices";
+import { editShopItem, deleteShopItem } from "@/lib/actions/shopServices";
 import { getAllGlobalVariantOptions } from "@/lib/actions/globalVariantOptions";
 import { GlobalVariantOption as GlobalVariantOptionType } from "@/types/global";
 import { useRouter } from "next/navigation";
@@ -244,6 +244,14 @@ export default function EditItemModal({
     setVariants(newVariants);
   };
 
+  const addCustomVariant = () => {
+    setVariants([...variants, { name: "Custom Variant", price: "0", isActive: true }]);
+  };
+
+  const deleteVariant = (index: number) => {
+    setVariants(variants.filter((_, i) => i !== index));
+  };
+
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return alert("Name is required");
@@ -322,6 +330,25 @@ export default function EditItemModal({
             <h2 className="text-lg font-bold text-slate-800">Edit product</h2>
           </div>
           <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={async () => {
+                if (confirm("Are you sure you want to delete this item completely?")) {
+                  try {
+                    setLoading(true);
+                    await deleteShopItem(shopId, service.serviceID, category.categoryId, itemId);
+                    router.refresh();
+                    closeModal();
+                  } catch(e: any) {
+                    alert(e?.message || "Failed to delete item");
+                    setLoading(false);
+                  }
+                }
+              }}
+              className="px-4 py-2 bg-rose-50 text-rose-600 text-sm font-semibold rounded-lg hover:bg-rose-100 transition-all flex items-center gap-2 mr-2"
+            >
+              <Trash2 className="w-4 h-4" /> Delete Item
+            </button>
             <div className="px-3 py-1 bg-slate-100 text-xs font-medium text-slate-500 rounded-md border flex items-center">
               {loading ? "Updating..." : "Unsaved changes"}
             </div>
@@ -544,7 +571,16 @@ export default function EditItemModal({
 
                       {variants.length > 0 && (
                         <div className="mt-8">
-                          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Variant Matrix ({variants.length})</h3>
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Variant Matrix ({variants.length})</h3>
+                            <button
+                              type="button"
+                              onClick={addCustomVariant}
+                              className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+                            >
+                              <Plus className="w-3 h-3" /> ADD CUSTOM VARIANT
+                            </button>
+                          </div>
                           <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
                             <table className="w-full text-sm text-left font-sans">
                               <thead className="bg-slate-50/50 border-b border-slate-200">
@@ -553,12 +589,23 @@ export default function EditItemModal({
                                   <th className="px-5 py-4 font-bold text-slate-500 uppercase tracking-wider text-[10px] w-36">Price</th>
                                   <th className="px-5 py-4 font-bold text-slate-500 uppercase tracking-wider text-[10px] w-36">Unit Override</th>
                                   <th className="px-5 py-4 font-bold text-slate-500 uppercase tracking-wider text-[10px] w-28 text-center">Status</th>
+                                  <th className="px-5 py-4 font-bold text-slate-500 uppercase tracking-wider text-[10px] w-12 text-center">Del</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100">
                                 {variants.map((v, idx) => (
                                   <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-5 py-4 font-bold text-slate-900">{v.name}</td>
+                                    <td className="px-5 py-4">
+                                      <input
+                                        className="w-full bg-transparent border-0 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1"
+                                        value={v.name}
+                                        onChange={(e) => {
+                                          const newVariants = [...variants];
+                                          newVariants[idx].name = e.target.value;
+                                          setVariants(newVariants);
+                                        }}
+                                      />
+                                    </td>
                                     <td className="px-5 py-4">
                                       <div className="relative group/price">
                                         <span className="absolute left-3 top-2.5 text-slate-400 text-xs font-bold transition-colors group-focus-within/price:text-blue-500">₹</span>
@@ -589,6 +636,15 @@ export default function EditItemModal({
                                         className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${v.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'}`}
                                       >
                                         {v.isActive ? 'Active' : 'Draft'}
+                                      </button>
+                                    </td>
+                                    <td className="px-5 py-4 text-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => deleteVariant(idx)}
+                                        className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
                                       </button>
                                     </td>
                                   </tr>

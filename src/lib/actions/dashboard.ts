@@ -1,5 +1,6 @@
 "use server";
 import { apiFetch } from "@/lib/api";
+import { cookies } from "next/headers";
 
 interface StatsOptions {
     range?: string;
@@ -9,6 +10,27 @@ interface StatsOptions {
 
 export async function getDashboardStats(rangeOrOptions?: string | StatsOptions) {
     try {
+        const token = (await cookies()).get("accessToken")?.value;
+        // The user ID or shopOwnerId is stored in the cookie
+        let resolvedShopId = (await cookies()).get("id")?.value;
+        
+        // We need the ACTUAL shopId, not the shopOwnerId. Let's fetch my-shops to find it.
+        try {
+            const shopsRes = await apiFetch("/api/v1/shops/my-shops");
+            if (shopsRes.ok) {
+                const shopsData = await shopsRes.json();
+                if (shopsData.success && shopsData.data && shopsData.data.length > 0) {
+                    resolvedShopId = shopsData.data[0].shopId;
+                }
+            }
+        } catch (e) {
+            console.warn("[getDashboardStats] Failed to fetch my-shops to resolve shopId", e);
+        }
+
+        if (!resolvedShopId) {
+            throw new Error("shopId could not be resolved. Please log in again.");
+        }
+
         let query = "";
 
         if (typeof rangeOrOptions === "string") {
@@ -19,7 +41,7 @@ export async function getDashboardStats(rangeOrOptions?: string | StatsOptions) 
             query = `?range=${encodeURIComponent(rangeOrOptions.range)}`;
         }
 
-        const res = await apiFetch(`/api/v1/admin/dashboard/stats${query}`);
+        const res = await apiFetch(`/api/v1/shops/${resolvedShopId}/dashboard/stats${query}`);
         const json = await res.json();
 
         // Return a plain object (POJO) to ensure serialization
