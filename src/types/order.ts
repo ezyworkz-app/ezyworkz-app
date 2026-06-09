@@ -139,6 +139,7 @@ export interface Order {
     shopName: string;
     userId: string;
     user: User;
+    orderSource?: "user" | "store";
 
     /* 📦 Item Count Cross-Check */
     userItemCount?: number;

@@ -45,6 +45,10 @@ export interface Shop {
     gstEnabled?: boolean;
     gstNumber?: string;
     gstRate?: number;
+
+    /* Domains */
+    customDomain?: string;
+    subdomain?: string;
 }
 
 export interface CommissionHistoryEntry {

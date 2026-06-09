@@ -874,7 +874,58 @@ const OrderTable: React.FC<OrderTableProps> = ({
             waiting_confirmation: `Hello ${userName}, we have received your order ${orderId}. We are confirming the details with the shop now!`,
             confirmed: `*Hi ${userName}, I am Bajarappa here from Launezy.*\n\n*Please confirm clothes are packed in a bag and you’re available for pickup, so we can schedule your order for pickup.*${pickupTime}\n- *Order ID*: ${orderId}\n- *Pickup From*: ${order.address?.houseNo ? order.address.houseNo + ", " : ""}${order.address?.area || order.address?.city || "No Address"}\n- *Phone*: ${order.user?.phoneNumber || ""}\n\n*Thank you for choosing Launezy!*`,
             in_pickup: `Hello ${userName}, our partner is on the way for the pickup of your order ${orderId}.`,
-            in_process: `Hello ${userName}, your order ${orderId} is now being processed. We'll notify you once it's ready!`,
+            in_process: (() => {
+                const isStoreUser = order.orderSource !== "user";
+                if (isStoreUser) {
+                    const totalItems = order.services.reduce((total, service) => {
+                        return total + service.categories.reduce((catTotal, category) => {
+                            return catTotal + category.items.reduce((itemTotal, item) => itemTotal + item.qty, 0);
+                        }, 0);
+                    }, 0);
+
+                    const servicesText = order.services.map(service => {
+                        const rawLabel = (service.selectedDeliveryKey || order.multiplierLabel || "standard").toLowerCase();
+                        let dKey = "Standard";
+                        if (rawLabel.includes("express")) dKey = "Express";
+                        else if (rawLabel.includes("oneday") || rawLabel.includes("one day")) dKey = "One Day";
+                        return `• ${service.serviceName} (${dKey}) - ₹${Math.round(service.serviceTotal)}`;
+                    }).join('\n');
+
+                    const orderIdShort = order.orderId.slice(-6).toUpperCase();
+                    const safeOrderId = order.orderId.replace(/_/g, '-');
+                    const shopCustomDomain = shop?.customDomain;
+                    const invoiceUrl = shopCustomDomain 
+                        ? `https://${shopCustomDomain}/invoice/${safeOrderId}`
+                        : `https://ezyworkz.com/order/${safeOrderId}`;
+
+                    return `✨ *New Order Confirmed!* ✨
+
+Hello ${userName},
+
+Thank you for choosing *${shopName}*! We have successfully received your order and are processing it with care.
+
+🧾 *Order Summary*
+• *Order ID:* #${orderIdShort}
+• *Total Items:* ${totalItems}
+• *Status:* Confirmed ✅
+
+🧺 *Service Details*
+${servicesText}
+
+💳 *Payment Summary*
+• *Total Amount:* ₹${Math.round(order.grandTotalPaid)}
+• *Method:* ${order.paymentMethod.toUpperCase()} (${order.paymentStatus})
+
+🔗 *View your detailed E-Invoice here:*
+${invoiceUrl}
+
+We will notify you as soon as your order is ready for ${order.address ? 'delivery' : 'pickup'}!
+
+Warm regards,
+*The ${shopName} Team*`;
+                }
+                return `Hello ${userName}, your order ${orderId} is now being processed. We'll notify you once it's ready!`;
+            })(),
             ready_to_deliver: "", // Handled below
             out_for_delivery: `Hello ${userName}, your order ${orderId} is out for delivery! Our partner will reach you shortly.`,
             delivered: (() => {
