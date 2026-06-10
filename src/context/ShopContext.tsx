@@ -6,17 +6,20 @@ import { useAuth } from './AuthContext';
 
 interface ShopContextType {
     selectedShopId: string | null;
+    selectedShop: any | null;
     isLoading: boolean;
 }
 
 const ShopContext = createContext<ShopContextType>({
     selectedShopId: null,
+    selectedShop: null,
     isLoading: true,
 });
 
 export const ShopProvider = ({ children }: { children: ReactNode }) => {
     const { isAuthenticated } = useAuth();
     const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
+    const [selectedShop, setSelectedShop] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -26,6 +29,7 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
                     const response = await apiClient.get('/shops/my-shops');
                     if (response.data && response.data.length > 0) {
                         setSelectedShopId(response.data[0].shopId);
+                        setSelectedShop(response.data[0]);
                     }
                 } catch (error) {
                     console.error("Failed to load shops", error);
@@ -34,6 +38,7 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
                 }
             } else {
                 setSelectedShopId(null);
+                setSelectedShop(null);
                 setIsLoading(false);
             }
         };
@@ -42,7 +47,7 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     }, [isAuthenticated]);
 
     return (
-        <ShopContext.Provider value={{ selectedShopId, isLoading }}>
+        <ShopContext.Provider value={{ selectedShopId, selectedShop, isLoading }}>
             {children}
         </ShopContext.Provider>
     );

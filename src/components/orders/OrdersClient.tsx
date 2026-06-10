@@ -82,7 +82,7 @@ const OrdersClient = ({
     const [shopsMap, setShopsMap] = useState<Record<string, Shop>>({});
     
     // Auth / Shop Context
-    const { selectedShopId, isLoading: isShopLoading } = useShop();
+    const { selectedShopId, selectedShop, isLoading: isShopLoading } = useShop();
     
     // Pagination State
     const [page, setPage] = useState(1);
@@ -221,9 +221,15 @@ const OrdersClient = ({
 
     // Fetch shops for mapping on mount (Disabled for shop portal)
     useEffect(() => {
-        // Shop portal doesn't need to fetch all shops. The user only has one shop context.
-        setShopsMap({});
-    }, []);
+        // Shop portal only has one shop context
+        if (selectedShopId && selectedShop) {
+            setShopsMap({
+                [selectedShopId]: selectedShop
+            });
+        } else {
+            setShopsMap({});
+        }
+    }, [selectedShopId, selectedShop]);
 
     // Consolidated Fetch Logic: Triggered on any filter/search/tab change
     useEffect(() => {
