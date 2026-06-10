@@ -894,8 +894,11 @@ const OrderTable: React.FC<OrderTableProps> = ({
                     const orderIdShort = order.orderId.slice(-6).toUpperCase();
                     const safeOrderId = order.orderId.replace(/_/g, '-');
                     const shopCustomDomain = shop?.customDomain;
+                    const shopSubdomain = shop?.subdomain;
                     const invoiceUrl = shopCustomDomain 
                         ? `https://${shopCustomDomain}/invoice/${safeOrderId}`
+                        : shopSubdomain
+                        ? `https://${shopSubdomain}.ezyworkz.com/invoice/${safeOrderId}`
                         : `https://ezyworkz.com/order/${safeOrderId}`;
 
                     return `✨ *New Order Confirmed!* ✨
