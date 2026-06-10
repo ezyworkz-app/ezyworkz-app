@@ -870,9 +870,9 @@ const OrderTable: React.FC<OrderTableProps> = ({
         }
 
         const messages: Record<string, string> = {
-            payment_pending: `*Hi ${userName}, I am Bajarappa from Launezy.*\n\n*Your order ${orderId} is currently waiting for payment. Should we proceed with Cash on Delivery? Please let us know or complete the payment to start processing.*`,
-            waiting_confirmation: `Hello ${userName}, we have received your order ${orderId}. We are confirming the details with the shop now!`,
-            confirmed: `*Hi ${userName}, I am Bajarappa here from Launezy.*\n\n*Please confirm clothes are packed in a bag and you’re available for pickup, so we can schedule your order for pickup.*${pickupTime}\n- *Order ID*: ${orderId}\n- *Pickup From*: ${order.address?.houseNo ? order.address.houseNo + ", " : ""}${order.address?.area || order.address?.city || "No Address"}\n- *Phone*: ${order.user?.phoneNumber || ""}\n\n*Thank you for choosing Launezy!*`,
+            payment_pending: `*Hi ${userName}, from ${shopName}.*\n\n*Your order ${orderId} is currently waiting for payment. Should we proceed with Cash on Delivery? Please let us know or complete the payment to start processing.*`,
+            waiting_confirmation: `Hello ${userName}, we have received your order ${orderId}. We are confirming the details now!`,
+            confirmed: `*Hi ${userName}, from ${shopName}.*\n\n*Please confirm clothes are packed in a bag and you’re available for pickup, so we can schedule your order for pickup.*${pickupTime}\n- *Order ID*: ${orderId}\n- *Pickup From*: ${order.address?.houseNo ? order.address.houseNo + ", " : ""}${order.address?.area || order.address?.city || "No Address"}\n- *Phone*: ${order.user?.phoneNumber || ""}\n\n*Thank you for choosing ${shopName}!*`,
             in_pickup: `Hello ${userName}, our partner is on the way for the pickup of your order ${orderId}.`,
             in_process: (() => {
                 const isStoreUser = order.orderSource !== "user";
@@ -939,9 +939,9 @@ Warm regards,
                 const outstanding = Math.max(0, (order.grandTotalPaid || 0) - totalPaid);
                 
                 if (outstanding <= 0.05) {
-                    return `Hi ${userName}, your order ${orderId} has been delivered. Thank you for choosing Launezy, have a great day!`;
+                    return `Hi ${userName}, your order ${orderId} has been delivered. Thank you for choosing ${shopName}, have a great day!`;
                 }
-                return `Hi ${userName}, your order ${orderId} has been delivered. Please pay the outstanding amount of ₹${outstanding.toFixed(2)} at your earliest convenience. Thank you for choosing Launezy, have a great day!`;
+                return `Hi ${userName}, your order ${orderId} has been delivered. Please pay the outstanding amount of ₹${outstanding.toFixed(2)} at your earliest convenience. Thank you for choosing ${shopName}, have a great day!`;
             })(),
             waiting_user_review: `Hello ${userName}, we've updated the items/pricing for your order ${orderId}. Please review and approve in the app.`,
             cancelled: `Hello ${userName}, your order ${orderId} has been cancelled. If you have any questions, feel free to ask here.`,
@@ -957,9 +957,9 @@ Warm regards,
             const outstanding = Math.max(0, (order.grandTotalPaid || 0) - totalPaid);
 
             if (outstanding > 0.05) {
-                return `*Hi ${userName}, I am Bajarappa from Launezy.*\n\n*Your laundry for order ${orderId} is ready! Please settle the pending payment of ₹${outstanding.toFixed(2)} and schedule your delivery for faster arrival.*`;
+                return `*Hi ${userName}, from ${shopName}.*\n\n*Your laundry for order ${orderId} is ready! Please settle the pending payment of ₹${outstanding.toFixed(2)} and schedule your delivery for faster arrival.*`;
             }
-            return `*Hi ${userName}, I am Bajarappa from Launezy.*\n\n*Your laundry for order ${orderId} is ready! Please schedule your delivery via the app for faster arrival.*`;
+            return `*Hi ${userName}, from ${shopName}.*\n\n*Your laundry for order ${orderId} is ready! Please schedule your delivery via the app for faster arrival.*`;
         }
 
         return result;
