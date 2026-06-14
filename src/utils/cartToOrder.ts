@@ -149,6 +149,7 @@ export function cartToOrderPayload(
       qty: line.qty,
       quantity: line.qty, // backend CreateOrderItemInput expects 'quantity'
       unit: line.unit,
+      unitPrice: line.price, // map the actual price from the cart line
       totalPrice: itemTotal,
       originalUnitPrice: line.originalUnitPrice,
     } as any;

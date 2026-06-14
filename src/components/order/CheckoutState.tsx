@@ -600,19 +600,22 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
       try {
         if (currentEditingId) {
           if (currentFulfillmentMode) {
-            await updateFulfillmentCartByAdmin(currentEditingId, {
+            const res = await updateFulfillmentCartByAdmin(currentEditingId, {
               fulfillmentCart: payload.services,
               fulfillmentStatus: "built_unverified",
             });
+            if (res?.error) throw new Error(res.error);
           } else {
-            await updateOrderDetailsByAdmin(currentEditingId, payload);
+            const res = await updateOrderDetailsByAdmin(currentEditingId, payload);
+            if (res?.error) throw new Error(res.error);
           }
         } else {
           // 🛡️ Strict Guard: If we are in fulfillment mode but lost the ID, DO NOT fallback to create.
           if (currentFulfillmentMode) {
             throw new Error("Critical: Order context lost in fulfillment mode. Please refresh the page.");
           }
-          await createOrder(payload);
+          const res = await createOrder(payload);
+          if (res?.error) throw new Error(res.error);
         }
 
         // ✅ Success logic: Clear local state and navigate away
