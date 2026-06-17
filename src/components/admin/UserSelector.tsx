@@ -140,7 +140,7 @@ export default function UserSelector({ users, onSelect, onCreateNewUser }: Props
                                         {user.name ?? "Unnamed User"}
                                     </div>
                                     <div className="text-sm text-gray-500">
-                                        {user.phoneNumber} • {user.email}
+                                        {[user.phoneNumber, user.email].filter(Boolean).join(" • ")}
                                     </div>
                                 </div>
                                 <div className="text-purple-600">Select →</div>

@@ -14,9 +14,10 @@ export async function getShopCustomers(shopId: string): Promise<{ users: User[],
         if (!res.ok || !data.success) {
             throw new Error(data.message || "Failed to fetch customers");
         }
+        const users = data.data || [];
         return {
-            users: data.data || [],
-            totalCount: data.data?.length || 0,
+            users: users.map((u: any) => ({ ...u, phoneNumber: u.phone || u.phoneNumber })),
+            totalCount: users.length,
         };
     } catch (error) {
         console.error("[getShopCustomers]", error);
@@ -37,8 +38,11 @@ export async function createShopCustomer(shopId: string, payload: { name: string
         if (!res.ok || !data.success) {
             return { success: false, error: data.message || "Failed to create customer" };
         }
-        
-        return { success: true, data: data.data };
+        const createdUser = data.data;
+        if (createdUser && !createdUser.phoneNumber && createdUser.phone) {
+            createdUser.phoneNumber = createdUser.phone;
+        }
+        return { success: true, data: createdUser };
     } catch (error: any) {
         console.error("[createShopCustomer]", error);
         return { success: false, error: error.message || "Unexpected error occurred" };
