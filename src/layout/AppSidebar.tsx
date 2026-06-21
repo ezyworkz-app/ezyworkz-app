@@ -109,6 +109,11 @@ const navItems: NavItem[] = [
     path: "/calendar",
   },
   {
+    icon: <PlugInIcon />,
+    name: "Shop Settings",
+    path: "/settings",
+  },
+  {
     icon: <UserCircleIcon />,
     name: "User Profile",
     path: "/profile",

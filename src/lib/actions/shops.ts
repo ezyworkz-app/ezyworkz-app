@@ -553,3 +553,28 @@ export async function uploadShopFile(shopId: string, file: File, fileType: strin
         return { success: false, error: error.message };
     }
 }
+
+export async function uploadShopAsset(shopId: string, formData: FormData): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+        const token = (await cookies()).get("accessToken")?.value;
+        if (!token) throw new Error("Not authenticated");
+
+        const res = await apiFetch(`/api/v1/shops/${shopId}/upload`, {
+            method: "POST",
+            headers: { 
+                Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            throw new Error(data.message || "Failed to upload asset");
+        }
+
+        return { success: true, data: data.data };
+    } catch (error: any) {
+        console.error("[uploadShopAsset]", error);
+        return { success: false, error: error.message };
+    }
+}

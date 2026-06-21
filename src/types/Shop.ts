@@ -49,6 +49,10 @@ export interface Shop {
     /* Domains */
     customDomain?: string;
     subdomain?: string;
+
+    /* Assets */
+    faviconUrl?: string;
+    logoUrl?: string;
 }
 
 export interface CommissionHistoryEntry {
