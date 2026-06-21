@@ -263,12 +263,12 @@ export default function ShopSettlements({ shopId }: ShopSettlementsProps) {
       });
 
     try {
-      const logo = await loadImage("/images/logo/launezy_logo.png");
+      const logo = await loadImage("/images/logo/ezyworkz_logo.png");
       const displayHeight = 12;
       const displayWidth = (logo.width * displayHeight) / logo.height;
       doc.addImage(logo.data, "PNG", 14, 12, displayWidth, displayHeight);
       doc.setTextColor(51, 65, 85); doc.setFontSize(9); doc.setFont("helvetica", "bold");
-      doc.text("Launezy Private Limited", 14, 28);
+      doc.text("Ezyworkz Private Limited", 14, 28);
       doc.setTextColor(100, 116, 139); doc.setFontSize(8); doc.setFont("helvetica", "normal");
       doc.text("GSTIN: 37AAGCL1450L1ZD", 14, 32.5);
       doc.setTextColor(130, 108, 187); doc.setFontSize(22); doc.setFont("helvetica", "bold");
@@ -355,9 +355,9 @@ export default function ShopSettlements({ shopId }: ShopSettlementsProps) {
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i); doc.setFontSize(8); doc.setTextColor(148, 163, 184);
         doc.setDrawColor(241, 245, 249); doc.line(14, 280, 196, 280);
-        doc.text("Thank you for choosing Launezy!", 105, 285, { align: "center" });
+        doc.text("Thank you for choosing Ezyworkz!", 105, 285, { align: "center" });
         doc.setFontSize(7); doc.text(`Page ${i} of ${pageCount}`, 196, 292, { align: "right" });
-        doc.text("System generated report. For support contact contact@launezy.com", 14, 292);
+        doc.text("System generated report. For support contact contact@ezyworkz.com", 14, 292);
       }
       doc.save(`settlement-${shop.name.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}.pdf`);
     } catch (error) {

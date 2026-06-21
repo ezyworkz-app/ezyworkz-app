@@ -27,13 +27,13 @@ export const LocationProvider = ({
   /* wrapped setter that also persists */
   const setLocation = useCallback((loc: Location) => {
     _setLocation(loc);
-    if (loc) localStorage.setItem("launezy_location", JSON.stringify(loc));
-    else localStorage.removeItem("launezy_location");
+    if (loc) localStorage.setItem("ezyworkz_location", JSON.stringify(loc));
+    else localStorage.removeItem("ezyworkz_location");
   }, []);
 
   /* hydrate from storage or GPS */
   useEffect(() => {
-    const stored = localStorage.getItem("launezy_location");
+    const stored = localStorage.getItem("ezyworkz_location");
     if (stored) {
       try {
         const loc = JSON.parse(stored) as Location;

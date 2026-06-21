@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ *
- *  shop‑menu.server.ts – fast helpers for the Launezy shop frontend  *
+ *  shop‑menu.server.ts – fast helpers for the Ezyworkz shop frontend  *
  * ------------------------------------------------------------------ */
 
 "use server";

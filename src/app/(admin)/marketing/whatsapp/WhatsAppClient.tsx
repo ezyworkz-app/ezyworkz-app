@@ -19,14 +19,14 @@ function NotificationPreview({ name }: { name: string }) {
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm">L</div>
         <div>
-          <p className="text-white font-semibold text-sm">Launezy</p>
+          <p className="text-white font-semibold text-sm">Ezyworkz</p>
           <p className="text-white/60 text-xs">WhatsApp Business</p>
         </div>
       </div>
       <div className="bg-[#DCF8C6] rounded-xl rounded-tl-none px-3 py-2 max-w-xs">
         <p className="text-gray-800 text-sm leading-relaxed">
           Hi <strong>{name}</strong>, your laundry is still waiting! 🧺{" "}
-          Use code <strong>TRYLAUNEZY</strong> to get ₹100 OFF your first Launezy order (min ₹200). Don't miss out!
+          Use code <strong>TRYEZYWORKZ</strong> to get ₹100 OFF your first Ezyworkz order (min ₹200). Don't miss out!
         </p>
         <p className="text-gray-400 text-xs text-right mt-1">now ✓✓</p>
       </div>

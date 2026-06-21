@@ -6,10 +6,10 @@ import { launchCampaign } from "@/lib/actions/campaigns";
 import Button from "@/components/ui/button/Button";
 
 const SEGMENTS = [
-    { value: "FIRST_TIME",        label: "Never Ordered",       desc: "Signed up but placed 0 orders", code: "TRYLAUNEZY" },
+    { value: "FIRST_TIME",        label: "Never Ordered",       desc: "Signed up but placed 0 orders", code: "TRYEZYWORKZ" },
     { value: "INACTIVE_ONE_TIME", label: "One-Time Dormant",    desc: "1 order, inactive 45+ days",    code: "MISSEDYOU" },
-    { value: "INACTIVE_FREQUENT", label: "Frequent Dormant",    desc: "2+ orders, inactive 45+ days",  code: "LAUNEZYIT" },
-    { value: "ALL",               label: "All Segments",        desc: "Every unconverted user",         code: "LAUNEZYBACK" },
+    { value: "INACTIVE_FREQUENT", label: "Frequent Dormant",    desc: "2+ orders, inactive 45+ days",  code: "EZYWORKZIT" },
+    { value: "ALL",               label: "All Segments",        desc: "Every unconverted user",         code: "EZYWORKZBACK" },
 ];
 
 export default function LaunchCampaignModal() {
@@ -111,7 +111,7 @@ export default function LaunchCampaignModal() {
                                             <div className="flex items-center gap-2 mb-2">
                                                 <div className="w-7 h-7 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">L</div>
                                                 <div>
-                                                    <p className="text-[9px] font-bold text-gray-400 uppercase">Launezy · Now</p>
+                                                    <p className="text-[9px] font-bold text-gray-400 uppercase">Ezyworkz · Now</p>
                                                 </div>
                                             </div>
                                             <p className="text-xs font-black text-gray-900 dark:text-white leading-tight">
@@ -137,7 +137,7 @@ export default function LaunchCampaignModal() {
                                     <div className="flex justify-between items-start">
                                         <div>
                                             <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Configure Campaign</h3>
-                                            <p className="text-xs font-medium text-gray-400 mt-1">Platform-funded — Launezy absorbs the discount</p>
+                                            <p className="text-xs font-medium text-gray-400 mt-1">Platform-funded — Ezyworkz absorbs the discount</p>
                                         </div>
                                         <button type="button" onClick={handleClose} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors">
                                             <X size={18} className="text-gray-400" />

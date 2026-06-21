@@ -88,10 +88,10 @@ const AppHeader: React.FC = () => {
               <Image
                 width={32}
                 height={32}
-                src="/images/logo/launezy_logo_icon.png"
+                src="/images/logo/ezyworkz_logo_icon.png"
                 alt="Logo"
               />
-              Launezy Admin
+              Ezyworkz Admin
             </h1>
           </Link>
 

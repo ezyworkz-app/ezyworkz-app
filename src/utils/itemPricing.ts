@@ -41,7 +41,7 @@ export function applyTieredMarkup(base: number, tiers: MarkupTier[]): number {
  * Stacking order:
  *   1. base          — raw shop price
  *   2. withGst       — base + shop's GST  (what the shop actually charges)
- *   3. customerPrice — withGst + Launezy markup  (what the customer pays in the app)
+ *   3. customerPrice — withGst + Ezyworkz markup  (what the customer pays in the app)
  *
  * Returns:
  *   withGst       — shop price inclusive of GST  (or base when GST is off)

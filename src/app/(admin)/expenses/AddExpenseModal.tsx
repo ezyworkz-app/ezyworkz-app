@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, X } from "lucide-react";
 import apiClient from "@/lib/api/client";
 
@@ -13,6 +13,7 @@ const CATEGORIES = [
     { value: "SUPPLIES", label: "Supplies - Detergent, etc. (Running)" },
     { value: "MAINTENANCE", label: "Maintenance & Repairs (Running)" },
     { value: "MARKETING", label: "Marketing & Advertising (Running)" },
+    { value: "FOOD", label: "Food & Beverage (Running)" },
     { value: "OTHER", label: "Other" },
 ];
 
@@ -21,9 +22,16 @@ interface AddExpenseModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    expenseToEdit?: {
+        expenseId: string;
+        category: string;
+        amount: number;
+        description?: string;
+        date: string;
+    } | null;
 }
 
-export function AddExpenseModal({ shopId, isOpen, onClose, onSuccess }: AddExpenseModalProps) {
+export function AddExpenseModal({ shopId, isOpen, onClose, onSuccess, expenseToEdit }: AddExpenseModalProps) {
     const [formData, setFormData] = useState({
         amount: "",
         category: "UTILITIES",
@@ -34,6 +42,44 @@ export function AddExpenseModal({ shopId, isOpen, onClose, onSuccess }: AddExpen
     const [customCategoryType, setCustomCategoryType] = useState<"OPEX" | "CAPEX">("OPEX");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (expenseToEdit) {
+            const isStandard = CATEGORIES.some(c => c.value === expenseToEdit.category);
+            let cat = expenseToEdit.category;
+            let customName = "";
+            let customType: "OPEX" | "CAPEX" = "OPEX";
+            
+            if (!isStandard) {
+                cat = "OTHER";
+                if (expenseToEdit.category.startsWith("CAPEX_CUSTOM:")) {
+                    customType = "CAPEX";
+                    customName = expenseToEdit.category.split(":")[1].replace(/_/g, ' ');
+                } else if (expenseToEdit.category.startsWith("OPEX_CUSTOM:")) {
+                    customType = "OPEX";
+                    customName = expenseToEdit.category.split(":")[1].replace(/_/g, ' ');
+                }
+            }
+
+            setFormData({
+                amount: expenseToEdit.amount.toString(),
+                category: cat,
+                description: expenseToEdit.description || "",
+                date: new Date(expenseToEdit.date).toISOString().split('T')[0],
+            });
+            setCustomCategoryName(customName);
+            setCustomCategoryType(customType);
+        } else {
+            setFormData({
+                amount: "",
+                category: "UTILITIES",
+                description: "",
+                date: new Date().toISOString().split('T')[0],
+            });
+            setCustomCategoryName("");
+            setCustomCategoryType("OPEX");
+        }
+    }, [expenseToEdit, isOpen]);
 
     if (!isOpen) return null;
 
@@ -64,12 +110,21 @@ export function AddExpenseModal({ shopId, isOpen, onClose, onSuccess }: AddExpen
         }
 
         try {
-            await apiClient.post(`/shops/${shopId}/expenses`, {
-                amount: Number(formData.amount),
-                category: finalCategory,
-                description: formData.description,
-                date: new Date(formData.date).toISOString(),
-            });
+            if (expenseToEdit) {
+                await apiClient.put(`/shops/${shopId}/expenses/${expenseToEdit.expenseId}`, {
+                    amount: Number(formData.amount),
+                    category: finalCategory,
+                    description: formData.description,
+                    date: new Date(formData.date).toISOString(),
+                });
+            } else {
+                await apiClient.post(`/shops/${shopId}/expenses`, {
+                    amount: Number(formData.amount),
+                    category: finalCategory,
+                    description: formData.description,
+                    date: new Date(formData.date).toISOString(),
+                });
+            }
 
             onSuccess();
             onClose();
@@ -94,7 +149,7 @@ export function AddExpenseModal({ shopId, isOpen, onClose, onSuccess }: AddExpen
                 <div className="absolute -right-16 -top-16 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
                 
                 <div className="flex justify-between items-center mb-6 relative">
-                    <h2 className="text-xl font-bold text-gray-900">Record Expense</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{expenseToEdit ? "Edit Expense" : "Record Expense"}</h2>
                     <button onClick={onClose} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
@@ -217,7 +272,7 @@ export function AddExpenseModal({ shopId, isOpen, onClose, onSuccess }: AddExpen
                             className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-purple-600 hover:bg-purple-700 text-white transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
                         >
                             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                            Save Expense
+                            {expenseToEdit ? "Update Expense" : "Save Expense"}
                         </button>
                     </div>
                 </form>

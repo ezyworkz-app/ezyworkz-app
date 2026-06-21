@@ -1,7 +1,7 @@
 import MarketingPerformanceClient from "@/components/marketing/MarketingPerformanceClient";
 
 export const metadata = {
-  title: "Ads & Performance | Launezy Admin",
+  title: "Ads & Performance | Ezyworkz Admin",
   description: "Comprehensive marketing and ad performance dashboard",
 };
 

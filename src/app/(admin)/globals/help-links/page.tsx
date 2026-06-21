@@ -4,7 +4,7 @@ import { getHelpLinksConfig } from "@/lib/actions/globals";
 import HelpLinksClient from "./HelpLinksClient";
 
 export const metadata = {
-    title: "Help Links Configuration | Launezy Admin",
+    title: "Help Links Configuration | Ezyworkz Admin",
     description: "Manage YouTube tutorial links for the Shop App",
 };
 

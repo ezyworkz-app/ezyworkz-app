@@ -318,13 +318,13 @@ const UserTable: React.FC<UserTableProps> = ({ initialUsers, initialNextKey, ini
         const smile  = "\u{1F60A}"; // 😊
         return (
             `Hi ${firstName}! ${wave}\n\n` +
-            `Welcome to *Launezy*!\n\n` +
+            `Welcome to *Ezyworkz*!\n\n` +
             `We noticed you haven't placed your first order yet, and we'd love to make it super easy for you!\n\n` +
             `${gift} *Special first-order offer:* Get ₹100 OFF your first order!\n\n` +
-            `${mobile} Just open the Launezy app, add your clothes, and we'll handle the rest — pickup, wash, fold & delivery.\n\n` +
-            `${point} *Book your first order now* and use code: *TRYLAUNEZY*\n\n` +
+            `${mobile} Just open the Ezyworkz app, add your clothes, and we'll handle the rest — pickup, wash, fold & delivery.\n\n` +
+            `${point} *Book your first order now* and use code: *TRYEZYWORKZ*\n\n` +
             `Any questions? Just reply here – we're happy to help! ${smile}\n\n` +
-            `– Team Launezy`
+            `– Team Ezyworkz`
         );
     };
 

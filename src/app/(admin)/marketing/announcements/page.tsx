@@ -5,7 +5,7 @@ import AnnouncementManager from "@/components/marketing/AnnouncementManager";
 import { Megaphone } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "Announcements | Launezy Admin",
+    title: "Announcements | Ezyworkz Admin",
     description: "Manage home-screen alerts — delays, price surges, and offers.",
 };
 

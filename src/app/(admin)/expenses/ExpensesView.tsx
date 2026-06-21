@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useShop } from "@/context/ShopContext";
 import apiClient from "@/lib/api/client";
-import { Plus, WalletCards, Loader2, AlertCircle, IndianRupee, TrendingDown, Building2, Trash2 } from "lucide-react";
+import { Plus, WalletCards, Loader2, AlertCircle, IndianRupee, TrendingDown, Building2, Trash2, Edit2 } from "lucide-react";
 import { AddExpenseModal } from "./AddExpenseModal";
 import Link from "next/link";
 
@@ -51,6 +51,12 @@ export function ExpensesView({ activeTab }: ExpensesViewProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [timeFilter, setTimeFilter] = useState<"THIS_MONTH" | "LAST_MONTH" | "ALL_TIME">("THIS_MONTH");
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+    const handleEdit = (expense: Expense) => {
+        setEditingExpense(expense);
+        setIsModalOpen(true);
+    };
 
     const handleDelete = async (expenseId: string) => {
         if (!confirm("Are you sure you want to delete this expense?")) return;
@@ -282,6 +288,13 @@ export function ExpensesView({ activeTab }: ExpensesViewProps) {
                                             </td>
                                             <td className="p-4 text-right whitespace-nowrap">
                                                 <button
+                                                    onClick={() => handleEdit(expense)}
+                                                    className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors mr-1"
+                                                    title="Edit expense"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                                <button
                                                     onClick={() => handleDelete(expense.expenseId)}
                                                     disabled={deletingId === expense.expenseId}
                                                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
@@ -305,8 +318,15 @@ export function ExpensesView({ activeTab }: ExpensesViewProps) {
                 <AddExpenseModal 
                     shopId={selectedShopId} 
                     isOpen={isModalOpen} 
-                    onClose={() => setIsModalOpen(false)} 
-                    onSuccess={fetchExpenses} 
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setEditingExpense(null);
+                    }} 
+                    onSuccess={() => {
+                        fetchExpenses();
+                        setEditingExpense(null);
+                    }} 
+                    expenseToEdit={editingExpense}
                 />
             </main>
         </ProtectedRoute>

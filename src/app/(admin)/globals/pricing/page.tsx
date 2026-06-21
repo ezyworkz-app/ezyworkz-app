@@ -2,7 +2,7 @@ import { getPricingConfig } from "@/lib/actions/globals";
 import PricingConfigClient from "./PricingConfigClient";
 
 export const metadata = {
-    title: "Pricing & Markup Management | Launezy",
+    title: "Pricing & Markup Management | Ezyworkz",
 };
 
 export default async function PricingPage() {

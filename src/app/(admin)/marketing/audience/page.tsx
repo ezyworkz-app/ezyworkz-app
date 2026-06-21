@@ -5,7 +5,7 @@ import DeviceStatsCard from "@/components/marketing/DeviceStatsCard";
 import { Smartphone } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "Device Audience | Launezy Admin",
+    title: "Device Audience | Ezyworkz Admin",
     description: "Push notification reachability — active devices, token freshness, and user segments.",
 };
 

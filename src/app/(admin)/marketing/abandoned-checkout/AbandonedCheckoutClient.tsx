@@ -17,25 +17,25 @@ import { Bell, Send, Clock, ShoppingBag, Phone, CheckCircle, XCircle, AlertCircl
 const NOTIFICATION_VARIANTS = [
   {
     title: "Still thinking about it? 🤔",
-    body: (name: string) => `Hi ${name}, your laundry is waiting! Use code TRYLAUNEZY to get ₹100 off your first Launezy order.`,
+    body: (name: string) => `Hi ${name}, your laundry is waiting! Use code TRYEZYWORKZ to get ₹100 off your first Ezyworkz order.`,
   },
   {
     title: "We saved your spot! 🛒",
-    body: (name: string) => `${name}, don't let your laundry pile up. Grab ₹100 off with code TRYLAUNEZY — valid this week only!`,
+    body: (name: string) => `${name}, don't let your laundry pile up. Grab ₹100 off with code TRYEZYWORKZ — valid this week only!`,
   },
   {
     title: "Your ₹100 coupon is waiting 🎁",
-    body: (name: string) => `Hi ${name}! Use TRYLAUNEZY for ₹100 off your first order. Fresh laundry, just one tap away!`,
+    body: (name: string) => `Hi ${name}! Use TRYEZYWORKZ for ₹100 off your first order. Fresh laundry, just one tap away!`,
   },
 ];
 
 // PostHog one-shot message (csv-reengagement uses a single message for CSV/PostHog flow)
 const POSTHOG_NOTIFICATION = {
   title: "Your ₹100 coupon is still waiting! 🎁",
-  body: (name: string) => `Hi ${name}, use code TRYLAUNEZY to get ₹100 off your first Launezy order. Fresh laundry, delivered to your door!`,
+  body: (name: string) => `Hi ${name}, use code TRYEZYWORKZ to get ₹100 off your first Ezyworkz order. Fresh laundry, delivered to your door!`,
 };
 
-function NotificationPreview({ title, body, appName = "Launezy" }: { title: string; body: string; appName?: string }) {
+function NotificationPreview({ title, body, appName = "Ezyworkz" }: { title: string; body: string; appName?: string }) {
   return (
     <div className="w-full max-w-sm mx-auto">
       {/* Android-style */}
@@ -281,7 +281,7 @@ export default function AbandonedCheckoutClient({ users, windowHours }: Props) {
                                 body={POSTHOG_NOTIFICATION.body(phPreview[0]?.name?.split(" ")[0] || "there")}
                             />
                             <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 text-center">
-                                "Hi" name is personalised per user · Coupon: <strong>TRYLAUNEZY</strong> · ₹100 off · Min order ₹200
+                                "Hi" name is personalised per user · Coupon: <strong>TRYEZYWORKZ</strong> · ₹100 off · Min order ₹200
                             </p>
                         </div>
 

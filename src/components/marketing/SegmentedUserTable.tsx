@@ -118,16 +118,16 @@ const SegmentedUserTable: React.FC<SegmentedUserTableProps> = ({ users, total, c
 
     const handleQuickSend = async (user: SegmentedUser) => {
         let quickData = {
-            couponCode: "LAUNEZY20",
+            couponCode: "EZYWORKZ20",
             title: "We Miss You! 🎁",
-            body: `Hi ${user.name || 'there'}, we've missed you! Use code LAUNEZY20 for a special discount on your next order.`
+            body: `Hi ${user.name || 'there'}, we've missed you! Use code EZYWORKZ20 for a special discount on your next order.`
         };
 
         if (user.segment === "FIRST_TIME") {
             quickData = {
-                couponCode: "LAUNEZY20",
-                title: "Welcome to Launezy! ✨",
-                body: `Hi ${user.name || 'there'}, start your journey with 20% off! Use code LAUNEZY20 on your first order.`
+                couponCode: "EZYWORKZ20",
+                title: "Welcome to Ezyworkz! ✨",
+                body: `Hi ${user.name || 'there'}, start your journey with 20% off! Use code EZYWORKZ20 on your first order.`
             };
         } else if (user.segment === "INACTIVE_FREQUENT") {
             quickData = {

@@ -3,7 +3,7 @@ import { UserAcquisitionClient } from "@/components/users/UserAcquisitionClient"
 import { getDashboardStats } from "@/lib/actions/dashboard";
 
 export const metadata: Metadata = {
-    title: "Acquisition Analytics | Launezy Admin",
+    title: "Acquisition Analytics | Ezyworkz Admin",
     description: "New user acquisition, order conversion and repeat behaviour",
 };
 

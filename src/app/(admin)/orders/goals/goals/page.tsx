@@ -6,8 +6,8 @@ import { apiFetch } from "@/lib/api";
 import { TrendingUp, Target as TargetIcon, Lightbulb } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "Revenue Goals | Launezy Admin",
-    description: "Set and track monthly revenue targets for Launezy",
+    title: "Revenue Goals | Ezyworkz Admin",
+    description: "Set and track monthly revenue targets for Ezyworkz",
 };
 
 interface GoalsPageProps {

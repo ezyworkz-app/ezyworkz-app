@@ -5,7 +5,7 @@ import AbandonedCheckoutClient from "./AbandonedCheckoutClient";
 import { ShoppingCart } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "Abandoned Checkout | Launezy Admin",
+    title: "Abandoned Checkout | Ezyworkz Admin",
     description: "Users who started checkout but didn't place an order — re-engage them with a push notification.",
 };
 

@@ -13,9 +13,9 @@ interface SendCouponModalProps {
 }
 
 const SendCouponModal: React.FC<SendCouponModalProps> = ({ isOpen, onClose, onSend, userName, segment }) => {
-    const [couponCode, setCouponCode] = useState("LAUNEZY20");
+    const [couponCode, setCouponCode] = useState("EZYWORKZ20");
     const [title, setTitle] = useState("We Miss You! 🎁");
-    const [body, setBody] = useState(`Hi ${userName}, get 20% off your next order with code LAUNEZY20. Valid across all shops!`);
+    const [body, setBody] = useState(`Hi ${userName}, get 20% off your next order with code EZYWORKZ20. Valid across all shops!`);
     const [loading, setLoading] = useState(false);
 
     if (!isOpen) return null;
@@ -48,7 +48,7 @@ const SendCouponModal: React.FC<SendCouponModalProps> = ({ isOpen, onClose, onSe
                         <div className="flex items-center gap-3 mb-3">
                             <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-brand-500/30">L</div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Launezy</span>
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Ezyworkz</span>
                                 <span className="text-[10px] font-medium text-gray-300">Just now</span>
                             </div>
                         </div>

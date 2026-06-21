@@ -2,7 +2,7 @@ import { getGlobalServices } from "@/lib/actions/globals";
 import GlobalServicesClient from "./GlobalServicesClient";
 
 export const metadata = {
-    title: "Global Services | Launezy",
+    title: "Global Services | Ezyworkz",
 };
 
 export default async function GlobalServicesPage() {

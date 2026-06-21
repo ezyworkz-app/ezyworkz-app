@@ -437,7 +437,7 @@ function CreateOfferModal({
                             <div className="mt-2 flex items-start gap-1.5 bg-purple-50 border border-purple-100 rounded-xl px-3 py-2">
                                 <Info className="h-3.5 w-3.5 text-purple-500 mt-0.5 shrink-0" />
                                 <p className="text-[11px] text-purple-600 font-medium">
-                                    This offer will be funded by Launezy platform. The shop will be reimbursed for the discount amount.
+                                    This offer will be funded by Ezyworkz platform. The shop will be reimbursed for the discount amount.
                                 </p>
                             </div>
                         )}

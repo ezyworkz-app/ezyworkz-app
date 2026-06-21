@@ -381,18 +381,18 @@ const AppSidebar: React.FC = () => {
           {isExpanded || isHovered || isMobileOpen ? (
             <div className="flex items-center gap-3">
               <Image
-                src="/images/logo/launezy_logo_icon.png"
+                src="/images/logo/ezyworkz_logo_icon.png"
                 alt="Logo"
                 width={40}
                 height={40}
               />
               <span className="text-2xl font-bold font-outfit text-gray-900 dark:text-white">
-                Launezy
+                Ezyworkz
               </span>
             </div>
           ) : (
             <Image
-              src="/images/logo/launezy_logo_icon.png"
+              src="/images/logo/ezyworkz_logo_icon.png"
               alt="Logo"
               width={40}
               height={40}

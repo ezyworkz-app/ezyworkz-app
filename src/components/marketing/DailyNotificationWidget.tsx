@@ -204,9 +204,9 @@ export default function DailyNotificationWidget({ initialConfig }: Props) {
                     <div className="bg-gray-50 dark:bg-white/[0.03] rounded-2xl p-4 space-y-2">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Sample Messages</p>
                         {[
-                            { day: "Mon", title: "Fresh week, fresh clothes 💪", body: "Let Launezy handle the washing while you conquer the week!" },
-                            { day: "Fri", title: "TGIF! 🥳", body: "Weekend plans need fresh fits. Get your laundry sorted with Launezy today." },
-                            { day: "Sun", title: "Sunday sorted! 🌅", body: "Fresh clothes for the week ahead. Book a Launezy pickup in 60 seconds." },
+                            { day: "Mon", title: "Fresh week, fresh clothes 💪", body: "Let Ezyworkz handle the washing while you conquer the week!" },
+                            { day: "Fri", title: "TGIF! 🥳", body: "Weekend plans need fresh fits. Get your laundry sorted with Ezyworkz today." },
+                            { day: "Sun", title: "Sunday sorted! 🌅", body: "Fresh clothes for the week ahead. Book a Ezyworkz pickup in 60 seconds." },
                         ].map(({ day, title, body }) => (
                             <div key={day} className="flex items-start gap-3">
                                 <span className="text-[9px] font-black bg-brand-500/10 text-brand-600 px-1.5 py-0.5 rounded-md w-7 text-center flex-shrink-0 mt-0.5">{day}</span>

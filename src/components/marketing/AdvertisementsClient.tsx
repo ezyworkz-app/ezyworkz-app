@@ -174,7 +174,7 @@ export default function AdvertisementsClient({ initialAds }: Props) {
                                 <input
                                     value={editing.targetUrl || ""}
                                     onChange={(e) => setEditing({ ...editing, targetUrl: e.target.value })}
-                                    placeholder="https://partner.launezy.com/offer"
+                                    placeholder="https://partner.ezyworkz.com/offer"
                                     className="mt-1 w-full border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                                 />
                             </div>

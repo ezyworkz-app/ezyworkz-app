@@ -2,7 +2,7 @@ import { getGlobalCategories } from "@/lib/actions/globals";
 import GlobalCategoriesClient from "./GlobalCategoriesClient";
 
 export const metadata = {
-    title: "Global Categories | Launezy",
+    title: "Global Categories | Ezyworkz",
 };
 
 export default async function GlobalCategoriesPage() {

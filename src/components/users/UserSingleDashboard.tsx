@@ -84,7 +84,7 @@ export const UserSingleDashboard = ({ stats }: UserSingleDashboardProps) => {
         },
         {
             title: "EZY Tokens",
-            value: `${(user.launezyCoins || 0).toLocaleString()} EZY`,
+            value: `${(user.ezyworkzCoins || 0).toLocaleString()} EZY`,
             icon: Activity,
             color: "text-purple-500",
             bg: "bg-purple-50 dark:bg-purple-500/10"

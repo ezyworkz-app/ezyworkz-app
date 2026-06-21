@@ -10,8 +10,8 @@ import { CancellationAnalytics } from "@/components/ecommerce/CancellationAnalyt
 import { apiFetch } from "@/lib/api";
 
 export const metadata: Metadata = {
-    title: "Orders Dashboard | Launezy Admin",
-    description: "Launezy Admin Orders Dashboard",
+    title: "Orders Dashboard | Ezyworkz Admin",
+    description: "Ezyworkz Admin Orders Dashboard",
 };
 
 interface DashboardPageProps {

@@ -63,7 +63,7 @@ export default function UserDropdown() {
             Admin User
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            admin@launezy.com
+            admin@ezyworkz.com
           </span>
         </div>
 

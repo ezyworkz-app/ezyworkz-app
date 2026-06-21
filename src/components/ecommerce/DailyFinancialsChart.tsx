@@ -55,7 +55,7 @@ export default function DailyFinancialsChart({
 
   const options: ApexOptions = {
     colors: [
-      "#7159AB", "#826CBB", "#B7ADDE", "#D2CBEB", // Revenue (Launezy Brand Purples)
+      "#7159AB", "#826CBB", "#B7ADDE", "#D2CBEB", // Revenue (Ezyworkz Brand Purples)
       "#039855", "#465FFF", "#F79009", "#7A5AF8", "#D92D20", "#FD4394" // Audit (Success, Blue, Warning, Purple, Error, Marketing Pink)
     ], 
     chart: {

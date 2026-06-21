@@ -7,7 +7,7 @@ import { CreateOrderPayload } from "@/utils/cartToOrder";
 import { DeliveryKey, DeliveryType } from "@/types/common";
 import { getShopServiceById } from "./shops";
 
-// Adapter: Map ezyworks-backend Order format to launezy-admin-web Order format expected by the UI
+// Adapter: Map ezyworks-backend Order format to ezyworkz-admin-web Order format expected by the UI
 const mapSingleOrder = (order: any): Order => {
     return {
         ...order,

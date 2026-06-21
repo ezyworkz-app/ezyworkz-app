@@ -12,7 +12,7 @@ import { InfluencerTiersChart } from "@/components/marketing/InfluencerTiersChar
 import { UserSegment } from "@/types/user";
 
 export const metadata: Metadata = {
-    title: "Marketing Hub | Launezy Admin",
+    title: "Marketing Hub | Ezyworkz Admin",
     description: "Identify and re-engage dormant users with precision marketing.",
 };
 

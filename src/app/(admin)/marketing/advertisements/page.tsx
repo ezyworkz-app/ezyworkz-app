@@ -5,7 +5,7 @@ import AdvertisementsClient from "@/components/marketing/AdvertisementsClient";
 import { Star } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "Advertisements | Launezy Admin",
+    title: "Advertisements | Ezyworkz Admin",
     description: "Manage the brand advertisement shown in the app tab bar.",
 };
 

@@ -7,7 +7,7 @@ import LaunchCampaignModal from "@/components/marketing/LaunchCampaignModal";
 import DailyNotificationWidget from "@/components/marketing/DailyNotificationWidget";
 
 export const metadata: Metadata = {
-    title: "Campaigns | Launezy Admin",
+    title: "Campaigns | Ezyworkz Admin",
     description: "Push notification campaign analytics — delivery, taps, and redemptions.",
 };
 

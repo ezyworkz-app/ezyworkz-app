@@ -5,7 +5,7 @@ import PromoBannersClient from "@/components/marketing/PromoBannersClient";
 import { Layers } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "Promo Banners | Launezy Admin",
+    title: "Promo Banners | Ezyworkz Admin",
     description: "Manage the animated promo carousel shown on the user home screen.",
 };
 

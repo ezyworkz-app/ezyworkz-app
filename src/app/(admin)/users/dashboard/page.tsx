@@ -3,8 +3,8 @@ import { UserDashboardClient } from "@/components/users/UserDashboardClient";
 import { getDashboardStats } from "@/lib/actions/dashboard";
 
 export const metadata: Metadata = {
-    title: "User Dashboard | Launezy Admin",
-    description: "Business overview of Launezy user base",
+    title: "User Dashboard | Ezyworkz Admin",
+    description: "Business overview of Ezyworkz user base",
 };
 
 export default async function UserDashboard() {

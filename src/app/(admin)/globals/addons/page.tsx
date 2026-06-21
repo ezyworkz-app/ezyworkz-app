@@ -2,7 +2,7 @@ import { getGlobalAddons } from "@/lib/actions/globals";
 import GlobalAddonsClient from "./GlobalAddonsClient";
 
 export const metadata = {
-    title: "Global Addons | Launezy",
+    title: "Global Addons | Ezyworkz",
 };
 
 export default async function GlobalAddonsPage() {
