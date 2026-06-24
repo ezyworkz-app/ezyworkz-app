@@ -6,9 +6,13 @@ import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useEffect, useRef } from "react";
+import { useShop } from "@/context/ShopContext";
+import { formatAssetUrl } from "@/utils/format";
+import { Store } from "lucide-react";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+  const { selectedShop } = useShop();
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
@@ -84,14 +88,22 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link href="/" className="lg:hidden">
-            <h1 className="text-xl font-bold font-outfit text-gray-900 flex flex-row items-center gap-2 dark:text-white">
-              <Image
-                width={32}
-                height={32}
-                src="/images/logo/ezyworkz_logo_icon.png"
-                alt="Logo"
-              />
-              Ezyworkz Admin
+            <h1 className="text-xl font-bold font-outfit text-gray-900 flex flex-row items-center gap-2 dark:text-white max-w-[200px] truncate">
+              {selectedShop?.logoUrl ? (
+                <Image
+                  width={32}
+                  height={32}
+                  src={formatAssetUrl(selectedShop.logoUrl)}
+                  alt={selectedShop.name || "Logo"}
+                  className="object-contain"
+                  unoptimized
+                />
+              ) : (
+                <div className="w-8 h-8 bg-teal-500/10 dark:bg-teal-400/10 rounded-lg flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
+                  <Store className="w-4 h-4" />
+                </div>
+              )}
+              {selectedShop?.name || "Ezyworkz"}
             </h1>
           </Link>
 

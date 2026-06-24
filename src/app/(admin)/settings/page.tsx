@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useShop } from "@/context/ShopContext";
 import { uploadShopAsset, updateShopDetails } from "@/lib/actions/shops";
 import { Loader2, Upload, Save, CheckCircle2, MapPin, Clock, Phone, Building2 } from "lucide-react";
 import Image from "next/image";
+import { formatAssetUrl, getRelativeUrl } from "@/utils/format";
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
 export default function SettingsPage() {
-    const { selectedShopId, selectedShop, isLoading: isShopLoading } = useShop();
+    const { selectedShopId, selectedShop, isLoading: isShopLoading, refreshShop } = useShop();
 
     const [isSaving, setIsSaving] = useState(false);
     const [logoUrl, setLogoUrl] = useState<string>("");
@@ -46,30 +47,30 @@ export default function SettingsPage() {
     const logoInputRef = useRef<HTMLInputElement>(null);
     const faviconInputRef = useRef<HTMLInputElement>(null);
 
-    // Initialize local state when shop loads
-    const [initialized, setInitialized] = useState(false);
-    if (!isShopLoading && selectedShop && !initialized) {
-        setLogoUrl(selectedShop.logoUrl || "");
-        setFaviconUrl(selectedShop.faviconUrl || "");
-        setName(selectedShop.name || "");
-        setPhone(selectedShop.phone || "");
-        setDescription(selectedShop.description || "");
-        if (selectedShop.address) {
-            setAddress({
-                building: selectedShop.address.building || "",
-                street: selectedShop.address.street || "",
-                area: selectedShop.address.area || "",
-                city: selectedShop.address.city || "",
-                state: selectedShop.address.state || "",
-                pincode: selectedShop.address.pincode || ""
-            });
+    // Sync local state with selectedShop whenever it changes
+    useEffect(() => {
+        if (!isShopLoading && selectedShop) {
+            setLogoUrl(selectedShop.logoUrl || "");
+            setFaviconUrl(selectedShop.faviconUrl || "");
+            setName(selectedShop.name || "");
+            setPhone(selectedShop.phone || "");
+            setDescription(selectedShop.description || "");
+            if (selectedShop.address) {
+                setAddress({
+                    building: selectedShop.address.building || "",
+                    street: selectedShop.address.street || "",
+                    area: selectedShop.address.area || "",
+                    city: selectedShop.address.city || "",
+                    state: selectedShop.address.state || "",
+                    pincode: selectedShop.address.pincode || "",
+                });
+            }
+            if (selectedShop.shopTiming) {
+                // Merge existing timings to avoid missing days
+                setShopTiming((prev: any) => ({ ...prev, ...selectedShop.shopTiming }));
+            }
         }
-        if (selectedShop.shopTiming) {
-            // Merge existing timings to avoid missing days
-            setShopTiming((prev: any) => ({ ...prev, ...selectedShop.shopTiming }));
-        }
-        setInitialized(true);
-    }
+    }, [isShopLoading, selectedShop]);
 
     const handleUpload = async (file: File, type: "logo" | "favicon") => {
         if (!selectedShopId) return;
@@ -79,9 +80,24 @@ export default function SettingsPage() {
         try {
             const result = await uploadShopAsset(selectedShopId, formData);
             if (result.success && result.data?.url) {
-                const fullUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${result.data.url}`;
-                if (type === "logo") setLogoUrl(fullUrl);
-                if (type === "favicon") setFaviconUrl(fullUrl);
+                const uploadedUrl = result.data.url;
+
+                // Update local state for immediate preview
+                if (type === "logo") setLogoUrl(uploadedUrl);
+                if (type === "favicon") setFaviconUrl(uploadedUrl);
+
+                // Auto-save the asset URL to the backend so it persists on refresh
+                const assetPayload: Record<string, string> = {};
+                if (type === "logo") assetPayload.logoUrl = uploadedUrl;
+                if (type === "favicon") assetPayload.faviconUrl = uploadedUrl;
+
+                const saveResult = await updateShopDetails(selectedShopId, assetPayload);
+                if (saveResult.success) {
+                    // Refresh shop context so other components (e.g. sidebar logo, favicon) stay in sync
+                    await refreshShop();
+                } else {
+                    console.error(`[Settings] Failed to auto-save ${type} URL:`, saveResult.error);
+                }
             } else {
                 alert(`Upload failed: ${result.error}`);
             }
@@ -96,20 +112,26 @@ export default function SettingsPage() {
         setIsSaving(true);
         setSaveMessage(null);
 
-        const result = await updateShopDetails(selectedShopId, {
+        const payload = {
             name,
             phone,
             description,
             address,
             shopTiming,
-            logoUrl,
-            faviconUrl,
-        });
+            logoUrl: getRelativeUrl(logoUrl),
+            faviconUrl: getRelativeUrl(faviconUrl),
+        };
+        console.log("[Settings] Saving with payload:", JSON.stringify({ logoUrl: payload.logoUrl, faviconUrl: payload.faviconUrl }));
+
+        const result = await updateShopDetails(selectedShopId, payload);
+        console.log("[Settings] Save result:", JSON.stringify(result));
 
         setIsSaving(false);
 
         if (result.success) {
             setSaveMessage("Settings saved successfully!");
+            // Re-fetch shop data so context (and favicon) stays in sync
+            await refreshShop();
             setTimeout(() => setSaveMessage(null), 3000);
         } else {
             alert(`Failed to save: ${result.error}`);
@@ -135,7 +157,7 @@ export default function SettingsPage() {
         });
     };
 
-    if (isShopLoading || !initialized) {
+    if (isShopLoading || !selectedShop) {
         return (
             <ProtectedRoute>
                 <div className="flex h-screen items-center justify-center">
@@ -350,7 +372,7 @@ export default function SettingsPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center border border-gray-200 overflow-hidden relative shrink-0">
                                             {logoUrl ? (
-                                                <Image src={logoUrl} alt="Logo" fill className="object-contain p-2" unoptimized />
+                                                <Image src={formatAssetUrl(logoUrl)} alt="Logo" fill className="object-contain p-2" unoptimized />
                                             ) : (
                                                 <span className="text-gray-400 text-xs">No logo</span>
                                             )}
@@ -381,7 +403,7 @@ export default function SettingsPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden relative shrink-0">
                                             {faviconUrl ? (
-                                                <Image src={faviconUrl} alt="Favicon" fill className="object-contain p-1" unoptimized />
+                                                <Image src={formatAssetUrl(faviconUrl)} alt="Favicon" fill className="object-contain p-1" unoptimized />
                                             ) : (
                                                 <span className="text-gray-400 text-[10px] text-center px-1">None</span>
                                             )}
