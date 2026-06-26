@@ -66,7 +66,7 @@ export function cartToOrderPayload(
   deliveryBySvc: Record<string, DeliveryKey>,
   opts: {
     paymentMethod: "cod" | "upi" | "card";
-    address: Address;
+    address?: Address | null;
     deliveryCharges: number | undefined;
     baseAmount: number;
     multiplierUpcharge: number;
@@ -266,7 +266,7 @@ export function cartToOrderPayload(
     shopDiscountAmount, // explicit shop discount
     grandTotalPaid, // final after discount
     deliveryScheduledAt: deliveryScheduledAtIso,
-    pickupType: opts.pickupType ?? "instant",
+    pickupType: opts.pickupType === "schedule" ? "scheduled" : "instant",
     pickupScheduledAt: opts.pickupScheduledAt,
     baseAmount: opts.baseAmount,
     multiplierUpcharge: opts.multiplierUpcharge,

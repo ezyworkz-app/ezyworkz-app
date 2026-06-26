@@ -92,6 +92,7 @@ const navItems: NavItem[] = [
     icon: <ShootingStarIcon />,
     name: "Marketing",
     subItems: [
+      { name: "Offers", path: "/marketing/offers", pro: false },
       { name: "Ads & Performance", path: "/marketing/ads", pro: false },
       { name: "User Segments", path: "/marketing/segments", pro: false },
       { name: "Campaigns", path: "/marketing/campaigns", pro: false },

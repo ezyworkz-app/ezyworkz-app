@@ -545,7 +545,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
     if (pending) return;
 
     startTransition(async () => {
-      if (!cartItems.length || !savedAddr) return;
+      if (!cartItems.length) return;
 
       // 🎯 Capture initial state intent to prevent race condition "illegal fallbacks"
       const currentEditingId = editingOrderId;
@@ -569,7 +569,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
 
       const payload = cartToOrderPayload(cartItems, deliveryBySvc, {
         paymentMethod,
-        address: {
+        address: savedAddr ? {
           line1: savedAddr.houseNo ?? savedAddr.line1,
           area: savedAddr.area ?? "",
           city: savedAddr.city ?? "",
@@ -579,7 +579,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
           country: "IN",
           lat: savedAddr.lat,
           lng: savedAddr.lng,
-        },
+        } : undefined,
         deliveryCharges: applyDeliveryFee ? (initialDistanceFee ?? totals.deliveryTotal ?? undefined) : 0,
         couponCode,
         notes,

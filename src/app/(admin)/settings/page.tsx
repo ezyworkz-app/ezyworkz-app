@@ -15,6 +15,9 @@ export default function SettingsPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [logoUrl, setLogoUrl] = useState<string>("");
     const [faviconUrl, setFaviconUrl] = useState<string>("");
+    const [googleAnalyticsId, setGoogleAnalyticsId] = useState<string>("");
+    const [googleAdsId, setGoogleAdsId] = useState<string>("");
+    const [googleAdsCheckoutLabel, setGoogleAdsCheckoutLabel] = useState<string>("");
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
     // Basic Details
@@ -51,6 +54,9 @@ export default function SettingsPage() {
     if (!isShopLoading && selectedShop && !initialized) {
         setLogoUrl(selectedShop.logoUrl || "");
         setFaviconUrl(selectedShop.faviconUrl || "");
+        setGoogleAnalyticsId(selectedShop.googleAnalyticsId || "");
+        setGoogleAdsId(selectedShop.googleAdsId || "");
+        setGoogleAdsCheckoutLabel(selectedShop.googleAdsCheckoutLabel || "");
         setName(selectedShop.name || "");
         setPhone(selectedShop.phone || "");
         setDescription(selectedShop.description || "");
@@ -104,6 +110,9 @@ export default function SettingsPage() {
             shopTiming,
             logoUrl,
             faviconUrl,
+            googleAnalyticsId,
+            googleAdsId,
+            googleAdsCheckoutLabel,
         });
 
         setIsSaving(false);
@@ -404,6 +413,55 @@ export default function SettingsPage() {
                                             </button>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Analytics & Tracking */}
+                        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 md:p-8">
+                            <h3 className="text-lg font-bold text-gray-900 mb-6">Analytics & Tracking</h3>
+                            
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Google Analytics Measurement ID</label>
+                                    <input 
+                                        type="text" 
+                                        value={googleAnalyticsId}
+                                        onChange={(e) => setGoogleAnalyticsId(e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                                        placeholder="e.g. G-XXXXXXXXXX"
+                                    />
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Enter your Google Analytics Measurement ID (starts with "G-") to track visitors on your custom domain.
+                                    </p>
+                                </div>
+                                <hr className="border-gray-100" />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Google Ads Conversion ID</label>
+                                    <input 
+                                        type="text" 
+                                        value={googleAdsId}
+                                        onChange={(e) => setGoogleAdsId(e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                                        placeholder="e.g. AW-XXXXXXXXX"
+                                    />
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Enter your Google Ads ID (starts with "AW-") to enable conversion tracking and remarketing on your custom domain.
+                                    </p>
+                                </div>
+                                <hr className="border-gray-100" />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Google Ads Checkout Conversion Label</label>
+                                    <input 
+                                        type="text" 
+                                        value={googleAdsCheckoutLabel}
+                                        onChange={(e) => setGoogleAdsCheckoutLabel(e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                                        placeholder="e.g. z01vCLyzwMUcEN664IZE"
+                                    />
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Enter the specific conversion label for the "Begin checkout" or "Order placed" event to track successful checkouts in Google Ads.
+                                    </p>
                                 </div>
                             </div>
                         </div>

@@ -53,6 +53,11 @@ export interface Shop {
     /* Assets */
     faviconUrl?: string;
     logoUrl?: string;
+
+    /* Tracking */
+    googleAnalyticsId?: string;
+    googleAdsId?: string;
+    googleAdsCheckoutLabel?: string;
 }
 
 export interface CommissionHistoryEntry {

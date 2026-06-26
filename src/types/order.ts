@@ -214,7 +214,7 @@ export interface Order {
     originalServicesSnapshot?: OrderService[];
 
     /* ---------------------- Pickup / Delivery ------------------------ */
-    pickupType: "instant" | "schedule";
+    pickupType: "instant" | "scheduled";
     pickupScheduledAt?: string;
     deliveryScheduledAt?: string;
     address: Address;
