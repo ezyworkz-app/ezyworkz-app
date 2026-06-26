@@ -3,6 +3,7 @@ import { Outfit } from 'next/font/google';
 import "./globals.css";
 import "flatpickr/dist/flatpickr.css";
 import { SidebarProvider } from '@/context/SidebarContext';
+
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { ShopProvider } from '@/context/ShopContext';
@@ -14,6 +15,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Ezyworkz Shops Web",
   description: "Ezyworkz Shops Web App",
+  icons: [],
 };
 
 export default function RootLayout({
@@ -29,6 +31,7 @@ export default function RootLayout({
             <AuthProvider>
               <ShopProvider>
                 {children}
+
               </ShopProvider>
             </AuthProvider>
           </SidebarProvider>
