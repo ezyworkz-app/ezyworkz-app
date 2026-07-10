@@ -49,7 +49,7 @@ export async function getShopById(shopId: string): Promise<Shop | null> {
         const token = (await cookies()).get("accessToken")?.value;
         if (!token) throw new Error("Not authenticated");
 
-        const res = await apiFetch(`/api/v1/shops/${shopId}`, {
+        const res = await apiFetch(`/api/v1/shops/my-shops`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -59,7 +59,9 @@ export async function getShopById(shopId: string): Promise<Shop | null> {
             throw new Error(data.message || "Failed to fetch shop details");
         }
 
-        return data.data.shop as Shop;
+        const shops = data.data || [];
+        const shop = shops.find((s: Shop) => s.shopId === shopId);
+        return shop || null;
     } catch (error) {
         console.error("[getShopById]", error);
         return null;

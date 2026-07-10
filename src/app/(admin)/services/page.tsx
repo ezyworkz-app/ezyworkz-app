@@ -1,39 +1,55 @@
-"use client";
+import { Suspense } from "react";
+import { cookies } from "next/headers";
+import { apiFetch } from "@/lib/api";
+import ServicesClient from "./ServicesClient";
+import { Loader2 } from "lucide-react";
 
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { useShop } from "@/context/ShopContext";
-import apiClient from "@/lib/api/client";
-import { useEffect, useState } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
-import ShopServices from "@/components/services/ShopServices";
+export default async function ServicesPage() {
+    let initialServices: any[] = [];
+    let initialGlobalServices: any[] = [];
+    let error = "";
 
-export default function ServicesPage() {
-    const { selectedShopId, isLoading: shopLoading } = useShop();
-    const [services, setServices] = useState<any[]>([]);
-    const [globalServices, setGlobalServices] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get("accessToken")?.value;
+        let shopId = cookieStore.get("shopId")?.value;
+        
+        if (!shopId && token) {
+            try {
+                const API_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '');
+                const res = await fetch(`${API_URL}/api/v1/shops/my-shops`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    cache: 'no-store'
+                });
+                const data = await res.json();
+                if (data.success && data.data && data.data.length > 0) {
+                    shopId = data.data[0].shopId;
+                }
+            } catch (e) {
+                console.warn("Failed to fetch shopId in SSR", e);
+            }
+        }
 
-    const fetchData = async () => {
-        if (!selectedShopId) return;
-        try {
-            setLoading(true);
-            setError("");
+        if (shopId) {
             const [shopSvcRes, globalSvcRes, globalCatRes] = await Promise.all([
-                apiClient.get(`/public/shop/json/${selectedShopId}`),
-                apiClient.get(`/global/services`),
-                apiClient.get(`/global/categories`)
+                apiFetch(`/api/v1/public/shop/json/${shopId}`).catch(() => null),
+                apiFetch(`/api/v1/global/services`).catch(() => null),
+                apiFetch(`/api/v1/global/categories`).catch(() => null)
             ]);
-            const shopData = shopSvcRes.data.data || shopSvcRes.data || {};
-            const globalSvcs = globalSvcRes.data.data || globalSvcRes.data || [];
-            const globalCats = globalCatRes.data.data || globalCatRes.data || [];
+
+            const shopData = shopSvcRes ? await shopSvcRes.json().catch(() => ({})) : {};
+            const globalData = globalSvcRes ? await globalSvcRes.json().catch(() => ({})) : {};
+            const globalCatData = globalCatRes ? await globalCatRes.json().catch(() => ({})) : {};
+
+            const shopServicesList = shopData.data?.services || shopData.services || [];
+            const globalSvcs = globalData.data?.services || globalData.data || globalData.services || [];
+            const globalCats = globalCatData.data?.categories || globalCatData.data || globalCatData.categories || [];
             
-            const mappedServices = (shopData.services || []).map((s: any) => ({
+            initialServices = shopServicesList.map((s: any) => ({
                 ...s,
                 name: s.name || globalSvcs.find((g: any) => g.globalServiceId === s.globalServiceId)?.name || "Unnamed Service",
                 categories: (s.categories || []).map((c: any) => {
                     const fallbackName = globalCats.find((g: any) => g.globalCategoryId === c.globalCategoryId)?.name;
-                    console.log("MAPPING CAT:", c.shopServiceCategoryId, "orig:", c.name, "fallback:", fallbackName);
                     return {
                         ...c,
                         name: c.name || fallbackName || "Unnamed Category"
@@ -41,56 +57,26 @@ export default function ServicesPage() {
                 })
             }));
             
-            setServices(mappedServices);
-            setGlobalServices(globalSvcs);
-        } catch (err: any) {
-            setError(err.message || "Failed to load services");
-        } finally {
-            setLoading(false);
+            initialGlobalServices = globalSvcs;
+        } else {
+            error = "No shop ID could be determined.";
         }
-    };
-
-    useEffect(() => {
-        if (!shopLoading && selectedShopId) {
-            fetchData();
-        } else if (!shopLoading && !selectedShopId) {
-            setLoading(false);
-            setError("No shop found. Please contact support.");
-        }
-    }, [selectedShopId, shopLoading]);
+    } catch (err: any) {
+        console.error("Failed to load initial services on server", err);
+        error = err.message || "Failed to load services";
+    }
 
     return (
-        <ProtectedRoute>
-            <main className="flex-1 p-8 h-screen overflow-hidden flex flex-col">
-                <div className="flex items-center justify-between mb-8 flex-shrink-0">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Services Configuration</h1>
-                        <p className="text-gray-500 mt-1">Manage your shop's services, delivery multipliers, and item prices.</p>
-                    </div>
-                </div>
-
-                {error && (
-                    <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3 flex-shrink-0">
-                        <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm font-medium text-red-400">{error}</div>
-                    </div>
-                )}
-
-                {loading || shopLoading ? (
-                    <div className="flex justify-center items-center flex-1 bg-white rounded-3xl border border-gray-200">
-                        <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
-                    </div>
-                ) : (
-                    <div className="flex-1 bg-white rounded-3xl border border-gray-200 overflow-hidden">
-                        <ShopServices 
-                            services={services} 
-                            globalServices={globalServices} 
-                            shopId={selectedShopId!} 
-                            onRefresh={fetchData} 
-                        />
-                    </div>
-                )}
-            </main>
-        </ProtectedRoute>
+        <Suspense fallback={
+            <div className="flex-1 p-8 h-screen overflow-hidden flex flex-col justify-center items-center bg-[#0e1424]">
+                <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
+            </div>
+        }>
+            <ServicesClient 
+                initialServices={initialServices} 
+                initialGlobalServices={initialGlobalServices} 
+                error={error} 
+            />
+        </Suspense>
     );
 }

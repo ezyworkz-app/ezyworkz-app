@@ -55,6 +55,7 @@ export async function getAllOrders(
     nextKey?: string; 
     totalCount: number;
     globalCounts: Record<string, number>;
+    statusCounts: Record<string, number>;
     priorityCounts: Record<string, number>;
 }> {
     try {
@@ -108,77 +109,83 @@ export async function getAllOrders(
 
         let totalCount = isArray ? ordersList.length : (data.data.totalCount || 0);
         let globalCounts = isArray ? undefined : (data.data.globalCounts || {});
+        let statusCounts = isArray ? undefined : (data.data.statusCounts || globalCounts);
         let priorityCounts = isArray ? undefined : (data.data.priorityCounts || {});
 
-        // Compute counts if the backend returned an array instead of an object with counts
-        if (isArray) {
-            globalCounts = {
-                all: 0,
-                user_paid: 0,
-                user_unpaid: 0,
-                shop_paid: 0,
-                shop_unpaid: 0,
-                waiting_confirmation: 0,
-                payment_pending: 0,
-                confirmed: 0,
-                in_pickup: 0,
-                in_process: 0,
-                ready_to_deliver: 0,
-                out_for_delivery: 0,
-                delivered: 0,
-                waiting_user_review: 0,
-                cancelled: 0,
-                scheduled: 0,
-                wait_refund: 0,
-                uncollectible: 0,
-            };
-            priorityCounts = { all: 0 };
+        // Compute local if fallback logic
+        if (!globalCounts || Object.keys(globalCounts).length === 0) {
+            if (isArray) {
+                globalCounts = {
+                    all: 0,
+                    user_paid: 0,
+                    user_unpaid: 0,
+                    shop_paid: 0,
+                    shop_unpaid: 0,
+                    waiting_confirmation: 0,
+                    payment_pending: 0,
+                    confirmed: 0,
+                    in_pickup: 0,
+                    in_process: 0,
+                    ready_to_deliver: 0,
+                    out_for_delivery: 0,
+                    delivered: 0,
+                    waiting_user_review: 0,
+                    cancelled: 0,
+                    scheduled: 0,
+                    wait_refund: 0,
+                    uncollectible: 0,
+                };
+                priorityCounts = { all: 0 };
+                statusCounts = { ...globalCounts };
 
-            for (const item of ordersList) {
-                globalCounts.all++;
-                
-                const s = item.status;
-                const ps = item.paymentStatus;
-                const sp = item.shopPayout || 0;
-                
-                const paidAmt = (item.amountPaid || 0);
-                const totalAmt = item.grandTotalPaid || 0;
-                const isFullyPaid = paidAmt >= totalAmt - 0.05;
-                const isOverpaid = paidAmt > totalAmt + 0.05;
+                for (const item of ordersList) {
+                    globalCounts.all++;
+                    
+                    const s = item.status;
+                    const ps = item.paymentStatus;
+                    const sp = item.shopPayout || 0;
+                    
+                    const paidAmt = (item.amountPaid || 0);
+                    const totalAmt = item.grandTotalPaid || 0;
+                    const isFullyPaid = ps === "paid" || (totalAmt > 0 && paidAmt >= totalAmt - 0.05);
+                    const isOverpaid = totalAmt > 0 && paidAmt > totalAmt + 0.05;
 
-                if (s !== "cancelled") {
-                    if (ps === "uncollectible") {
-                        globalCounts.uncollectible++;
-                    } else {
-                        if (isFullyPaid) {
-                            globalCounts.user_paid++;
-                            if (ps === "paid") {
-                                if (sp > 0) globalCounts.shop_paid++;
-                                else globalCounts.shop_unpaid++;
-                            }
+                    if (s !== "cancelled") {
+                        if (ps === "uncollectible") {
+                            globalCounts.uncollectible++;
                         } else {
-                            globalCounts.user_unpaid++;
-                        }
-                        if (isOverpaid) {
-                            globalCounts.wait_refund++;
+                            if (isFullyPaid) {
+                                globalCounts.user_paid++;
+                                if (ps === "paid") {
+                                    if (sp > 0) globalCounts.shop_paid++;
+                                    else globalCounts.shop_unpaid++;
+                                }
+                            } else {
+                                globalCounts.user_unpaid++;
+                            }
+                            if (isOverpaid) {
+                                globalCounts.wait_refund++;
+                            }
                         }
                     }
-                }
 
-                if (s && globalCounts[s] !== undefined) {
-                    globalCounts[s]++;
-                }
+                    if (s && globalCounts[s] !== undefined) {
+                        globalCounts[s]++;
+                        statusCounts[s]++;
+                    }
 
-                const service = item.services?.[0];
-                const key = service?.selectedDeliveryKey || (service?.deliveryTypes ? Object.keys(service.deliveryTypes)[0] : null);
-                if (key) {
-                    if (priorityCounts[key] === undefined) priorityCounts[key] = 0;
-                    priorityCounts[key]++;
-                    priorityCounts.all++;
-                }
+                    const service = item.services?.[0];
+                    const key = service?.selectedDeliveryKey || (service?.deliveryTypes ? Object.keys(service.deliveryTypes)[0] : null);
+                    if (key) {
+                        if (priorityCounts[key] === undefined) priorityCounts[key] = 0;
+                        priorityCounts[key]++;
+                        priorityCounts.all++;
+                    }
 
-                if (item.deliveryScheduledAt && s !== "cancelled" && s !== "delivered") {
-                    globalCounts.scheduled++;
+                    if (item.deliveryScheduledAt && s !== "cancelled" && s !== "delivered") {
+                        globalCounts.scheduled++;
+                        statusCounts.scheduled++;
+                    }
                 }
             }
         }
@@ -187,12 +194,13 @@ export async function getAllOrders(
             orders: ordersList as Order[],
             nextKey: isArray ? undefined : data.data.nextKey as string | undefined,
             totalCount,
-            globalCounts,
-            priorityCounts
+            globalCounts: globalCounts || {},
+            statusCounts: statusCounts || globalCounts || {},
+            priorityCounts: priorityCounts || {}
         };
     } catch (error) {
-        console.error("[getAllOrders]", error);
-        return { orders: [], nextKey: undefined, totalCount: 0, globalCounts: {}, priorityCounts: {} };
+        console.error("[getAllOrders] Error:", error);
+        return { orders: [], nextKey: undefined, totalCount: 0, globalCounts: {}, statusCounts: {}, priorityCounts: {} };
     }
 }
 

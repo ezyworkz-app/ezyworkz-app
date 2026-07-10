@@ -65,18 +65,21 @@ const OrdersClient = ({
     initialOrders, 
     initialNextKey, 
     initialTotalCount,
-    initialGlobalCounts 
+    initialGlobalCounts,
+    initialStatusCounts
 }: { 
     initialOrders: Order[], 
     initialNextKey?: string, 
     initialTotalCount: number,
-    initialGlobalCounts: Record<string, number>
+    initialGlobalCounts: Record<string, number>,
+    initialStatusCounts?: Record<string, number>
 }) => {
     const router = useRouter();
     
     // Core Data State
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [globalCounts, setGlobalCounts] = useState(initialGlobalCounts);
+    const [statusCounts, setStatusCounts] = useState(initialStatusCounts || initialGlobalCounts);
     // Start as loading=true when no initial data is passed (client-only fetch path)
     const [isLoading, setIsLoading] = useState(initialOrders.length === 0);
     const [shopsMap, setShopsMap] = useState<Record<string, Shop>>({});
@@ -190,7 +193,7 @@ const OrdersClient = ({
             const effectiveStatus = statusTab === "all" ? undefined : statusTab;
             const effectiveCategory = categoryTab === "all" ? undefined : categoryTab;
             
-            const { orders: newOrders, nextKey: newKey, totalCount: newTotal, globalCounts: newGlobal, priorityCounts: newPriorityCounts } = await getAllOrders(
+            const { orders: newOrders, nextKey: newKey, totalCount: newTotal, globalCounts: newGlobal, statusCounts: newStatusCounts, priorityCounts: newPriorityCounts } = await getAllOrders(
                 10, 
                 key, 
                 effectiveStatus, 
@@ -207,6 +210,7 @@ const OrdersClient = ({
             setOrders(newOrders);
             setTotalCount(newTotal);
             setGlobalCounts(newGlobal);
+            setStatusCounts(newStatusCounts || newGlobal);
             setPriorityCounts(newPriorityCounts);
             if (newKey) {
                 setPageKeys(prev => ({ ...prev, [pageNumber + 1]: newKey }));
@@ -262,7 +266,7 @@ const OrdersClient = ({
         const q = searchType === "all" ? searchQuery : undefined;
         const u = searchType === "user" ? searchQuery : undefined;
         const s = searchType === "shop" ? searchQuery : undefined;
-        fetchOrdersForPage(newPage, filters, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
+        fetchOrdersForPage(newPage, { ...filters, shopId: selectedShopId || filters.shopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
     };
 
     const handleManualRefresh = () => {
@@ -278,6 +282,7 @@ const OrdersClient = ({
 
     const handleTabChange = (tab: typeof selectedTab) => {
         setSelectedTab(tab);
+        setSelectedStatus("all"); // Reset status filter when switching main tabs
         setPage(1);
         setPageKeys({ 1: undefined });
     };
@@ -690,7 +695,7 @@ const OrdersClient = ({
                 orders={orders}
                 isLoading={isLoading}
                 unreadCounts={unreadCounts}
-                globalCounts={globalCounts}
+                globalCounts={statusCounts}
                 priorityCounts={priorityCounts}
                 activeStatus={selectedTab === ("scheduled" as any) ? "scheduled" : selectedStatus}
                 priorityTab={priorityTab}

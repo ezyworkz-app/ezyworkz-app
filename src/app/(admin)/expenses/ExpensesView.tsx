@@ -18,6 +18,8 @@ interface Expense {
 
 interface ExpensesViewProps {
     activeTab: "ALL" | "OPEX" | "CAPEX";
+    initialExpenses?: Expense[];
+    error?: string;
 }
 
 function StatCard({ title, amount, icon, color }: { title: string, amount: number, icon: React.ReactNode, color: "purple" | "blue" | "orange" }) {
@@ -43,11 +45,11 @@ function StatCard({ title, amount, icon, color }: { title: string, amount: numbe
     );
 }
 
-export function ExpensesView({ activeTab }: ExpensesViewProps) {
+export function ExpensesView({ activeTab, initialExpenses = [], error: initialError = "" }: ExpensesViewProps) {
     const { selectedShopId, isLoading: shopLoading } = useShop();
-    const [expenses, setExpenses] = useState<Expense[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(initialError);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [timeFilter, setTimeFilter] = useState<"THIS_MONTH" | "LAST_MONTH" | "ALL_TIME">("THIS_MONTH");
     const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -74,15 +76,17 @@ export function ExpensesView({ activeTab }: ExpensesViewProps) {
     };
 
     useEffect(() => {
-        if (!shopLoading && selectedShopId) {
-            fetchExpenses();
-        } else if (!shopLoading && !selectedShopId) {
-            setLoading(false);
+        if (!shopLoading && !selectedShopId) {
             setError("No shop found. Please contact support.");
+        } else if (!shopLoading && selectedShopId) {
+            if (expenses.length === 0 && !initialError) {
+                fetchExpenses();
+            }
         }
     }, [selectedShopId, shopLoading]);
 
     const fetchExpenses = async () => {
+        if (!selectedShopId) return;
         try {
             setLoading(true);
             setError("");
@@ -190,7 +194,7 @@ export function ExpensesView({ activeTab }: ExpensesViewProps) {
                     </div>
                 )}
 
-                {!loading && !shopLoading && (
+                {!loading && (
                     <>
                         {activeTab === "ALL" && expenses.length > 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -218,7 +222,7 @@ export function ExpensesView({ activeTab }: ExpensesViewProps) {
                     </>
                 )}
 
-                {activeTab === "OPEX" && !loading && !shopLoading && expenses.filter(exp => !isCapital(exp.category)).length > 0 && (
+                {activeTab === "OPEX" && !loading && expenses.filter(exp => !isCapital(exp.category)).length > 0 && (
                     <div className="flex gap-2 mb-6">
                         {(["THIS_MONTH", "LAST_MONTH", "ALL_TIME"] as const).map(tab => (
                             <button
@@ -237,7 +241,7 @@ export function ExpensesView({ activeTab }: ExpensesViewProps) {
                 )}
 
                 <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-                    {loading || shopLoading ? (
+                    {loading || (shopLoading && expenses.length === 0) ? (
                         <div className="flex justify-center items-center p-12">
                             <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
                         </div>
@@ -316,7 +320,7 @@ export function ExpensesView({ activeTab }: ExpensesViewProps) {
                 </div>
 
                 <AddExpenseModal 
-                    shopId={selectedShopId} 
+                    shopId={selectedShopId || ""} 
                     isOpen={isModalOpen} 
                     onClose={() => {
                         setIsModalOpen(false);

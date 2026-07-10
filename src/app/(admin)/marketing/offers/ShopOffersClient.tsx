@@ -492,12 +492,12 @@ function CreateOfferModal({
 ───────────────────────────────────────── */
 type Tab = "active" | "upcoming" | "past";
 
-export default function ShopOffersClient() {
-    const { selectedShopId } = useShop();
-    const [offers, setOffers] = useState<AdminOffer[]>([]);
+export default function ShopOffersClient({ initialOffers }: { initialOffers: AdminOffer[] }) {
+    const { selectedShopId, isLoading: shopLoading } = useShop();
+    const [offers, setOffers] = useState<AdminOffer[]>(initialOffers);
     const [activeTab, setActiveTab] = useState<Tab>("active");
     const [showCreate, setShowCreate] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const fetchOffers = async () => {
         if (!selectedShopId) return;
@@ -513,8 +513,13 @@ export default function ShopOffersClient() {
     };
 
     useEffect(() => {
-        fetchOffers();
-    }, [selectedShopId]);
+        if (!shopLoading && selectedShopId) {
+            // Only fetch if offers are empty meaning initial load was missing them or user changed shop
+            if (offers.length === 0) {
+                fetchOffers();
+            }
+        }
+    }, [selectedShopId, shopLoading]);
 
     const refresh = () => fetchOffers();
 
@@ -539,7 +544,7 @@ export default function ShopOffersClient() {
         { key: "past", label: "Past" },
     ];
 
-    if (!selectedShopId) return <div className="p-4 text-center">No shop selected</div>;
+    if (!selectedShopId && !shopLoading) return <div className="p-4 text-center">No shop selected</div>;
 
     return (
         <div className="space-y-6">
@@ -593,7 +598,7 @@ export default function ShopOffersClient() {
                 </div>
             </div>
 
-            {loading ? (
+            {loading || (shopLoading && offers.length === 0) ? (
                 <div className="flex justify-center p-8">
                     <RefreshCw className="animate-spin text-gray-400" />
                 </div>
@@ -603,7 +608,7 @@ export default function ShopOffersClient() {
                         <OfferCard
                             key={offer.offerId}
                             offer={offer}
-                            shopId={selectedShopId}
+                            shopId={selectedShopId!}
                             onStopped={refresh}
                         />
                     ))}
@@ -620,7 +625,7 @@ export default function ShopOffersClient() {
                 </div>
             )}
 
-            {showCreate && (
+            {showCreate && selectedShopId && (
                 <CreateOfferModal
                     shopId={selectedShopId}
                     onClose={() => setShowCreate(false)}
