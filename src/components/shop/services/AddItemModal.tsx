@@ -228,6 +228,7 @@ export default function AddItemModal({
         return alert("A valid base price is required");
       }
 
+      payload.price = price;
       if (unit === "piece") payload.pricePerPiece = price;
       else if (unit === "kg") payload.pricePerKg = price;
       else if (unit === "sft") payload.pricePerSft = price;

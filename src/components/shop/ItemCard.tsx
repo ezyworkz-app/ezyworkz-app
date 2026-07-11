@@ -8,21 +8,27 @@ import { useCart } from "@/context/CartContext";
 import { useState, useMemo } from "react";
 
 const getUnitPrice = (item: ShopItem) => {
+  if ((item as any).price !== undefined && (item as any).price !== null) {
+    return (item as any).price;
+  }
   const p = item.unit === "kg"
     ? item.pricePerKg
     : item.unit === "sft"
       ? item.pricePerSft
       : item.pricePerPiece;
-  return p ?? (item as any).price ?? 0;
+  return p ?? 0;
 };
 
 const getOriginalUnitPrice = (item: ShopItem) => {
+  if ((item as any).original_price !== undefined && (item as any).original_price !== null) {
+    return (item as any).original_price;
+  }
   const original = item.unit === "kg"
     ? (item as any).original_pricePerKg
     : item.unit === "sft"
       ? (item as any).original_pricePerSft
       : (item as any).original_pricePerPiece;
-  return original != null ? original : ((item as any).original_price ?? getUnitPrice(item));
+  return original != null ? original : getUnitPrice(item);
 };
 
 interface Props {
