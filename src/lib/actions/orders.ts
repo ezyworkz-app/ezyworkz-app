@@ -100,7 +100,7 @@ export async function getAllOrders(
         // Ensure rawOrdersList is always an array
         if (!Array.isArray(rawOrdersList)) {
             console.error("[getAllOrders] Expected an array of orders, got:", rawOrdersList);
-            return { orders: [], nextKey: undefined, totalCount: 0, globalCounts: {}, priorityCounts: {} };
+            return { orders: [], nextKey: undefined, totalCount: 0, globalCounts: {}, statusCounts: {}, priorityCounts: {} };
         }
 
         const mappedOrdersList = rawOrdersList.map(mapSingleOrder);
