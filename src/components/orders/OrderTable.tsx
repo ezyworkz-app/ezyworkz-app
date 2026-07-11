@@ -847,7 +847,9 @@ const OrderTable: React.FC<OrderTableProps> = ({
 
             if (status === "confirmed" || status === "in_pickup" || status === "in_process" || status === "ready_to_deliver") {
                 if (status === "confirmed") {
-                    const addressText = `${order.address?.houseNo ? order.address.houseNo + ", " : ""}${order.address?.line1 || ""}${order.address?.line2 ? ", " : ""}${order.address?.line2 || ""}, ${order.address?.area || order.address?.city || "Address N/A"}`;
+                    const line2Text = order.address?.line2 && order.address.line2 !== "Not Provided" ? `, ${order.address.line2}` : "";
+                    const areaCityText = order.address?.area || order.address?.city || "";
+                    const addressText = `${order.address?.houseNo ? order.address.houseNo + ", " : ""}${order.address?.line1 || ""}${line2Text}${areaCityText ? `, ${areaCityText}` : ""}`;
                     const mapsLink = (order.address?.lat && order.address?.lng) ? `https://www.google.com/maps/search/?api=1&query=${order.address.lat},${order.address.lng}` : "";
                     const mapsLine = mapsLink ? `\n- *Maps*: ${mapsLink}` : "";
                     return `*Hello ${shopName}, order ${orderId} is confirmed and ready for pickup.*${pickupTime}\n- *User Name*: ${userName}\n- *Phone*: ${order.user?.phoneNumber || "N/A"}\n- *Location*: ${addressText}${mapsLine}\n- *Services*: ${services}${userNote}\n\n*Please arrange for pickup accordingly.*`;
@@ -1309,7 +1311,7 @@ Warm regards,
                                                             className="text-theme-xs text-gray-500 leading-snug dark:text-gray-400 text-left hover:text-brand-500 transition-colors block"
                                                         >
                                                             {order.address?.houseNo && <span className="font-medium text-gray-800 dark:text-white/90">{order.address?.houseNo} </span>}
-                                                            <div>{order.address?.line2 || "No Line 2 Address"}</div>
+                                                            {order.address?.line2 && order.address.line2 !== "Not Provided" && <div>{order.address.line2}</div>}
                                                             <div className="flex items-center gap-1 mt-1 font-medium italic">
                                                                 <MapPin className="w-2.5 h-2.5 text-gray-400 shrink-0" />
                                                                 <span className="truncate">{order.address?.area || order.address?.city || "No Area"}</span>
