@@ -7,6 +7,7 @@ import { uploadShopAsset, updateShopDetails } from "@/lib/actions/shops";
 import { Loader2, Upload, Save, CheckCircle2, MapPin, Clock, Phone, Building2 } from "lucide-react";
 import Image from "next/image";
 import { formatAssetUrl, getRelativeUrl } from "@/utils/format";
+import GstEditor from "@/components/shop/GstEditor";
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -326,6 +327,11 @@ export default function SettingsClient({ initialShop, error: initialError }: { i
                                     />
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Billing & Tax Preferences */}
+                        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 md:p-8">
+                            <GstEditor shop={shopData} />
                         </div>
                     </div>
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import apiClient from "@/lib/api/client";
 import { Modal } from "@/components/ui/modal";
-import { Loader2, Plus, Settings, Trash2 } from "lucide-react";
+import { Loader2, Plus, Settings, Trash2, Zap, CalendarDays, Clock } from "lucide-react";
 import AddCategoryModal from "./AddCategoryModal";
 import AddItemModal from "./AddItemModal";
 
@@ -74,8 +74,8 @@ function AddServiceModal({ shopId, globalServices, shopServices, closeModal, onR
   };
 
   return (
-    <Modal isOpen onClose={closeModal}>
-      <form onSubmit={handleSubmit} className="p-6">
+    <Modal isOpen onClose={closeModal} className="max-w-lg w-full mx-auto shadow-2xl border border-slate-200/50">
+      <form onSubmit={handleSubmit} className="p-8">
         <h2 className="text-xl font-bold text-white mb-2">Add New Service</h2>
         <p className="text-sm text-slate-400 mb-6">Map a global service template to your shop.</p>
 
@@ -166,7 +166,7 @@ function EditServiceModal({ shopId, service, closeModal, onRefresh }: any) {
       e.preventDefault();
       setSubmitting(true);
       try {
-        await apiClient.put(`/shops/${shopId}/services/${service.serviceID}`, {
+        await apiClient.put(`/shops/${shopId}/services/${service.shopServiceId || service.serviceID || service.id}`, {
           deliveryTypes: Object.fromEntries(
             Object.entries(deliveryTypes).map(([k, v]: any) => [k, { ...v, priceMultiplier: parseFloat(v.priceMultiplier) }])
           ),
@@ -180,48 +180,82 @@ function EditServiceModal({ shopId, service, closeModal, onRefresh }: any) {
       }
     };
   
+    const typeMeta: Record<string, { label: string; icon: any; badgeClass: string }> = {
+      express: {
+        label: "Express",
+        icon: <Zap size={14} className="text-amber-500 fill-amber-500/10" />,
+        badgeClass: "bg-amber-50 text-amber-700 border-amber-100"
+      },
+      oneDay: {
+        label: "One Day",
+        icon: <CalendarDays size={14} className="text-indigo-500" />,
+        badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-100"
+      },
+      standard: {
+        label: "Standard",
+        icon: <Clock size={14} className="text-slate-500" />,
+        badgeClass: "bg-slate-50 text-slate-700 border-slate-100"
+      }
+    };
+
+    const getMeta = (type: string) => {
+      return typeMeta[type] || {
+        label: type.replace(/([A-Z])/g, " $1"),
+        icon: <Clock size={14} className="text-slate-500" />,
+        badgeClass: "bg-slate-50 text-slate-700 border-slate-100"
+      };
+    };
+
     return (
-      <Modal isOpen onClose={closeModal}>
-        <form onSubmit={handleSubmit} className="p-6">
-          <h2 className="text-xl font-bold text-white mb-2">Edit {service.name}</h2>
-          <p className="text-sm text-slate-400 mb-6">Update delivery multipliers for this service.</p>
-  
-          <div className="mb-6 space-y-4">
-            {(["express", "oneDay", "standard"] as const).map((type) => (
-              <div key={type} className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
-                <div className="col-span-2">
-                  <span className="text-sm font-bold capitalize text-white">{type.replace(/([A-Z])/g, " $1")}</span>
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-slate-500 mb-1">Multiplier</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={deliveryTypes[type]?.priceMultiplier ?? ""}
-                    onChange={(e) => setDeliveryTypes((p: any) => ({ ...p, [type]: { ...p[type], priceMultiplier: e.target.value } }))}
-                    className="w-full bg-[#0e1424] border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-slate-500 mb-1">Duration</label>
-                  <input
-                    type="text"
-                    required
-                    value={deliveryTypes[type]?.duration ?? ""}
-                    onChange={(e) => setDeliveryTypes((p: any) => ({ ...p, [type]: { ...p[type], duration: e.target.value } }))}
-                    className="w-full bg-[#0e1424] border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"
-                  />
-                </div>
-              </div>
-            ))}
+      <Modal isOpen onClose={closeModal} className="max-w-lg w-full mx-auto shadow-2xl border border-slate-200/50">
+        <form onSubmit={handleSubmit} className="p-8">
+          <div className="mb-6">
+            <h2 className="text-xl font-extrabold text-slate-900 mb-1">Edit {service.name}</h2>
+            <p className="text-sm text-slate-500">Update delivery multipliers and durations for this service.</p>
           </div>
   
-          <div className="flex gap-3 justify-end pt-4 border-t border-slate-800">
-            <button type="button" onClick={closeModal} className="px-4 py-2 rounded-lg text-slate-400 font-medium hover:bg-slate-800 transition-colors">
+          <div className="mb-6 space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+            {(["express", "oneDay", "standard"] as const).map((type) => {
+              const meta = getMeta(type);
+              return (
+                <div key={type} className="grid grid-cols-2 gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all shadow-sm">
+                  <div className="col-span-2 flex items-center gap-2">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${meta.badgeClass}`}>
+                      {meta.icon}
+                      {meta.label}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Multiplier</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      required
+                      value={deliveryTypes[type]?.priceMultiplier ?? ""}
+                      onChange={(e) => setDeliveryTypes((p: any) => ({ ...p, [type]: { ...p[type], priceMultiplier: e.target.value } }))}
+                      className="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-3 py-2 text-slate-800 text-sm font-medium outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Duration</label>
+                    <input
+                      type="text"
+                      required
+                      value={deliveryTypes[type]?.duration ?? ""}
+                      onChange={(e) => setDeliveryTypes((p: any) => ({ ...p, [type]: { ...p[type], duration: e.target.value } }))}
+                      className="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-3 py-2 text-slate-800 text-sm font-medium outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+  
+          <div className="flex gap-3 justify-end pt-4 border-t border-slate-100">
+            <button type="button" onClick={closeModal} className="px-5 py-2.5 rounded-xl text-slate-500 font-bold hover:bg-slate-100 transition-colors text-sm">
               Cancel
             </button>
-            <button disabled={submitting} type="submit" className="px-4 py-2 rounded-lg bg-teal-500 hover:bg-teal-400 text-[#0e1424] font-bold disabled:opacity-50 flex items-center gap-2 transition-colors">
+            <button disabled={submitting} type="submit" className="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-bold disabled:opacity-50 flex items-center gap-2 transition-colors shadow-sm text-sm">
               {submitting && <Loader2 size={16} className="animate-spin" />}
               Save Changes
             </button>
@@ -254,7 +288,7 @@ function EditItemModal({ shopId, data, closeModal, onRefresh }: any) {
       }
 
       await apiClient.put(
-        `/shops/${shopId}/services/${service.serviceID}/categories/${category.categoryId}/items/${item.shopServiceCategoryItemId || item.id}`,
+        `/shops/${shopId}/services/${service.shopServiceId || service.serviceID || service.id}/categories/${category.categoryId}/items/${item.shopServiceCategoryItemId || item.id}`,
         payload
       );
       onRefresh();
@@ -267,8 +301,8 @@ function EditItemModal({ shopId, data, closeModal, onRefresh }: any) {
   };
 
   return (
-    <Modal isOpen onClose={closeModal}>
-      <form onSubmit={handleSubmit} className="p-6 max-w-md">
+    <Modal isOpen onClose={closeModal} className="max-w-md w-full mx-auto shadow-2xl border border-slate-200/50">
+      <form onSubmit={handleSubmit} className="p-8">
         <h2 className="text-xl font-bold text-white mb-2">Edit Price</h2>
         <p className="text-sm text-slate-400 mb-6">{item.itemName || item.name}</p>
 

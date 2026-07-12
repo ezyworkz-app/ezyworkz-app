@@ -44,7 +44,7 @@ export default function CategoryPanel({
       if (item.itemName || item.name) payload.name = item.itemName || item.name;
 
       await apiClient.put(
-        `/shops/${shopId}/services/${service.serviceID}/categories/${selectedCategory.categoryId}/items/${id}`,
+        `/shops/${shopId}/services/${service.shopServiceId || service.serviceID || service.id}/categories/${selectedCategory.categoryId}/items/${id}`,
         payload
       );
       onRefresh(); // trigger refetch
@@ -69,7 +69,7 @@ export default function CategoryPanel({
 
     try {
       await apiClient.delete(
-        `/shops/${shopId}/services/${service.serviceID}/categories/${selectedCategory.categoryId}/items/${id}`
+        `/shops/${shopId}/services/${service.shopServiceId || service.serviceID || service.id}/categories/${selectedCategory.categoryId}/items/${id}`
       );
       onRefresh(); // trigger refetch
     } catch (err) {

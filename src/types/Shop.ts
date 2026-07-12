@@ -41,10 +41,14 @@ export interface Shop {
     financeConfig?: FinanceConfig;
     financeHistory?: FinanceConfig[];
 
-    /* GST / Tax */
+    /* GST / Tax / Delivery Preferences */
     gstEnabled?: boolean;
     gstNumber?: string;
     gstRate?: number;
+    gstPercentage?: number;
+    deliveryFeeEnabled?: boolean;
+    baseDeliveryFee?: number;
+    lowCartFeeEnabled?: boolean;
 
     /* Domains */
     customDomain?: string;
