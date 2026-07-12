@@ -308,9 +308,9 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                             <div className="pt-4 border-t border-gray-200">
                                 <h3 className="text-xs font-semibold text-gray-400 uppercase mb-2">Delivery Address</h3>
                                 <div className="text-sm text-gray-600 space-y-0.5">
-                                    <p>{order.address.houseNo}, {order.address.block}</p>
-                                    <p>{order.address.line1}</p>
-                                    <p>{order.address.area}, {order.address.city}</p>
+                                    <p>{order.address.houseNo}{order.address.block ? `, ${order.address.block}` : ''}</p>
+                                    {order.address.line1 && order.address.line1 !== "Not Provided" && <p>{order.address.line1}</p>}
+                                    <p>{order.address.area}{order.address.city ? `, ${order.address.city}` : ''}</p>
                                 </div>
                             </div>
                         )}
