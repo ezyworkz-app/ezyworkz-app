@@ -2,8 +2,38 @@
 
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LayoutDashboard, Users, Receipt, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getDashboardStats } from "@/lib/actions/dashboard";
+import { getAllOrders } from "@/lib/actions/orders";
+import StatisticsChart from "@/components/ecommerce/StatisticsChart";
+import RecentOrders from "@/components/ecommerce/RecentOrders";
 
 export default function Dashboard() {
+    const [stats, setStats] = useState<any>(null);
+    const [recentOrders, setRecentOrders] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                // Fetch stats for "Today" to get metrics explicitly
+                const data = await getDashboardStats("Today");
+                setStats(data);
+                
+                // Fetch recent orders
+                const ordersRes = await getAllOrders(5);
+                if (ordersRes && ordersRes.orders) {
+                    setRecentOrders(ordersRes.orders);
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard data", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
+
     return (
         <ProtectedRoute>
             <main className="flex-1 p-8">
@@ -17,10 +47,10 @@ export default function Dashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 relative z-10">
                     {[
-                        { label: "Today's Orders", value: "12", icon: Receipt, color: "text-blue-400", bg: "bg-blue-500/10" },
-                        { label: "New Customers", value: "4", icon: Users, color: "text-purple-400", bg: "bg-purple-500/10" },
-                        { label: "Revenue (Today)", value: "₹2,450", icon: TrendingUp, color: "text-teal-400", bg: "bg-teal-500/10" },
-                        { label: "Pending Orders", value: "8", icon: LayoutDashboard, color: "text-amber-400", bg: "bg-amber-500/10" },
+                        { label: "Today's Orders", value: loading ? "..." : (stats?.financials?.todayOrdersCount || 0), icon: Receipt, color: "text-blue-400", bg: "bg-blue-500/10" },
+                        { label: "New Customers", value: loading ? "..." : (stats?.acquisition?.newUsersCount || 0), icon: Users, color: "text-purple-400", bg: "bg-purple-500/10" },
+                        { label: "Revenue (Today)", value: loading ? "..." : `₹${stats?.financials?.todaySales?.toLocaleString() || 0}`, icon: TrendingUp, color: "text-teal-400", bg: "bg-teal-500/10" },
+                        { label: "Total Orders", value: loading ? "..." : (stats?.metrics?.totalOrders || 0), icon: LayoutDashboard, color: "text-amber-400", bg: "bg-amber-500/10" },
                     ].map((stat, i) => (
                         <div key={i} className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
@@ -34,11 +64,20 @@ export default function Dashboard() {
                     ))}
                 </div>
 
-                <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 relative z-10">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Activity</h2>
-                    <div className="text-center py-12">
-                        <p className="text-gray-500">More charts and activity coming soon...</p>
-                    </div>
+                <div className="mb-8 relative z-10">
+                    {!loading && stats?.charts?.revenueTrend && (
+                        <StatisticsChart 
+                           categories={stats.charts.revenueTrend.categories}
+                           salesData={stats.charts.revenueTrend.current}
+                           revenueData={stats.charts.revenueTrend.previous}
+                        />
+                    )}
+                </div>
+
+                <div className="mb-8 relative z-10">
+                    {!loading && recentOrders.length > 0 && (
+                        <RecentOrders orders={recentOrders} />
+                    )}
                 </div>
             </main>
         </ProtectedRoute>

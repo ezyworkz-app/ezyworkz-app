@@ -65,7 +65,7 @@ export default function StatisticsChart({ categories, salesData, revenueData }: 
       },
     },
     stroke: {
-      curve: "straight", // Define the line style (straight, smooth, or step)
+      curve: "smooth", // Define the line style (straight, smooth, or step)
       width: [2, 2], // Line width for each dataset
     },
 
@@ -108,6 +108,14 @@ export default function StatisticsChart({ categories, salesData, revenueData }: 
     xaxis: {
       type: "category", // Category-based x-axis
       categories: categories || defaultCategories,
+      tickAmount: 8,
+      labels: {
+        hideOverlappingLabels: true,
+        style: {
+          fontSize: "12px",
+          colors: "#6B7280",
+        },
+      },
       axisBorder: {
         show: false, // Hide x-axis border
       },
@@ -150,10 +158,10 @@ export default function StatisticsChart({ categories, salesData, revenueData }: 
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Statistics
+            Revenue Trend
           </h3>
           <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Target you've set for each month
+            Current vs Previous Period
           </p>
         </div>
         <div className="flex items-center gap-3 sm:justify-end">
@@ -169,10 +177,8 @@ export default function StatisticsChart({ categories, salesData, revenueData }: 
         </div>
       </div>
 
-      <div className="max-w-full overflow-x-auto custom-scrollbar">
-        <div className="min-w-[1000px] xl:min-w-full">
+      <div className="w-full mt-4">
           <Chart options={options} series={series} type="area" height={310} />
-        </div>
       </div>
     </div>
   );

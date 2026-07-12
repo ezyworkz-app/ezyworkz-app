@@ -31,13 +31,20 @@ export const UserTrendChart: React.FC<UserTrendChartProps> = ({
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "area",
-      height: 250,
+      height: 350,
       toolbar: {
-        show: false,
+        show: true,
+        tools: { zoom: false, pan: false, reset: false, download: true },
       },
-      zoom: {
-        enabled: false,
-      },
+      zoom: { enabled: false },
+      dropShadow: {
+          enabled: true,
+          color: color,
+          top: 8,
+          left: 0,
+          blur: 6,
+          opacity: 0.15
+      }
     },
     stroke: {
       curve: "smooth",
@@ -45,70 +52,64 @@ export const UserTrendChart: React.FC<UserTrendChartProps> = ({
       dashArray: [0, 5], // Solid for current, dashed for previous
     },
     fill: {
-      type: "gradient",
+      type: ["gradient", "solid"],
       gradient: {
         shadeIntensity: 1,
         opacityFrom: 0.45,
-        opacityTo: 0.05,
+        opacityTo: 0.0,
         stops: [0, 100],
       },
+    },
+    markers: {
+      size: [4, 0],
+      colors: ["#fff"],
+      strokeColors: [color],
+      strokeWidth: 2,
+      hover: {
+        size: 6,
+      }
     },
     dataLabels: {
       enabled: false,
     },
     xaxis: {
       categories,
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
       labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
+        style: { colors: "#9CA3AF", fontSize: "12px", fontWeight: 500 },
       },
+      tooltip: { enabled: false },
     },
     yaxis: {
       labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
+        style: { colors: "#9CA3AF", fontSize: "12px", fontWeight: 500 },
       },
     },
     grid: {
       borderColor: "#F3F4F6",
-      strokeDashArray: 5,
-      xaxis: {
-        lines: {
-          show: false,
-        },
-      },
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
+      strokeDashArray: 4,
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: true } },
+      padding: { top: 0, right: 0, bottom: 0, left: 10 },
     },
     legend: {
       show: true,
       position: "top",
       horizontalAlign: "right",
       fontFamily: "Outfit",
-      markers: {
-        strokeWidth: 0,
-      },
+      fontWeight: 600,
+      markers: { strokeWidth: 0, size: 6 },
     },
     tooltip: {
-      x: {
-        show: true,
-      },
-      y: {
-        formatter: (val: number) => `${val}`,
-      },
+      shared: true,
+      intersect: false,
+      y: { formatter: (val: number) => `${val}` },
+      theme: "light",
+      style: {
+          fontSize: '12px',
+          fontFamily: 'Outfit, sans-serif'
+      }
     },
   };
 

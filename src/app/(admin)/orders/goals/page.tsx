@@ -5,7 +5,7 @@ import RevenueGoalsClient, { GoalsSkeleton } from "./RevenueGoalsClient";
 export default async function RevenueGoalsPage() {
     let initialStats = null;
     try {
-        initialStats = await getDashboardStats("Last 30 days");
+        initialStats = await getDashboardStats("This Month");
     } catch (err) {
         console.error("Failed to load revenue goals stats on server", err);
     }

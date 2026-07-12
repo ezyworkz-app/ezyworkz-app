@@ -19,26 +19,67 @@ export const UserSegmentChart: React.FC<UserSegmentChartProps> = ({ data }) => {
     chart: {
       type: "donut",
       fontFamily: "Outfit, sans-serif",
+      animations: {
+          enabled: true,
+          speed: 800,
+          animateGradually: {
+              enabled: true,
+              delay: 150
+          },
+          dynamicAnimation: {
+              enabled: true,
+              speed: 350
+          }
+      }
     },
     labels: labels,
     colors: ["#465fff", "#10B981", "#F59E0B", "#EF4444"],
     legend: {
       position: "bottom",
       fontFamily: "Outfit",
+      fontWeight: 500,
+      formatter: function(seriesName, opts) {
+          const val = opts.w.globals.series[opts.seriesIndex];
+          return seriesName + "  -  " + val;
+      }
     },
     dataLabels: {
-      enabled: false,
+      enabled: true,
+      dropShadow: { enabled: false },
+      style: {
+        fontSize: '13px',
+        fontFamily: 'Outfit, sans-serif',
+        fontWeight: 'bold',
+      },
     },
     plotOptions: {
       pie: {
+        expandOnClick: true,
         donut: {
-          size: "75%",
+          size: "65%",
           labels: {
             show: true,
+            name: {
+                show: true,
+                fontFamily: 'Outfit, sans-serif',
+                fontWeight: 500,
+                color: '#6b7280'
+            },
+            value: {
+                show: true,
+                fontFamily: 'Outfit, sans-serif',
+                fontWeight: 'bold',
+                fontSize: '24px',
+                color: '#1f2937',
+                formatter: function (val) {
+                    return val.toString();
+                }
+            },
             total: {
               show: true,
-              label: "Users",
+              label: "Total Users",
               color: "#6b7280",
+              fontFamily: 'Outfit, sans-serif',
               formatter: function (w) {
                 return w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0).toString();
               },
@@ -51,9 +92,16 @@ export const UserSegmentChart: React.FC<UserSegmentChartProps> = ({ data }) => {
       y: {
         formatter: (val: number) => `${val} Users`,
       },
+      theme: "light",
+      style: {
+          fontSize: '12px',
+          fontFamily: 'Outfit, sans-serif'
+      }
     },
     stroke: {
-        show: false
+        show: true,
+        colors: ['#fff'],
+        width: 2
     }
   };
 

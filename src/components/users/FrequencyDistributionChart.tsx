@@ -26,18 +26,34 @@ export const FrequencyDistributionChart: React.FC<FrequencyDistributionChartProp
       toolbar: {
         show: false,
       },
+      animations: {
+        enabled: true,
+        speed: 800,
+      }
     },
     plotOptions: {
       bar: {
         borderRadius: 4,
         horizontal: false,
-        columnWidth: "50%",
+        columnWidth: "45%",
         distributed: true,
+        dataLabels: {
+            position: 'top',
+        }
       },
     },
     colors: ["#6366f1", "#8b5cf6", "#a855f7", "#d946ef"],
     dataLabels: {
-      enabled: false,
+      enabled: true,
+      formatter: function (val) {
+        return val.toString();
+      },
+      offsetY: -20,
+      style: {
+        fontSize: '12px',
+        colors: ["#6b7280"],
+        fontFamily: 'Outfit, sans-serif',
+      }
     },
     legend: {
       show: false,
@@ -53,26 +69,34 @@ export const FrequencyDistributionChart: React.FC<FrequencyDistributionChartProp
       labels: {
         style: {
           colors: "#9CA3AF",
-          fontSize: "10px",
+          fontSize: "11px",
+          fontWeight: 500,
         },
       },
+      tooltip: { enabled: false }
     },
     yaxis: {
       labels: {
         style: {
           colors: "#9CA3AF",
-          fontSize: "10px",
+          fontSize: "11px",
+          fontWeight: 500,
         },
       },
     },
     grid: {
       borderColor: "#F3F4F6",
-      strokeDashArray: 5,
+      strokeDashArray: 4,
     },
     tooltip: {
+      theme: "light",
       y: {
         formatter: (val: number) => `${val} Users`,
       },
+      style: {
+          fontSize: '12px',
+          fontFamily: 'Outfit, sans-serif'
+      }
     },
   };
 

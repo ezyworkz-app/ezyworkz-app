@@ -15,7 +15,6 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Ezyworkz Shops Web",
   description: "Ezyworkz Shops Web App",
-  icons: [],
 };
 
 export default function RootLayout({

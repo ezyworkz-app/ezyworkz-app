@@ -18,13 +18,18 @@ export async function loginServer(
             return { error: "Email and password are required." };
         }
 
-        const res = await apiFetch("/api/v1/admin/auth/session/login", {
+        const res = await apiFetch("/api/v1/shop-auth/login", {
             method: "POST",
             body: JSON.stringify({ email, password }),
         });
 
         const json = await res.json();
-        const { token, refreshToken, adminId, role } = json.data;
+        
+        if (!json.success) {
+            return { error: json.message || "Login failed." };
+        }
+
+        const { token, shopOwner } = json.data;
 
         const ck = await cookies();
         ck.set("accessToken", token, {
@@ -32,17 +37,12 @@ export async function loginServer(
             path: "/",
             maxAge: 31536000,
         });
-        ck.set("refreshToken", refreshToken, {
+        ck.set("id", shopOwner.shopOwnerId, {
             httpOnly: true,
             path: "/",
             maxAge: 31536000,
         });
-        ck.set("id", adminId, {
-            httpOnly: true,
-            path: "/",
-            maxAge: 31536000,
-        });
-        ck.set("role", role, {
+        ck.set("role", "shop_owner", {
             httpOnly: true,
             path: "/",
             maxAge: 31536000,
@@ -58,26 +58,55 @@ export async function loginServer(
 
 export async function logoutServer() {
     const ck = await cookies();
-    const refreshToken = ck.get("refreshToken")?.value;
-
-    // Optional: Invalidate refresh token in backend
-    if (refreshToken) {
-        try {
-            await apiFetch("/api/v1/admin/auth/session/logout", {
-                method: "POST",
-                body: JSON.stringify({ refreshToken }),
-            });
-        } catch (err) {
-            console.warn("Failed to revoke refresh token:", err);
-        }
-    }
 
     // Clear all cookies
     const cookieOptions = { maxAge: 0, path: "/", httpOnly: true };
     ck.set("accessToken", "", cookieOptions);
-    ck.set("refreshToken", "", cookieOptions);
     ck.set("id", "", cookieOptions);
     ck.set("role", "", cookieOptions);
 
     redirect("/signin");
+}
+
+export async function getShopProfile() {
+    try {
+        const token = (await cookies()).get("accessToken")?.value;
+        if (!token) return null;
+
+        const res = await apiFetch("/api/v1/shop-auth/me", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const json = await res.json();
+        if (json.success) {
+            return json.data;
+        }
+        return null;
+    } catch (error) {
+        console.error("Failed to fetch shop profile:", error);
+        return null;
+    }
+}
+
+export async function updateShopProfile(
+    prevState: { success: boolean; message: string },
+    formData: FormData
+) {
+    try {
+        const token = (await cookies()).get("accessToken")?.value;
+        if (!token) return { success: false, message: "Not authenticated" };
+
+        const name = formData.get("name") as string;
+        const phone = formData.get("phone") as string;
+
+        const res = await apiFetch("/api/v1/shop-auth/me", {
+            method: "PATCH",
+            headers: { Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ name, phone })
+        });
+        
+        const json = await res.json();
+        return { success: json.success, message: json.message || "Profile updated successfully" };
+    } catch (error: any) {
+        return { success: false, message: error.message || "Failed to update profile" };
+    }
 }
