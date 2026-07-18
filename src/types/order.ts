@@ -219,6 +219,7 @@ export interface Order {
     deliveryScheduledAt?: string;
     address: Address;
     notes?: string;
+    customerAsks?: string;
     adminNotes?: string;
 
     /* ---------------------------- Feedback --------------------------- */

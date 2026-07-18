@@ -746,11 +746,11 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                 <div className="pt-2 border-t border-amber-100 dark:border-amber-900/30 flex justify-between items-center">
                   <span className="text-sm font-black text-amber-900 dark:text-amber-100 uppercase">Est. Net Profit</span>
                   <span className={`text-lg font-black ${
-                    (order.grandTotalPaid - (order.shopPayout + (Number(shopLogisticsCostInput) || 0) + (Number(logisticsCostInput) || 0) + (order.compensationAmount || 0))) >= 0 
+                    (order.grandTotalPaid - ((Number(shopLogisticsCostInput) || 0) + (Number(logisticsCostInput) || 0) + (order.compensationAmount || 0))) >= 0 
                     ? "text-emerald-600 dark:text-emerald-400" 
                     : "text-red-600 dark:text-red-400"
                   }`}>
-                    ₹{(order.grandTotalPaid - (order.shopPayout + (Number(shopLogisticsCostInput) || 0) + (Number(logisticsCostInput) || 0) + (order.compensationAmount || 0))).toFixed(2)}
+                    ₹{(order.grandTotalPaid - ((Number(shopLogisticsCostInput) || 0) + (Number(logisticsCostInput) || 0) + (order.compensationAmount || 0))).toFixed(2)}
                   </span>
                 </div>
               </div>

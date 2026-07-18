@@ -33,7 +33,10 @@ export default function CheckoutClientPage({ order }: { order: Order }) {
     setAddonsBySvc,
     setApplyDeliveryFee,
     setApplyGst,
+    setApplyLowCartFee,
     setShopDiscountAmount,
+    setInitialLowCartFee,
+    setOrderSource,
   } = useCheckout();
 
   const searchParams = useSearchParams();
@@ -166,6 +169,20 @@ export default function CheckoutClientPage({ order }: { order: Order }) {
         // ✅ Prefill admin and shop discounts if present on order
         setDiscountAmount(order.discountAmount ?? 0);
         setShopDiscountAmount(order.shopDiscountAmount ?? 0);
+
+        if (order.lowCartFee != null && order.lowCartFee > 0) {
+          setInitialLowCartFee(order.lowCartFee);
+          setApplyLowCartFee(true);
+        } else {
+          setApplyLowCartFee(false);
+        }
+
+        if (order.orderSource) {
+          setOrderSource(order.orderSource as "store" | "user");
+        } else if (order.userId) {
+          // Fallback guess: if there's a userId, it's likely a user order
+          setOrderSource("user");
+        }
       }
     } else if (cartItems.length === 0) {
       // Emergency catch for empty cart if something went wrong
@@ -186,6 +203,8 @@ export default function CheckoutClientPage({ order }: { order: Order }) {
     setShopDiscountAmount,
     setApplyDeliveryFee,
     setApplyGst,
+    setInitialLowCartFee,
+    setOrderSource,
     lastLoadedOrderId,
     setLastLoadedOrderId,
     lastLoadedFulfillmentMode,

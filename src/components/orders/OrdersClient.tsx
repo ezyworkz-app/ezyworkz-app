@@ -543,6 +543,7 @@ const OrdersClient = ({
         const compensationAmount = parseFloat(formData.get("compensationAmount") as string) || 0;
         const shopPayout = parseFloat(formData.get("shopPayout") as string) || 0;
         const logisticsCost = parseFloat(formData.get("logisticsCost") as string) || 0;
+        const shopLogisticsCost = parseFloat(formData.get("shopLogisticsCost") as string) || 0;
         const discountAmount = parseFloat(formData.get("discountAmount") as string) || 0;
 
         try {
@@ -553,9 +554,10 @@ const OrdersClient = ({
                     compensationAmount,
                     shopPayout,
                     logisticsCost,
+                    shopLogisticsCost,
                     discountAmount,
-                    // Update net profit locally for immediate feedback
-                    netProfit: (o.grandTotalPaid || 0) - shopPayout - logisticsCost - compensationAmount
+                    // Update net profit locally for immediate feedback (Shop perspective)
+                    netProfit: (o.grandTotalPaid || 0) - logisticsCost - (shopLogisticsCost || 0) - compensationAmount
                 } : o));
                 closeModal();
             } else {

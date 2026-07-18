@@ -315,14 +315,18 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                             </div>
                         )}
 
-                        {order.customerAsks && (
-                            <div className="pt-4 border-t border-gray-200">
-                                <h3 className="text-xs font-semibold text-amber-600 uppercase mb-2">Customer Asks / Notes</h3>
-                                <div className="text-sm text-amber-800 bg-amber-50 p-3 rounded-xl border border-amber-200 whitespace-pre-wrap">
-                                    {order.customerAsks}
+                        {(() => {
+                            const actualNotes = (order.customerAsks || "").replace(/\[.*?\]/g, "").trim();
+                            if (!actualNotes) return null;
+                            return (
+                                <div className="pt-4 border-t border-gray-200">
+                                    <h3 className="text-xs font-semibold text-amber-600 uppercase mb-2">Customer Asks / Notes</h3>
+                                    <div className="text-sm text-amber-800 bg-amber-50 p-3 rounded-xl border border-amber-200 whitespace-pre-wrap">
+                                        {actualNotes}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
                     </div>
                 </div>
 

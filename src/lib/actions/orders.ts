@@ -345,12 +345,31 @@ export async function updateOrderFinancials(formData: FormData) {
     });
 
     try {
-        const res = await apiFetch(`/api/v1/admin/orders/${orderId}/financials`, {
+        const token = (await cookies()).get("accessToken")?.value;
+        let shopId = (await cookies()).get("id")?.value;
+        
+        if (!token) throw new Error("Not authenticated");
+
+        if (!shopId) {
+            try {
+                const payloadStr = Buffer.from(token.split('.')[1], 'base64').toString();
+                const jwtPayload = JSON.parse(payloadStr);
+                shopId = jwtPayload.id || jwtPayload.shopOwnerId || jwtPayload.shopId;
+            } catch (e: any) {
+                console.error("Failed to decode token", e);
+            }
+        }
+
+        if (!shopId) throw new Error("Shop ID is required for shop operations.");
+        const url = `/api/v1/shops/${shopId}/orders/${orderId}/financials`;
+
+        const res = await apiFetch(url, {
             method: "PATCH",
             body: JSON.stringify(payload),
         });
 
         const result = await res.json();
+        revalidatePath("/(app)/orders", "page");
         revalidatePath("/(admin)/orders", "page");
 
         if (!res.ok || !result.success) {
@@ -705,7 +724,7 @@ export async function calculateOrderBreakdown(payload: any) {
     if (!token) return { error: "You must be logged in." };
 
     try {
-        const res = await apiFetch("/api/v1/admin/orders/calculate", {
+        const res = await apiFetch(`/api/v1/shops/${payload.shopId}/orders/calculate`, {
             method: "POST",
             body: JSON.stringify(payload),
         });

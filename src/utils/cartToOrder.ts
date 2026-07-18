@@ -47,6 +47,7 @@ export type CreateOrderPayload = Pick<
   userId?: string;
   customerId?: string; // backend mapping
   taxRate?: number;
+  orderSource?: "store" | "user";
 };
 
 const DEFAULT_DELIVERY: DeliveryKey = "standard";
@@ -93,6 +94,7 @@ export function cartToOrderPayload(
     shopGstRate?: number;
     walletAmountUsed?: number;
     ezyAmountUsed?: number;
+    orderSource?: "store" | "user";
   }
 ): CreateOrderPayload {
   if (!cart.length) throw new Error("Cart is empty");
@@ -281,5 +283,6 @@ export function cartToOrderPayload(
     lowCartFee,
     lowCartFeeBreakdown,
     taxRate: opts.shopGstRate,
+    orderSource: opts.orderSource,
   };
 }

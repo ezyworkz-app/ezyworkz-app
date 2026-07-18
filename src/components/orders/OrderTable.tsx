@@ -1404,11 +1404,26 @@ Warm regards,
                                                     <div className="space-y-2 pb-2 border-b border-gray-50 dark:border-gray-800">
                                                         <div className="flex items-center justify-between">
                                                             <div className="space-y-1">
-                                                                <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-warning-500" />
-                                                                    Pickup: {order.pickupType}
-                                                                </div>
-                                                                <div className="font-medium text-gray-800 dark:text-white/90">{formatDate(order?.pickupScheduledAt)}</div>
+                                                                {(() => {
+                                                                    const customerAsksStr = typeof order.customerAsks === "string" ? order.customerAsks : "";
+                                                                    const match = customerAsksStr.match(/\[Pickup Schedule:\s*([^\]]+)\]/i);
+                                                                    const parsedPickupSchedule = match ? match[1] : null;
+                                                                    const hasSchedule = parsedPickupSchedule || order.pickupScheduledAt;
+                                                                    const effectivePickupType = hasSchedule ? "scheduled" : order.pickupType;
+                                                                    const timeDisplay = parsedPickupSchedule || (order.pickupScheduledAt ? formatDate(order.pickupScheduledAt) : null);
+                                                                    
+                                                                    return (
+                                                                        <>
+                                                                            <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                                                                                <div className={`w-1.5 h-1.5 rounded-full ${effectivePickupType === 'scheduled' ? 'bg-brand-500' : 'bg-warning-500'}`} />
+                                                                                Pickup: {effectivePickupType}
+                                                                            </div>
+                                                                            {timeDisplay && (
+                                                                                <div className="font-medium text-gray-800 dark:text-white/90">{timeDisplay}</div>
+                                                                            )}
+                                                                        </>
+                                                                    );
+                                                                })()}
                                                             </div>
                                                             <div className="flex flex-col gap-1">
                                                                 <button
@@ -1508,12 +1523,16 @@ Warm regards,
                                                             <p className="text-theme-xs text-red-800 dark:text-red-400 font-bold leading-tight">{order.cancelReason}</p>
                                                         </div>
                                                     )}
-                                                    {order.notes && (
-                                                        <div className="bg-warning-50 dark:bg-warning-500/10 border border-warning-100 dark:border-warning-500/20 p-2 rounded-lg">
-                                                            <div className="text-theme-xs font-medium text-warning-600 mb-1">User Note</div>
-                                                            <p className="text-theme-xs text-warning-800 dark:text-warning-400 leading-tight italic line-clamp-2">"{order.notes}"</p>
-                                                        </div>
-                                                    )}
+                                                    {(() => {
+                                                        const actualNotes = (order.customerAsks || "").replace(/\[.*?\]/g, "").trim();
+                                                        if (!actualNotes) return null;
+                                                        return (
+                                                            <div className="bg-warning-50 dark:bg-warning-500/10 border border-warning-100 dark:border-warning-500/20 p-2 rounded-lg">
+                                                                <div className="text-theme-xs font-medium text-warning-600 mb-1">User Note</div>
+                                                                <p className="text-theme-xs text-warning-800 dark:text-warning-400 leading-tight italic">"{actualNotes}"</p>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                     <div className="space-y-1">
                                                         <div className="text-theme-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Admin Note</div>
                                                         <AdminNotesCell orderId={order.orderId} initialNotes={order.adminNotes} />
@@ -1719,10 +1738,6 @@ Warm regards,
                                                                 <span className="font-medium text-gray-500 dark:text-gray-400">+₹{(order.grandTotalPaid || 0).toFixed(2)}</span>
                                                             </div>
                                                             <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
-                                                                <span>Shop Payout</span>
-                                                                <span className="font-medium text-gray-500 dark:text-gray-400">-₹{(order.shopPayout || 0).toFixed(2)}</span>
-                                                            </div>
-                                                            <div className="flex justify-between text-theme-xs text-gray-500 dark:text-gray-400">
                                                                 <span>Porter/Rapido Cost</span>
                                                                 <span className="font-medium text-gray-500 dark:text-gray-400">-₹{(order.logisticsCost || 0).toFixed(2)}</span>
                                                             </div>
@@ -1742,8 +1757,8 @@ Warm regards,
                                                         <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Net Profit</span>
                                                         <div className="flex items-center gap-1">
                                                             <span className="text-gray-500 dark:text-gray-400 text-sm font-black italic">₹</span>
-                                                            <span className={`text-[15px] font-black ${(order?.netProfit ?? 0) >= 0 ? "text-white dark:text-gray-950" : "text-gray-400"}`}>
-                                                                {(order?.netProfit ?? 0).toFixed(2)}
+                                                            <span className={`text-[15px] font-black ${(order?.netProfit ?? ((order.grandTotalPaid || 0) - (order.logisticsCost || 0) - (order.shopLogisticsCost || 0) - (order.compensationAmount || 0))) >= 0 ? "text-white dark:text-gray-950" : "text-gray-400"}`}>
+                                                                {(order?.netProfit ?? ((order.grandTotalPaid || 0) - (order.logisticsCost || 0) - (order.shopLogisticsCost || 0) - (order.compensationAmount || 0))).toFixed(2)}
                                                             </span>
                                                         </div>
                                                     </div>

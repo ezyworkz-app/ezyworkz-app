@@ -44,6 +44,7 @@ export default function CreateOrderClient() {
         setEditingOrderId,
         setApplyDeliveryFee,
         setApplyGst,
+        setApplyLowCartFee,
         setInitialDistanceFee
     } = useCheckout();
 
@@ -60,6 +61,7 @@ export default function CreateOrderClient() {
         setEditingOrderId(undefined);
         setApplyDeliveryFee(false);
         setApplyGst(false);
+        setApplyLowCartFee(true);
         setInitialDistanceFee(undefined);
     }, []);
 
