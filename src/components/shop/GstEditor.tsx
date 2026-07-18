@@ -19,6 +19,9 @@ export default function GstEditor({ shop }: Props) {
     
     const [deliveryFeeEnabled, setDeliveryFeeEnabled] = useState<boolean>(shop.deliveryFeeEnabled ?? false);
     const [baseDeliveryFee, setBaseDeliveryFee] = useState<number>(shop.baseDeliveryFee ?? 0);
+    const [freeDeliveryRadius, setFreeDeliveryRadius] = useState<number>(shop.freeDeliveryRadius ?? 0);
+    const [baseDeliveryRadius, setBaseDeliveryRadius] = useState<number>(shop.baseDeliveryRadius ?? 0);
+    const [deliveryFeePerKm, setDeliveryFeePerKm] = useState<number>(shop.deliveryFeePerKm ?? 0);
     const [lowCartFeeEnabled, setLowCartFeeEnabled] = useState<boolean>(shop.lowCartFeeEnabled ?? false);
 
     const [saving, setSaving]         = useState(false);
@@ -41,6 +44,9 @@ export default function GstEditor({ shop }: Props) {
                 gstPercentage: gstEnabled ? gstRate : 0,
                 deliveryFeeEnabled,
                 baseDeliveryFee: deliveryFeeEnabled ? baseDeliveryFee : 0,
+                freeDeliveryRadius: deliveryFeeEnabled ? freeDeliveryRadius : 0,
+                baseDeliveryRadius: deliveryFeeEnabled ? baseDeliveryRadius : 0,
+                deliveryFeePerKm: deliveryFeeEnabled ? deliveryFeePerKm : 0,
                 lowCartFeeEnabled,
             });
             if (res.success) {
@@ -235,6 +241,52 @@ export default function GstEditor({ shop }: Props) {
                                 className="w-full px-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 border-gray-200 dark:border-white/10 transition"
                             />
                         </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2" title="Up to this distance, delivery is free.">
+                                    Free Radius (km)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={freeDeliveryRadius}
+                                    onChange={e => setFreeDeliveryRadius(parseFloat(e.target.value) || 0)}
+                                    placeholder="e.g. 0.5"
+                                    className="w-full px-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 border-gray-200 dark:border-white/10 transition"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2" title="Up to this distance (after free radius), base fee applies.">
+                                    Base Radius (km)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.1"
+                                    value={baseDeliveryRadius}
+                                    onChange={e => setBaseDeliveryRadius(parseFloat(e.target.value) || 0)}
+                                    placeholder="e.g. 1.5"
+                                    className="w-full px-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 border-gray-200 dark:border-white/10 transition"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2" title="Charge for every extra km beyond base radius.">
+                                    Extra Charge/km (₹)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={deliveryFeePerKm}
+                                    onChange={e => setDeliveryFeePerKm(parseFloat(e.target.value) || 0)}
+                                    placeholder="e.g. 15"
+                                    className="w-full px-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 border-gray-200 dark:border-white/10 transition"
+                                />
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                            Example: Up to {freeDeliveryRadius} km is free. Up to {baseDeliveryRadius} km costs ₹{baseDeliveryFee}. After that, it costs ₹{deliveryFeePerKm} per km.
+                        </p>
                     </div>
                 )}
             </div>

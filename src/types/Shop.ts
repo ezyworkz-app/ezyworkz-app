@@ -48,6 +48,9 @@ export interface Shop {
     gstPercentage?: number;
     deliveryFeeEnabled?: boolean;
     baseDeliveryFee?: number;
+    freeDeliveryRadius?: number;
+    baseDeliveryRadius?: number;
+    deliveryFeePerKm?: number;
     lowCartFeeEnabled?: boolean;
 
     /* Domains */
