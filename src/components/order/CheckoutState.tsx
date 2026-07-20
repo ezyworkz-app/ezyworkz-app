@@ -543,7 +543,9 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
       const payload = cartToOrderPayload(cartItems, deliveryBySvc, {
         paymentMethod,
         address: savedAddr ? {
-          line1: savedAddr.houseNo ?? savedAddr.line1,
+          houseNo: savedAddr.houseNo || "",
+          line1: savedAddr.line1 || "",
+          block: savedAddr.block || "",
           area: savedAddr.area ?? "",
           city: savedAddr.city ?? "",
           state: savedAddr.state ?? "",
