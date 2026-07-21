@@ -20,6 +20,8 @@ export type CreateOrderPayload = Pick<
   | "couponCode"
   | "address"
   | "notes"
+  | "tokenNumber"
+  | "tokenNumbers"
   | "pickupType"
   | "pickupScheduledAt"
   | "totalAmount"
@@ -85,6 +87,8 @@ export function cartToOrderPayload(
     };
     couponCode?: string;
     notes?: string;
+    tokenNumber?: string;
+    tokenNumbers?: string[];
     pickupType?: "instant" | "schedule";
     pickupScheduledAt?: string;
     discountAmount?: number;
@@ -276,6 +280,8 @@ export function cartToOrderPayload(
     tripCount,
     couponCode: opts.couponCode,
     notes: opts.notes,
+    tokenNumber: opts.tokenNumber,
+    tokenNumbers: opts.tokenNumbers,
     userId: opts.userId,
     customerId: opts.userId, // backend expects customerId
 

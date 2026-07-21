@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Edit3, DollarSign, FileText, MessageCircle, MapPin, Phone, StickyNote, Check, Loader2, ExternalLink, RefreshCw, X, ArrowDown, ArrowUp, AlertCircle, Truck, ChevronDown, Trash2 } from "lucide-react";
+import { Search, Edit3, DollarSign, FileText, MessageCircle, MapPin, Phone, StickyNote, Check, Loader2, ExternalLink, RefreshCw, X, ArrowDown, ArrowUp, AlertCircle, Truck, ChevronDown, Trash2, Ticket } from "lucide-react";
 import InputField from "@/components/form/input/InputField";
 import { Order, OrderService } from "@/types/order";
 import { Shop } from "@/types/Shop";
@@ -1074,6 +1074,22 @@ Warm regards,
                                                             {copiedText === order.orderId ? <Check size={10} className="text-success-500" /> : <FileText size={10} />}
                                                         </button>
                                                     </div>
+
+                                                    {order.tokenNumbers?.length > 0 ? (
+                                                        <div className="mt-1.5 flex flex-wrap gap-1">
+                                                            {order.tokenNumbers.map((t: string) => (
+                                                                <div key={t} className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 w-fit">
+                                                                    <Ticket size={12} />
+                                                                    {t}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : order.tokenNumber ? (
+                                                        <div className="mt-1.5 flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 w-fit">
+                                                            <Ticket size={12} />
+                                                            {order.tokenNumber}
+                                                        </div>
+                                                    ) : null}
 
                                                     <div className="block mt-1">
                                                         <DateEditorCell orderId={order.orderId} shopId={order.shopId} initialDate={order.createdAt} />

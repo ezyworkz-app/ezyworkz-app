@@ -84,6 +84,8 @@ type Ctx = {
   setCouponCode: (s: string | undefined) => void;
   notes: string | undefined;
   setNotes: (s: string | undefined) => void;
+  tokenNumber: string | undefined;
+  setTokenNumber: (s: string | undefined) => void;
   paymentMethod: "cod" | "upi" | "card";
   setPaymentMethod: (p: "cod" | "upi" | "card") => void;
 
@@ -176,6 +178,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
   const [savedAddr, setSavedAddr] = useState<SavedAddress | null>(null);
   const [couponCode, setCouponCode] = useState<string>();
   const [notes, setNotes] = useState<string>();
+  const [tokenNumber, setTokenNumber] = useState<string>();
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "upi" | "card">(
     "cod"
   );
@@ -194,11 +197,12 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
   const memoSetSavedAddr = useMemo(() => setSavedAddr, []);
   const memoSetCouponCode = useMemo(() => setCouponCode, []);
   const memoSetNotes = useMemo(() => setNotes, []);
+  const memoSetTokenNumber = useMemo(() => setTokenNumber, []);
   const memoSetPaymentMethod = useMemo(() => setPaymentMethod, []);
 
   const [applyDeliveryFee, setApplyDeliveryFee] = useState(false);
   const [applyGst, setApplyGst] = useState(false);
-  const [applyLowCartFee, setApplyLowCartFee] = useState(true);
+  const [applyLowCartFee, setApplyLowCartFee] = useState(false);
 
   /* ---- group cart ---- */
   const grouped = useMemo<Grouped[]>(() => {
@@ -558,6 +562,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
         deliveryCharges: applyDeliveryFee ? (initialDistanceFee ?? totals.deliveryTotal ?? undefined) : 0,
         couponCode,
         notes,
+        tokenNumbers: tokenNumber ? tokenNumber.split(',').map(t => t.trim()).filter(Boolean) : undefined,
         baseAmount: totals.base,
         multiplierUpcharge: totals.multiplierUpcharge,
         multiplierBreakdown: totals.multiplierBreakdown,
@@ -625,6 +630,8 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
     setCouponCode,
     notes,
     setNotes: memoSetNotes,
+    tokenNumber,
+    setTokenNumber: memoSetTokenNumber,
     paymentMethod,
     setPaymentMethod: memoSetPaymentMethod,
     totals,

@@ -140,6 +140,8 @@ export interface Order {
     userId: string;
     user: User;
     orderSource?: "user" | "store";
+    tokenNumber?: string;
+    tokenNumbers?: string[];
 
     /* 📦 Item Count Cross-Check */
     userItemCount?: number;

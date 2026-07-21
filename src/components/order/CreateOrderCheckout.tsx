@@ -1,11 +1,12 @@
 "use client";
 
 import { useCheckout } from "./CheckoutState";
+import { Ticket } from "lucide-react";
 import PaymentAndTotals from "./PaymentAndTotals";
 import ServicesBlock from "./ServicesBlock";
 
 export default function CreateOrderCheckout() {
-    const { savedAddr } = useCheckout();
+    const { savedAddr, tokenNumber, setTokenNumber } = useCheckout();
 
     // Build a meaningful address display string
     const addressParts: string[] = [];
@@ -53,6 +54,21 @@ export default function CreateOrderCheckout() {
                 ) : (
                     <p className="text-sm text-red-500">No address selected</p>
                 )}
+            </div>
+
+            {/* Token Number Section */}
+            <div className="rounded-xl bg-white p-4 shadow-sm border border-gray-100 space-y-3">
+                <div className="flex items-center gap-2">
+                    <Ticket className="w-5 h-5 text-gray-400" />
+                    <h3 className="font-semibold text-gray-800">Token Number</h3>
+                </div>
+                <input
+                    type="text"
+                    placeholder="E.g. A1, 42, Token-001 (Optional)"
+                    value={tokenNumber || ""}
+                    onChange={(e) => setTokenNumber(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder:text-gray-400"
+                />
             </div>
 
             <ServicesBlock />

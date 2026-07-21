@@ -61,7 +61,7 @@ export default function CreateOrderClient() {
         setEditingOrderId(undefined);
         setApplyDeliveryFee(false);
         setApplyGst(false);
-        setApplyLowCartFee(true);
+        setApplyLowCartFee(false);
         setInitialDistanceFee(undefined);
     }, []);
 
@@ -83,12 +83,6 @@ export default function CreateOrderClient() {
                 const shopDetails = shops.find((s: any) => s.shopId === selectedShopId);
                 if (shopDetails) {
                     setSelectedShop(shopDetails as Shop);
-                    if (shopDetails.gstEnabled) {
-                        setApplyGst(true);
-                    }
-                    if (shopDetails.deliveryFeeEnabled) {
-                        setApplyDeliveryFee(true);
-                    }
                 }
                 setShopServices(services);
             } catch (error) {

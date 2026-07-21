@@ -1026,3 +1026,31 @@ export async function updateOrderDate(orderId: string, shopId: string, createdAt
         return { error: error.message || "Unexpected error" };
     }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Update Order Token Number                                         */
+/* ------------------------------------------------------------------ */
+export async function updateOrderTokens(shopId: string, orderId: string, tokenNumbers: string[]) {
+    const token = (await cookies()).get('accessToken')?.value;
+    if (!token) throw new Error('Not authenticated');
+
+    try {
+        const res = await apiFetch(`/api/v1/shops/${shopId}/orders/${orderId}/token`, {
+            method: 'PATCH',
+            body: JSON.stringify({ tokenNumbers }),
+        });
+
+        const result = await res.json();
+        revalidatePath('/(app)/orders', 'page');
+        revalidatePath('/(admin)/orders', 'page');
+
+        if (!res.ok || !result.success) {
+            throw new Error(result.message || 'Failed to update token numbers');
+        }
+
+        return result;
+    } catch (error: any) {
+        console.error('[updateOrderTokens]', error);
+        return { error: error.message || 'Unexpected error' };
+    }
+}

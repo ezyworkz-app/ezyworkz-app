@@ -1,8 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { Loader2, CheckCircle2, Package, Truck, Calendar, Clock, MapPin, IndianRupee, FileText } from "lucide-react";
+import { Loader2, CheckCircle2, Package, Truck, Calendar, Clock, MapPin, IndianRupee, FileText, Ticket } from "lucide-react";
 import apiClient from "@/lib/api/client";
+import { updateOrderTokens } from "@/lib/actions/orders";
+
+interface OrderDetailsProps {
+    order: any;
+    shopId: string;
+    onOrderUpdated: () => void;
+}
+
+"use client";
+
+import React, { useState } from "react";
+import { Loader2, CheckCircle2, Package, Truck, Calendar, Clock, MapPin, IndianRupee, FileText, Ticket } from "lucide-react";
+import apiClient from "@/lib/api/client";
+import { updateOrderTokens } from "@/lib/actions/orders";
 
 interface OrderDetailsProps {
     order: any;
@@ -15,6 +29,34 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
     const [paymentLoading, setPaymentLoading] = useState(false);
     const [partialAmount, setPartialAmount] = useState("");
     const [showPartialInput, setShowPartialInput] = useState(false);
+
+    // Token State
+    const [tokenLoading, setTokenLoading] = useState(false);
+    const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
+    const [selectedTokens, setSelectedTokens] = useState<string[]>(order?.tokenNumbers || (order?.tokenNumber ? [order.tokenNumber] : []));
+    const [activeTokens, setActiveTokens] = useState<string[]>([]);
+
+    React.useEffect(() => {
+        if (isTokenModalOpen) {
+            apiClient.get(`/shops/${shopId}/orders/tokens/active`)
+                .then(res => setActiveTokens(res.data.data || []))
+                .catch(err => console.error("Failed to load active tokens", err));
+        }
+    }, [isTokenModalOpen, shopId]);
+
+    const handleUpdateToken = async () => {
+        setTokenLoading(true);
+        try {
+            const res = await updateOrderTokens(shopId, order.orderId, selectedTokens);
+            if (res.error) throw new Error(res.error);
+            setIsTokenModalOpen(false);
+            onOrderUpdated();
+        } catch (err: any) {
+            alert(err.message || "Failed to update tokens");
+        } finally {
+            setTokenLoading(false);
+        }
+    };
 
     const handleUpdateStatus = async (newStatus: string) => {
         if (!confirm(`Are you sure you want to change the status to ${newStatus.replace(/_/g, " ")}?`)) return;
@@ -128,10 +170,28 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                             <span>Items Total</span>
                             <span>₹{(order.baseAmount ?? 0).toFixed(2)}</span>
                         </div>
+                        {(order.addonsTotal > 0) && (
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>Extra Add-ons</span>
+                                <span>₹{(order.addonsTotal).toFixed(2)}</span>
+                            </div>
+                        )}
+                        {(order.multiplierUpcharge > 0) && (
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>{order.multiplierLabel || "Express / One Day Charges"}</span>
+                                <span>₹{(order.multiplierUpcharge).toFixed(2)}</span>
+                            </div>
+                        )}
                         {order.deliveryCharges > 0 && (
                             <div className="flex justify-between text-sm text-gray-600">
                                 <span>Delivery Charges</span>
                                 <span>₹{(order.deliveryCharges).toFixed(2)}</span>
+                            </div>
+                        )}
+                        {order.lowCartFee > 0 && (
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>Low Cart Fee</span>
+                                <span>₹{(order.lowCartFee).toFixed(2)}</span>
                             </div>
                         )}
                         {order.taxAmount > 0 && (
@@ -217,6 +277,37 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                             </button>
                         )}
                         {statusLoading && <p className="text-xs text-center text-gray-500 mt-2">Updating status...</p>}
+                    </div>
+                </div>
+
+                {/* Token Card */}
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                <Ticket className="w-4 h-4" /> Token(s)
+                            </h2>
+                            <div className="flex flex-wrap gap-2">
+                                {order.tokenNumbers?.length > 0 ? (
+                                    order.tokenNumbers.map((t: string) => (
+                                        <span key={t} className="px-3 py-1 bg-purple-100 text-purple-700 font-bold rounded-lg">{t}</span>
+                                    ))
+                                ) : order.tokenNumber ? (
+                                    <span className="px-3 py-1 bg-purple-100 text-purple-700 font-bold rounded-lg">{order.tokenNumber}</span>
+                                ) : (
+                                    <span className="text-gray-400 italic font-normal">Not Assigned</span>
+                                )}
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setSelectedTokens(order.tokenNumbers || (order.tokenNumber ? [order.tokenNumber] : []));
+                                setIsTokenModalOpen(true);
+                            }}
+                            className="text-sm font-semibold text-purple-600 hover:text-purple-700 bg-purple-50 px-3 py-1.5 rounded-lg"
+                        >
+                            {(order.tokenNumbers?.length > 0 || order.tokenNumber) ? "Edit" : "Assign"}
+                        </button>
                     </div>
                 </div>
 
@@ -331,6 +422,62 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                 </div>
 
             </div>
+            {/* Token Assignment Modal */}
+            {isTokenModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Assign Tokens</h3>
+                        <p className="text-sm text-gray-500 mb-4">Select multiple tokens to easily identify this order.</p>
+                        
+                        <div className="flex flex-wrap gap-2 mb-6 max-h-[300px] overflow-y-auto justify-center">
+                            {[...Array(20)].map((_, i) => {
+                                const token = (i + 1).toString();
+                                const isSelected = selectedTokens.includes(token);
+                                const isTaken = activeTokens.includes(token) && !(order?.tokenNumbers || (order?.tokenNumber ? [order.tokenNumber] : [])).includes(token);
+                                
+                                return (
+                                    <button
+                                        key={token}
+                                        onClick={() => {
+                                            if (isSelected) {
+                                                setSelectedTokens(selectedTokens.filter(t => t !== token));
+                                            } else {
+                                                setSelectedTokens([...selectedTokens, token]);
+                                            }
+                                        }}
+                                        disabled={isTaken}
+                                        className={`w-12 h-12 rounded-full font-bold text-lg flex items-center justify-center transition-all ${
+                                            isSelected ? "bg-purple-600 text-white shadow-md border border-purple-600" 
+                                            : isTaken ? "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-60"
+                                            : "bg-white text-gray-700 border border-gray-300 hover:border-purple-400 hover:text-purple-600"
+                                        }`}
+                                    >
+                                        {token}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="flex gap-2 justify-end mt-4">
+                            <button
+                                onClick={() => setIsTokenModalOpen(false)}
+                                className="px-4 py-2 rounded-xl text-gray-600 font-medium hover:bg-gray-100"
+                                disabled={tokenLoading}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleUpdateToken}
+                                disabled={tokenLoading}
+                                className="px-4 py-2 rounded-xl bg-purple-600 text-white font-medium hover:bg-purple-700 flex items-center gap-2"
+                            >
+                                {tokenLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                                Save Tokens
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

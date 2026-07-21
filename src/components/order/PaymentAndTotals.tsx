@@ -150,7 +150,7 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
           ) : (
             multiplierUpcharge > 0 && (
               <Row
-                label={multiplierLabel || "Priority fee"}
+                label={multiplierLabel || "Express / One Day Charges"}
                 value={multiplierUpcharge}
                 formatFn={formatCurrency}
               />
