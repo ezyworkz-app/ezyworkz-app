@@ -11,7 +11,7 @@ import { useCheckout } from "./CheckoutState";
 import { SavedAddress } from "@/types/address";
 import { getUserAddresses, getShopCustomers, createShopCustomer } from "@/lib/actions/users";
 import { ShopService } from "@/types/shop-menu";
-import { fetchShopServices } from "@/lib/actions/shops";
+import { fetchShopFullMenu } from "@/lib/actions/shops";
 import { useShop } from "@/context/ShopContext";
 import apiClient from "@/lib/api/client";
 
@@ -48,17 +48,17 @@ export default function CreateOrderClient() {
         setInitialDistanceFee
     } = useCheckout();
 
-    // Clear cart and checkout state on mount
+    // 1️⃣ Reset all states on mount
     useEffect(() => {
         clearCart();
-        setSavedAddr(null as any);
-        setUserId(undefined);
-        setPaymentMethod("cod");
-        setNotes(undefined);
-        setCouponCode(undefined);
+        setUserId(null);
+        setSavedAddr(null);
+        setPaymentMethod(null);
+        setNotes("");
+        setCouponCode("");
         setDiscountAmount(0);
         setShopDiscountAmount(0);
-        setEditingOrderId(undefined);
+        setEditingOrderId(null);
         setApplyDeliveryFee(false);
         setApplyGst(false);
         setApplyLowCartFee(false);
@@ -72,10 +72,10 @@ export default function CreateOrderClient() {
             setLoadingData(true);
             try {
                 // Use client-side apiClient for shop details (shop-owner endpoint)
-                const [customersRes, myShopsRes, services] = await Promise.all([
+                const [customersRes, myShopsRes, fullMenuRes] = await Promise.all([
                     getShopCustomers(selectedShopId),
                     apiClient.get('/shops/my-shops'),
-                    fetchShopServices(selectedShopId),
+                    fetchShopFullMenu(selectedShopId),
                 ]);
                 setUsers(customersRes.users || []);
                 // myShopsRes.data is the array of shops (interceptor unwraps data.data)
@@ -84,7 +84,7 @@ export default function CreateOrderClient() {
                 if (shopDetails) {
                     setSelectedShop(shopDetails as Shop);
                 }
-                setShopServices(services);
+                setShopServices(fullMenuRes?.services || []);
             } catch (error) {
                 console.error("Failed to load shop data", error);
             } finally {

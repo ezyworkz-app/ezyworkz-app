@@ -146,6 +146,22 @@ export async function getShopServiceById(
 //     }
 // }
 
+export async function fetchShopFullMenu(shopId: string): Promise<any> {
+    try {
+        const res = await apiFetch(`/api/v1/public/shop/json/${shopId}`, { cache: 'no-store' });
+        const data = await res.json();
+        
+        if (!res.ok || !data.success) {
+            throw new Error(data.message || "Failed to fetch full shop menu");
+        }
+        
+        return data.data; // contains .shop and .services (with categories and items)
+    } catch (error) {
+        console.error("[fetchShopFullMenu]", error);
+        return null;
+    }
+}
+
 export async function fetchShopServices(
     shopId: string
 ): Promise<ShopService[]> {

@@ -49,7 +49,8 @@ export async function getAllOrders(
     priority?: string,
     q?: string,
     userSearch?: string,
-    shopSearch?: string
+    shopSearch?: string,
+    source?: string
 ): Promise<{ 
     orders: Order[]; 
     nextKey?: string; 
@@ -87,6 +88,7 @@ export async function getAllOrders(
         if (q) url += `&q=${encodeURIComponent(q)}`;
         if (userSearch) url += `&userSearch=${encodeURIComponent(userSearch)}`;
         if (shopSearch) url += `&shopSearch=${encodeURIComponent(shopSearch)}`;
+        if (source) url += `&source=${encodeURIComponent(source)}`;
 
         const res = await apiFetch(url);
         const data = await res.json();

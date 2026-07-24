@@ -16,10 +16,12 @@ import { Shop } from "@/types/Shop";
 import { useSearchParams } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useCheckout } from "../order/CheckoutState";
+import { Search } from "lucide-react";
 
 import ServiceTabs from "./ServiceTabs";
 import CategoryRail from "./CategoryRail";
 import ItemsGrid from "./ItemsGrid";
+import GlobalSearchModal from "./GlobalSearchModal";
 import {
   fetchCategoryItems,
   fetchServiceCategories,
@@ -106,6 +108,7 @@ export default function ShopMenuClient({
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [activeCat, setActiveCat] = useState<ShopCategory | null>(null);
   const [items, setItems] = useState<ShopItem[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const searchParams = useSearchParams();
   const { setEditingOrderId, setIsFulfillmentMode } = useCheckout();
@@ -145,49 +148,61 @@ export default function ShopMenuClient({
   /* ---- load & sort categories when service changes ---- */
   useEffect(() => {
     if (!activeSvc) return;
-    setCategories([]);
-    setActiveCat(null);
-    setItems([]);
+    
+    // Fallback in case categories are missing
+    const cats = activeSvc.categories || [];
+    
+    // 🔵 Only show active categories
+    const activeCats = cats.filter(c => c.isActive !== false);
 
-    fetchServiceCategories(shopId, activeSvc.shopServiceId).then((cats) => {
-      // 🔵 Only show active categories
-      const activeCats = cats.filter(c => c.isActive !== false);
+    /* custom order logic */
+    const ordered = CATEGORY_ORDER.map((key) =>
+      activeCats.find((c) => c.name.toLowerCase() === key.toLowerCase())
+    ).filter(Boolean) as ShopCategory[];
 
-      /* custom order logic */
-      const ordered = CATEGORY_ORDER.map((key) =>
-        activeCats.find((c) => c.name.toLowerCase() === key.toLowerCase())
-      ).filter(Boolean) as ShopCategory[];
+    const leftovers = activeCats.filter(
+      (c) =>
+        !CATEGORY_ORDER.some(
+          (key) => key.toLowerCase() === c.name.toLowerCase()
+        )
+    );
 
-      const leftovers = activeCats.filter(
-        (c) =>
-          !CATEGORY_ORDER.some(
-            (key) => key.toLowerCase() === c.name.toLowerCase()
-          )
-      );
+    const sortedCats = [...ordered, ...leftovers];
 
-      const sortedCats = [...ordered, ...leftovers];
-
-      setCategories(sortedCats);
-      if (sortedCats.length > 0) setActiveCat(sortedCats[0]);
-    });
+    setCategories(sortedCats);
+    if (sortedCats.length > 0) setActiveCat(sortedCats[0]);
+    else setActiveCat(null);
   }, [activeSvc]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!activeCat || !activeSvc) {
       setItems([]);
       return;
     }
-    setItems([]);
-    fetchCategoryItems(shopId, activeSvc.shopServiceId, activeCat.shopServiceCategoryId).then(setItems);
-  }, [activeCat, activeSvc, shopId]);
+    setItems(activeCat.items || []);
+  }, [activeCat, activeSvc]);
 
   if (!activeSvc) return null;
 
-  const catsLoading = categories.length === 0;
-  const itemsLoading = !!activeCat && items.length === 0;
+  const catsLoading = false;
+  const itemsLoading = false;
 
   return (
     <div className="flex flex-col space-y-2">
+      {/* Global Search Bar */}
+      <div className="px-1 pt-2">
+        <div className="relative cursor-pointer" onClick={() => setIsSearchOpen(true)}>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          <input
+            type="text"
+            readOnly
+            placeholder="Search items across all services..."
+            className="w-full pl-9 pr-4 py-3 bg-neutral-100 rounded-xl border-transparent hover:bg-neutral-200 cursor-pointer outline-none transition-all text-sm pointer-events-none"
+            value=""
+          />
+        </div>
+      </div>
+
       {/* ── sticky service pills ── */}
       <div className="sticky top-16 z-30 bg-white pb-1">
         <ServiceTabs
@@ -230,10 +245,21 @@ export default function ShopMenuClient({
               categoryId={activeCat?.shopServiceCategoryId ?? ""}
               categoryName={activeCat?.name ?? ""}
               items={items}
+              onOpenSearch={() => setIsSearchOpen(true)}
             />
           )}
         </div>
       </div>
+      
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        shopId={shopId || ""}
+        shopName={shopName || ""}
+        shopLat={lat}
+        shopLng={lng}
+        servicesList={sortedServices}
+      />
     </div>
   );
 }

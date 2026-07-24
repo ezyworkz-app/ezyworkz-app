@@ -115,6 +115,7 @@ const OrdersClient = ({
     ];
 
     const [priorityTab, setPriorityTab] = useState<"all" | "standard" | "oneDay" | "express">("all");
+    const [sourceFilter, setSourceFilter] = useState<"all" | "user" | "store">("all");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
     const [searchType, setSearchType] = useState<"all" | "user" | "shop">("all");
     const [searchQuery, setSearchQuery] = useState("");
@@ -184,7 +185,8 @@ const OrdersClient = ({
         prio: string,
         query?: string,
         uSearch?: string,
-        sSearch?: string
+        sSearch?: string,
+        srcFilter?: string
     ) => {
         setIsLoading(true);
         try {
@@ -204,7 +206,8 @@ const OrdersClient = ({
                 prio,
                 query,
                 uSearch,
-                sSearch
+                sSearch,
+                srcFilter
             );
             
             setOrders(newOrders);
@@ -254,26 +257,29 @@ const OrdersClient = ({
             const q = searchType === "all" ? searchQuery : undefined;
             const u = searchType === "user" ? searchQuery : undefined;
             const s = searchType === "shop" ? searchQuery : undefined;
+            const src = sourceFilter === "all" ? undefined : sourceFilter;
 
-            fetchOrdersForPage(1, { ...filters, shopId: selectedShopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
+            fetchOrdersForPage(1, { ...filters, shopId: selectedShopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s, src);
         }, 500);
 
         return () => clearTimeout(timeout);
-    }, [selectedTab, selectedStatus, filters.shopId, filters.userId, sortOrder, priorityTab, searchQuery, searchType, selectedShopId, isShopLoading]);
+    }, [selectedTab, selectedStatus, filters.shopId, filters.userId, sortOrder, priorityTab, searchQuery, searchType, selectedShopId, isShopLoading, sourceFilter]);
 
     const handlePageChange = (newPage: number) => {
         if (newPage === page) return;
         const q = searchType === "all" ? searchQuery : undefined;
         const u = searchType === "user" ? searchQuery : undefined;
         const s = searchType === "shop" ? searchQuery : undefined;
-        fetchOrdersForPage(newPage, { ...filters, shopId: selectedShopId || filters.shopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
+        const src = sourceFilter === "all" ? undefined : sourceFilter;
+        fetchOrdersForPage(newPage, { ...filters, shopId: selectedShopId || filters.shopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s, src);
     };
 
     const handleManualRefresh = () => {
         const q = searchType === "all" ? searchQuery : undefined;
         const u = searchType === "user" ? searchQuery : undefined;
         const s = searchType === "shop" ? searchQuery : undefined;
-        fetchOrdersForPage(page, { ...filters, shopId: selectedShopId || filters.shopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s);
+        const src = sourceFilter === "all" ? undefined : sourceFilter;
+        fetchOrdersForPage(page, { ...filters, shopId: selectedShopId || filters.shopId }, selectedTab, selectedStatus, sortOrder, priorityTab, q, u, s, src);
     };
 
     const handleClearSearch = () => {
@@ -588,6 +594,20 @@ const OrdersClient = ({
                                 <option value="all">Unified</option>
                                 <option value="user">User</option>
                                 <option value="shop">Shop</option>
+                            </select>
+                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                        </div>
+
+                        {/* Source Filter Selector */}
+                        <div className="relative border-r border-gray-200 dark:border-gray-700">
+                            <select
+                                value={sourceFilter}
+                                onChange={(e) => setSourceFilter(e.target.value as any)}
+                                className="h-11 pl-4 pr-8 bg-transparent text-xs font-bold text-gray-600 dark:text-gray-300 appearance-none cursor-pointer focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 transition-colors uppercase tracking-wider"
+                            >
+                                <option value="all">All Sources</option>
+                                <option value="user">Online</option>
+                                <option value="store">Shop Placed</option>
                             </select>
                             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
                         </div>

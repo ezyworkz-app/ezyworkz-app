@@ -236,6 +236,7 @@ export default function GstEditor({ shop }: Props) {
                             <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 value={baseDeliveryFee}
                                 onChange={e => setBaseDeliveryFee(parseFloat(e.target.value) || 0)}
                                 className="w-full px-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 border-gray-200 dark:border-white/10 transition"
@@ -277,6 +278,7 @@ export default function GstEditor({ shop }: Props) {
                                 <input
                                     type="number"
                                     min="0"
+                                    step="any"
                                     value={deliveryFeePerKm}
                                     onChange={e => setDeliveryFeePerKm(parseFloat(e.target.value) || 0)}
                                     placeholder="e.g. 15"
