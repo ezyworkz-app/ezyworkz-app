@@ -9,7 +9,7 @@ import Link from "next/link";
 import ShopMenuClient from "@/components/shop/ShopMenuClient";
 import ShopCardShop from "@/components/shop/ShopCardShop";
 import FloatingCartBar from "@/components/order/FloatingCartBar";
-import { fetchShopServices } from "@/lib/actions/shops";
+import { fetchShopFullMenu } from "@/lib/actions/shops";
 
 export default function OrderMenuEditPage() {
     const params = useParams();
@@ -37,11 +37,11 @@ export default function OrderMenuEditPage() {
             setLoading(true);
             setError("");
             
-            // Fetch order, shop list, and services
-            const [orderRes, shopsRes, servicesData] = await Promise.all([
+            // Fetch order, shop list, and full menu
+            const [orderRes, shopsRes, fullMenuRes] = await Promise.all([
                 apiClient.get(`/shops/${selectedShopId}/orders/${orderId}`),
                 apiClient.get(`/shops/my-shops`),
-                fetchShopServices(selectedShopId!)
+                fetchShopFullMenu(selectedShopId!)
             ]);
             
             const currentShop = shopsRes.data?.find((s: any) => s.shopId === selectedShopId) || shopsRes.data?.[0];
@@ -50,12 +50,9 @@ export default function OrderMenuEditPage() {
                 throw new Error("Could not load required data. Please ensure the order exists and you have access.");
             }
 
-            console.log("[OrderMenuEditPage] Fetched services count:", servicesData?.length);
-            console.log("[OrderMenuEditPage] First service:", servicesData?.[0]);
-
             setOrder(orderRes.data.order || orderRes.data);
             setShop(currentShop);
-            setServices(servicesData);
+            setServices(fullMenuRes?.services || []);
         } catch (err: any) {
             console.error(err);
             setError(err?.response?.data?.message || err?.message || "Failed to load shop menu for this order.");

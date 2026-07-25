@@ -11,6 +11,7 @@ import Badge from "@/components/ui/badge/Badge";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { generateWhatsAppMessage } from "@/utils/whatsappTemplate";
 
 interface OrderTableProps {
     orders: Order[];
@@ -818,153 +819,17 @@ const OrderTable: React.FC<OrderTableProps> = ({
     };
 
     const getStatusMessage = (order: Order, recipient: "user" | "shop") => {
-        const orderId = order.orderId;
-        const userName = order.user?.name || "there";
+        const safeOrderId = order.orderId.replace(/_/g, '-');
         const shop = shopsMap[order.shopId];
-        const shopName = shop?.name || "Shop";
-        const status = order.status;
+        const shopCustomDomain = shop?.customDomain;
+        const shopSubdomain = shop?.subdomain;
+        const invoiceUrl = shopCustomDomain 
+            ? `https://${shopCustomDomain}/invoice/${safeOrderId}`
+            : shopSubdomain
+            ? `https://${shopSubdomain}.ezyworkz.com/invoice/${safeOrderId}`
+            : `https://ezyworkz.com/order/${safeOrderId}`;
 
-        // Only show pickup time in confirmed state
-        const pickupTime = (status === "confirmed" && order.pickupScheduledAt) 
-            ? `\n- *Pickup Time*: ${formatDate(order.pickupScheduledAt)}` 
-            : "";
-
-        if (recipient === "shop") {
-            const services = order.services.map((s) => {
-                const rawLabel = (s.selectedDeliveryKey || order.multiplierLabel || "standard").toLowerCase();
-                let dKey = "Standard";
-                if (rawLabel.includes("express")) dKey = "Express";
-                else if (rawLabel.includes("oneday") || rawLabel.includes("one day")) dKey = "One Day";
-                return `${s.serviceName} (${dKey})`;
-            }).join(", ");
-
-            const rawMainLabel = (order.services[0]?.selectedDeliveryKey || order.multiplierLabel || "standard").toLowerCase();
-            let mainDeliveryType = "Standard";
-            if (rawMainLabel.includes("express")) mainDeliveryType = "Express";
-            else if (rawMainLabel.includes("oneday") || rawMainLabel.includes("one day")) mainDeliveryType = "One Day";
-
-            const userNote = order.notes ? `\n- *Note*: ${order.notes}` : "";
-
-            if (status === "confirmed" || status === "in_pickup" || status === "in_process" || status === "ready_to_deliver") {
-                if (status === "confirmed") {
-                    const line2Text = order.address?.line2 && order.address.line2 !== "Not Provided" ? `, ${order.address.line2}` : "";
-                    const areaCityText = order.address?.area || order.address?.city || "";
-                    const addressText = `${order.address?.houseNo ? order.address.houseNo + ", " : ""}${order.address?.line1 || ""}${line2Text}${areaCityText ? `, ${areaCityText}` : ""}`;
-                    const mapsLink = (order.address?.lat && order.address?.lng) ? `https://www.google.com/maps/search/?api=1&query=${order.address.lat},${order.address.lng}` : "";
-                    const mapsLine = mapsLink ? `\n- *Maps*: ${mapsLink}` : "";
-                    return `*Hello ${shopName}, order ${orderId} is confirmed and ready for pickup.*${pickupTime}\n- *User Name*: ${userName}\n- *Phone*: ${order.user?.phoneNumber || "N/A"}\n- *Location*: ${addressText}${mapsLine}\n- *Services*: ${services}${userNote}\n\n*Please arrange for pickup accordingly.*`;
-                }
-
-                if (status === "in_pickup") {
-                    return `*Hello ${shopName}, incoming order for processing.*\n\n- *Order ID*: ${orderId}\n- *User*: ${userName}\n- *Services*: ${services}\n- *Delivery Type*: ${mainDeliveryType}${userNote}\n\n*Please let us know if you need any other details!*`;
-                }
-
-                if (status === "in_process") {
-                    return `*Hello ${shopName}, we have given you the order ${orderId}. Is it ready for delivery?*\n\n- *Order ID*: ${orderId}\n- *User*: ${userName}\n- *Services*: ${services}\n- *Delivery Type*: ${mainDeliveryType}${userNote}\n\n*Please let us know if the order is ready so we can deliver it.*`;
-                }
-
-                if (status === "ready_to_deliver") {
-                    return `*Hello ${shopName}, order ${orderId} is ready for delivery. Please hand over this order for the delivery person.*\n\n- *Order ID*: ${orderId}\n- *User Name*: ${userName}\n- *Services*: ${services}\n- *Delivery Type*: ${mainDeliveryType}${userNote}\n\n*Thank you!*`;
-                }
-            }
-
-            return `Hello ${shopName}, regarding order ${orderId} (${status.replace(/_/g, " ")}). Please update us on the progress.`;
-        }
-
-        const messages: Record<string, string> = {
-            payment_pending: `*Hi ${userName}, from ${shopName}.*\n\n*Your order ${orderId} is currently waiting for payment. Should we proceed with Cash on Delivery? Please let us know or complete the payment to start processing.*`,
-            waiting_confirmation: `Hello ${userName}, we have received your order ${orderId}. We are confirming the details now!`,
-            confirmed: `*Hi ${userName}, from ${shopName}.*\n\n*Please confirm clothes are packed in a bag and you’re available for pickup, so we can schedule your order for pickup.*${pickupTime}\n- *Order ID*: ${orderId}\n- *Pickup From*: ${order.address?.houseNo ? order.address.houseNo + ", " : ""}${order.address?.area || order.address?.city || "No Address"}\n- *Phone*: ${order.user?.phoneNumber || ""}\n\n*Thank you for choosing ${shopName}!*`,
-            in_pickup: `Hello ${userName}, our partner is on the way for the pickup of your order ${orderId}.`,
-            in_process: (() => {
-                const isStoreUser = order.orderSource !== "user";
-                if (isStoreUser) {
-                    const totalItems = order.services.reduce((total, service) => {
-                        return total + service.categories.reduce((catTotal, category) => {
-                            return catTotal + category.items.reduce((itemTotal, item) => itemTotal + item.qty, 0);
-                        }, 0);
-                    }, 0);
-
-                    const servicesText = order.services.map(service => {
-                        const rawLabel = (service.selectedDeliveryKey || order.multiplierLabel || "standard").toLowerCase();
-                        let dKey = "Standard";
-                        if (rawLabel.includes("express")) dKey = "Express";
-                        else if (rawLabel.includes("oneday") || rawLabel.includes("one day")) dKey = "One Day";
-                        return `• ${service.serviceName} (${dKey}) - ₹${Math.round(service.serviceTotal)}`;
-                    }).join('\n');
-
-                    const orderIdShort = order.orderId.slice(-6).toUpperCase();
-                    const safeOrderId = order.orderId.replace(/_/g, '-');
-                    const shopCustomDomain = shop?.customDomain;
-                    const shopSubdomain = shop?.subdomain;
-                    const invoiceUrl = shopCustomDomain 
-                        ? `https://${shopCustomDomain}/invoice/${safeOrderId}`
-                        : shopSubdomain
-                        ? `https://${shopSubdomain}.ezyworkz.com/invoice/${safeOrderId}`
-                        : `https://ezyworkz.com/order/${safeOrderId}`;
-
-                    return `✨ *New Order Confirmed!* ✨
-
-Hello ${userName},
-
-Thank you for choosing *${shopName}*! We have successfully received your order and are processing it with care.
-
-🧾 *Order Summary*
-• *Order ID:* #${orderIdShort}
-• *Total Items:* ${totalItems}
-• *Status:* Confirmed ✅
-
-🧺 *Service Details*
-${servicesText}
-
-💳 *Payment Summary*
-• *Total Amount:* ₹${Math.round(order.grandTotalPaid)}
-• *Method:* ${order.paymentMethod.toUpperCase()} (${order.paymentStatus})
-
-🔗 *View your detailed E-Invoice here:*
-${invoiceUrl}
-
-We will notify you as soon as your order is ready for ${order.address ? 'delivery' : 'pickup'}!
-
-Warm regards,
-*The ${shopName} Team*`;
-                }
-                return `Hello ${userName}, your order ${orderId} is now being processed. We'll notify you once it's ready!`;
-            })(),
-            ready_to_deliver: "", // Handled below
-            out_for_delivery: `Hello ${userName}, your order ${orderId} is out for delivery! Our partner will reach you shortly.`,
-            delivered: (() => {
-                const amountPaid = order.amountPaid || 0;
-                const walletUsed = order.walletAmountUsed || 0;
-                const ezyUsed = order.ezyAmountUsed || 0;
-                const totalPaid = amountPaid + walletUsed + ezyUsed;
-                const outstanding = Math.max(0, (order.grandTotalPaid || 0) - totalPaid);
-                
-                if (outstanding <= 0.05) {
-                    return `Hi ${userName}, your order ${orderId} has been delivered. Thank you for choosing ${shopName}, have a great day!`;
-                }
-                return `Hi ${userName}, your order ${orderId} has been delivered. Please pay the outstanding amount of ₹${outstanding.toFixed(2)} at your earliest convenience. Thank you for choosing ${shopName}, have a great day!`;
-            })(),
-            waiting_user_review: `Hello ${userName}, we've updated the items/pricing for your order ${orderId}. Please review and approve in the app.`,
-            cancelled: `Hello ${userName}, your order ${orderId} has been cancelled. If you have any questions, feel free to ask here.`,
-        };
-
-        const result = messages[status] || `Hello ${userName}, regarding your order ${orderId}...`;
-
-        if (status === "ready_to_deliver") {
-            const amountPaid = order.amountPaid || 0;
-            const walletUsed = order.walletAmountUsed || 0;
-            const ezyUsed = order.ezyAmountUsed || 0;
-            const totalPaid = amountPaid + walletUsed + ezyUsed;
-            const outstanding = Math.max(0, (order.grandTotalPaid || 0) - totalPaid);
-
-            if (outstanding > 0.05) {
-                return `*Hi ${userName}, from ${shopName}.*\n\n*Your laundry for order ${orderId} is ready! Please settle the pending payment of ₹${outstanding.toFixed(2)} and schedule your delivery for faster arrival.*`;
-            }
-            return `*Hi ${userName}, from ${shopName}.*\n\n*Your laundry for order ${orderId} is ready! Please schedule your delivery via the app for faster arrival.*`;
-        }
-
-        return result;
+        return generateWhatsAppMessage(order, recipient, shop?.name, invoiceUrl);
     };
 
 

@@ -57,6 +57,7 @@ const ORDER: string[] = [
   "Wash & Fold",
   "Dry Cleaning",
   "Steam Iron",
+  "Steam Ironing",
 ];
 
 /* 2️⃣  Custom order for categories */

@@ -11,30 +11,45 @@ interface OrderDetailsProps {
     onOrderUpdated: () => void;
 }
 
-"use client";
-
-import React, { useState } from "react";
-import { Loader2, CheckCircle2, Package, Truck, Calendar, Clock, MapPin, IndianRupee, FileText, Ticket } from "lucide-react";
-import apiClient from "@/lib/api/client";
-import { updateOrderTokens } from "@/lib/actions/orders";
-
-interface OrderDetailsProps {
-    order: any;
-    shopId: string;
-    onOrderUpdated: () => void;
-}
-
 export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDetailsProps) {
     const [statusLoading, setStatusLoading] = useState(false);
     const [paymentLoading, setPaymentLoading] = useState(false);
     const [partialAmount, setPartialAmount] = useState("");
     const [showPartialInput, setShowPartialInput] = useState(false);
 
+    // Original vs Updated Cart View Mode
+    const [viewMode, setViewMode] = useState<"updated" | "original">("updated");
+    const isOriginal = viewMode === "original" && order?.reviewSnapshot;
+
     // Token State
     const [tokenLoading, setTokenLoading] = useState(false);
     const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
     const [selectedTokens, setSelectedTokens] = useState<string[]>(order?.tokenNumbers || (order?.tokenNumber ? [order.tokenNumber] : []));
     const [activeTokens, setActiveTokens] = useState<string[]>([]);
+
+    const activeOrderData = isOriginal ? {
+        services: order.reviewSnapshot.services,
+        baseAmount: order.reviewSnapshot.baseAmount ?? 0,
+        addonsTotal: order.reviewSnapshot.addonsTotal ?? 0,
+        multiplierUpcharge: order.reviewSnapshot.multiplierUpcharge ?? 0,
+        deliveryCharges: order.reviewSnapshot.deliveryCharges ?? 0,
+        lowCartFee: order.reviewSnapshot.lowCartFee ?? 0,
+        taxAmount: order.reviewSnapshot.taxAmount ?? 0,
+        discountAmount: order.reviewSnapshot.discountAmount ?? 0,
+        shopDiscountAmount: order.reviewSnapshot.shopDiscountAmount ?? 0,
+        grandTotalPaid: order.reviewSnapshot.grandTotalPaid ?? order.reviewSnapshot.totalAmount ?? 0,
+    } : {
+        services: order.services,
+        baseAmount: order.baseAmount ?? 0,
+        addonsTotal: order.addonsTotal ?? 0,
+        multiplierUpcharge: order.multiplierUpcharge ?? 0,
+        deliveryCharges: order.deliveryCharges ?? 0,
+        lowCartFee: order.lowCartFee ?? 0,
+        taxAmount: order.taxAmount ?? 0,
+        discountAmount: order.discountAmount ?? 0,
+        shopDiscountAmount: order.shopDiscountAmount ?? 0,
+        grandTotalPaid: order.grandTotalPaid ?? order.totalAmount ?? 0,
+    };
 
     React.useEffect(() => {
         if (isTokenModalOpen) {
@@ -112,113 +127,160 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
     const totalAmount = order.grandTotalPaid ?? order.totalAmount ?? 0;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column: Order Items & Pricing */}
-            <div className="lg:col-span-2 space-y-6">
-                
-                {/* Services & Items */}
-                <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
-                    <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                        <Package className="w-5 h-5 text-teal-600" />
-                        Order Items
-                    </h2>
+        <div className="space-y-6">
+            {/* Banner alert if reviewSnapshot or waiting_user_review */}
+            {order.status === "waiting_user_review" && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p className="font-bold text-sm">Waiting for Customer Review</p>
+                        <p className="text-xs text-amber-700 mt-0.5">The order items or pricing have been updated. The customer must approve these changes in the app.</p>
+                    </div>
+                    {order.reviewSnapshot && (
+                        <span className="text-xs px-2.5 py-1 bg-amber-200/80 text-amber-900 rounded-full font-bold">Updated</span>
+                    )}
+                </div>
+            )}
 
-                    <div className="space-y-6">
-                        {order.services?.map((svc: any, idx: number) => (
-                            <div key={idx} className="space-y-4">
-                                <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
-                                    <h3 className="font-semibold text-gray-900">{svc.serviceName}</h3>
-                                    {svc.deliveryType && (
-                                        <span className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-md text-gray-600 capitalize">
-                                            {Object.keys(svc.deliveryType)[0]} Delivery
-                                        </span>
-                                    )}
-                                </div>
+            {/* View Mode Toggle: Original Cart vs Updated Cart */}
+            {order.reviewSnapshot && (
+                <div className="flex items-center gap-2 bg-gray-100 p-1.5 rounded-2xl w-fit border border-gray-200">
+                    <button
+                        type="button"
+                        onClick={() => setViewMode("original")}
+                        className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+                            isOriginal
+                                ? "bg-white text-gray-900 shadow-sm border border-gray-200"
+                                : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Original Cart (Snapshot)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setViewMode("updated")}
+                        className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+                            !isOriginal
+                                ? "bg-amber-500 text-white shadow-sm"
+                                : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Updated Cart (Current)
+                    </button>
+                </div>
+            )}
 
-                                <div className="space-y-4 pl-2">
-                                    {svc.categories?.map((cat: any, cIdx: number) => (
-                                        <div key={cIdx}>
-                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{cat.categoryName}</p>
-                                            <div className="space-y-2">
-                                                {cat.items?.map((item: any, iIdx: number) => (
-                                                    <div key={iIdx} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                                        <div>
-                                                            <p className="text-gray-900 text-sm font-medium">{item.itemName}</p>
-                                                            <p className="text-gray-500 text-xs mt-0.5">Qty: {item.qty} × ₹{item.unitPrice}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column: Order Items & Pricing */}
+                <div className="lg:col-span-2 space-y-6">
+                    
+                    {/* Services & Items */}
+                    <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <Package className="w-5 h-5 text-teal-600" />
+                                {isOriginal ? "Original Order Items (Snapshot)" : "Order Items"}
+                            </h2>
+                            {isOriginal && (
+                                <span className="text-xs font-semibold px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg">Read Only</span>
+                            )}
+                        </div>
+
+                        <div className="space-y-6">
+                            {activeOrderData.services?.map((svc: any, idx: number) => (
+                                <div key={idx} className="space-y-4">
+                                    <div className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                        <h3 className="font-semibold text-gray-900">{svc.serviceName}</h3>
+                                        {svc.deliveryType && (
+                                            <span className="text-xs font-medium px-2 py-1 bg-gray-100 rounded-md text-gray-600 capitalize">
+                                                {Object.keys(svc.deliveryType)[0]} Delivery
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-4 pl-2">
+                                        {svc.categories?.map((cat: any, cIdx: number) => (
+                                            <div key={cIdx}>
+                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{cat.categoryName}</p>
+                                                <div className="space-y-2">
+                                                    {cat.items?.map((item: any, iIdx: number) => (
+                                                        <div key={iIdx} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                                            <div>
+                                                                <p className="text-gray-900 text-sm font-medium">{item.itemName}</p>
+                                                                <p className="text-gray-500 text-xs mt-0.5">Qty: {item.qty} × ₹{item.unitPrice}</p>
+                                                            </div>
+                                                            <p className="text-gray-900 font-semibold text-sm">₹{((item.unitPrice || 0) * item.qty).toFixed(2)}</p>
                                                         </div>
-                                                        <p className="text-gray-900 font-semibold text-sm">₹{(item.unitPrice * item.qty).toFixed(2)}</p>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Price Breakdown */}
-                <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
-                    <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-teal-600" />
-                        Price Breakdown
-                    </h2>
-
-                    <div className="space-y-3">
-                        <div className="flex justify-between text-sm text-gray-600">
-                            <span>Items Total</span>
-                            <span>₹{(order.baseAmount ?? 0).toFixed(2)}</span>
-                        </div>
-                        {(order.addonsTotal > 0) && (
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>Extra Add-ons</span>
-                                <span>₹{(order.addonsTotal).toFixed(2)}</span>
-                            </div>
-                        )}
-                        {(order.multiplierUpcharge > 0) && (
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>{order.multiplierLabel || "Express / One Day Charges"}</span>
-                                <span>₹{(order.multiplierUpcharge).toFixed(2)}</span>
-                            </div>
-                        )}
-                        {order.deliveryCharges > 0 && (
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>Delivery Charges</span>
-                                <span>₹{(order.deliveryCharges).toFixed(2)}</span>
-                            </div>
-                        )}
-                        {order.lowCartFee > 0 && (
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>Low Cart Fee</span>
-                                <span>₹{(order.lowCartFee).toFixed(2)}</span>
-                            </div>
-                        )}
-                        {order.taxAmount > 0 && (
-                            <div className="flex justify-between text-sm text-gray-600">
-                                <span>GST & Tax</span>
-                                <span>₹{(order.taxAmount).toFixed(2)}</span>
-                            </div>
-                        )}
-                        {(order.discountAmount || 0) > 0 && (
-                            <div className="flex justify-between text-sm text-teal-400">
-                                <span>Admin Discount</span>
-                                <span>-₹{(order.discountAmount).toFixed(2)}</span>
-                            </div>
-                        )}
-                        {(order.shopDiscountAmount || 0) > 0 && (
-                            <div className="flex justify-between text-sm text-teal-600">
-                                <span>Shop Discount</span>
-                                <span>-₹{(order.shopDiscountAmount).toFixed(2)}</span>
-                            </div>
-                        )}
-                        <div className="pt-3 mt-3 border-t border-gray-200 flex justify-between items-center">
-                            <span className="text-gray-900 font-bold">Grand Total</span>
-                            <span className="text-xl font-bold text-gray-900">₹{totalAmount.toFixed(2)}</span>
+                            ))}
                         </div>
                     </div>
+
+                    {/* Price Breakdown */}
+                    <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+                        <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-teal-600" />
+                            {isOriginal ? "Original Price Breakdown" : "Price Breakdown"}
+                        </h2>
+
+                        <div className="space-y-3">
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>Items Total</span>
+                                <span>₹{(activeOrderData.baseAmount ?? 0).toFixed(2)}</span>
+                            </div>
+                            {(activeOrderData.addonsTotal > 0) && (
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Extra Add-ons</span>
+                                    <span>₹{(activeOrderData.addonsTotal).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {(activeOrderData.multiplierUpcharge > 0) && (
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>{order.multiplierLabel || "Express / One Day Charges"}</span>
+                                    <span>₹{(activeOrderData.multiplierUpcharge).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {activeOrderData.deliveryCharges > 0 && (
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Delivery Charges</span>
+                                    <span>₹{(activeOrderData.deliveryCharges).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {activeOrderData.lowCartFee > 0 && (
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Low Cart Fee</span>
+                                    <span>₹{(activeOrderData.lowCartFee).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {activeOrderData.taxAmount > 0 && (
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>GST & Tax</span>
+                                    <span>₹{(activeOrderData.taxAmount).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {(activeOrderData.discountAmount || 0) > 0 && (
+                                <div className="flex justify-between text-sm text-teal-400">
+                                    <span>Admin Discount</span>
+                                    <span>-₹{(activeOrderData.discountAmount).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {(activeOrderData.shopDiscountAmount || 0) > 0 && (
+                                <div className="flex justify-between text-sm text-teal-600">
+                                    <span>Shop Discount</span>
+                                    <span>-₹{(activeOrderData.shopDiscountAmount).toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className="pt-3 mt-3 border-t border-gray-200 flex justify-between items-center">
+                                <span className="text-gray-900 font-bold">Grand Total</span>
+                                <span className="text-xl font-bold text-gray-900">₹{activeOrderData.grandTotalPaid.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
             {/* Right Column: Status, Payment, Customer Info */}
             <div className="space-y-6">
@@ -478,6 +540,7 @@ export default function OrderDetails({ order, shopId, onOrderUpdated }: OrderDet
                     </div>
                 </div>
             )}
+        </div>
         </div>
     );
 }
