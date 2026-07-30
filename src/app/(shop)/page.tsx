@@ -1,19 +1,31 @@
 "use client";
 
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { LayoutDashboard, Users, Receipt, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Users, Receipt, TrendingUp, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useShop } from "@/context/ShopContext";
 import { getDashboardStats } from "@/lib/actions/dashboard";
 import { getAllOrders } from "@/lib/actions/orders";
 import StatisticsChart from "@/components/ecommerce/StatisticsChart";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
 
 export default function Dashboard() {
+    const { userRole, isLoading: isShopLoading } = useShop();
+    const router = useRouter();
     const [stats, setStats] = useState<any>(null);
     const [recentOrders, setRecentOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (isShopLoading) return;
+
+        // Staff members do NOT need the Dashboard - redirect directly to Orders page
+        if (userRole === "staff") {
+            router.replace("/orders");
+            return;
+        }
+
         async function fetchData() {
             try {
                 // Fetch stats for "Today" to get metrics explicitly
@@ -32,7 +44,18 @@ export default function Dashboard() {
             }
         }
         fetchData();
-    }, []);
+    }, [userRole, isShopLoading, router]);
+
+    if (userRole === "staff") {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="flex items-center gap-3 text-gray-500 font-medium">
+                    <Loader2 className="w-5 h-5 animate-spin text-teal-600" />
+                    <span>Redirecting to Orders...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <ProtectedRoute>

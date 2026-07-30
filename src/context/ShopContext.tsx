@@ -7,6 +7,7 @@ import { useAuth } from './AuthContext';
 interface ShopContextType {
     selectedShopId: string | null;
     selectedShop: any | null;
+    userRole: "owner" | "manager" | "staff" | "user" | null;
     isLoading: boolean;
     refreshShop: () => Promise<void>;
 }
@@ -14,6 +15,7 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType>({
     selectedShopId: null,
     selectedShop: null,
+    userRole: null,
     isLoading: true,
     refreshShop: async () => {},
 });
@@ -23,6 +25,8 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
     const [selectedShop, setSelectedShop] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const userRole = (selectedShop?.role as "owner" | "manager" | "staff" | "user") || "owner";
 
     const loadShops = useCallback(async () => {
         if (!isAuthenticated) {
@@ -59,7 +63,7 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
 
 
     return (
-        <ShopContext.Provider value={{ selectedShopId, selectedShop, isLoading, refreshShop }}>
+        <ShopContext.Provider value={{ selectedShopId, selectedShop, userRole, isLoading, refreshShop }}>
             {children}
         </ShopContext.Provider>
     );
