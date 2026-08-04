@@ -1039,9 +1039,33 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
 
             <div className="space-y-3">
               {order.notes && (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 italic">
-                  <p className="text-[10px] font-black text-gray-400 uppercase not-italic mb-1">User Notes</p>
-                  <p className="text-sm text-gray-700">“{order.notes}”</p>
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 italic">
+                  {order.notes.includes('[Saved Prefs:') ? (
+                    <span className="inline-block px-2 py-0.5 rounded bg-amber-200 text-amber-900 text-[10px] font-black uppercase not-italic mb-1.5">
+                      ⚡ Saved Laundry Preferences
+                    </span>
+                  ) : (
+                    <p className="text-[10px] font-black text-amber-700 uppercase not-italic mb-1">User Notes</p>
+                  )}
+                  <p className="text-sm text-amber-950 font-medium">“{order.notes}”</p>
+                </div>
+              )}
+              {Array.isArray(order.itemPhotos) && order.itemPhotos.length > 0 && (
+                <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                  <p className="text-[10px] font-black text-purple-600 uppercase mb-2">📷 Garment Photos ({order.itemPhotos.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {order.itemPhotos.map((url, idx) => (
+                      <a
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block overflow-hidden rounded-lg border border-purple-200 hover:scale-105 transition-transform"
+                      >
+                        <img src={url} alt={`Garment photo ${idx + 1}`} className="w-16 h-16 object-cover" />
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
               {order.cancelReason && (

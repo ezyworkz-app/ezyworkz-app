@@ -40,10 +40,15 @@ const AdminNotesCell = ({ orderId, initialNotes }: { orderId: string, initialNot
         if (!hasUnsavedChanges) return;
         setIsSaving(true);
         try {
-            await updateOrderAdminNotes(orderId, notes);
-            setHasUnsavedChanges(false);
-        } catch (error) {
-            console.error("Failed to save admin notes", error);
+            const res = await updateOrderAdminNotes(orderId, notes);
+            if (res && res.error) {
+                alert("Failed to save note: " + res.error);
+            } else {
+                setHasUnsavedChanges(false);
+            }
+        } catch (error: any) {
+            console.error("Failed to save shop notes", error);
+            alert("Failed to save shop note: " + (error?.message || "Error"));
         } finally {
             setIsSaving(false);
         }
@@ -57,7 +62,7 @@ const AdminNotesCell = ({ orderId, initialNotes }: { orderId: string, initialNot
                     setNotes(e.target.value);
                     setHasUnsavedChanges(true);
                 }}
-                placeholder="Add admin notes..."
+                placeholder="Add shop notes..."
                 className={`w-full text-[11px] p-2 pr-8 rounded-lg border transition-all resize-none h-20 focus:ring-2 focus:ring-brand-500/10 outline-none ${hasUnsavedChanges
                     ? "border-warning-300 bg-warning-50/30"
                     : "border-gray-200 bg-gray-50/50 hover:bg-white focus:bg-white dark:border-gray-700 dark:bg-gray-900"
@@ -914,7 +919,6 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 min-w-[200px]">Notes</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Financial Audit</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 min-w-[540px]">Cart Items</TableCell>
-                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 min-w-[540px]">B2B Fulfillment</TableCell>
                             </TableRow>
                         </TableHeader>
 
@@ -1136,13 +1140,7 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                                     </div>
                                                                 );
                                                             })()}
-                                                            <button
-                                                                onClick={() => onEdit(order, "reassign")}
-                                                                className="flex items-center justify-center h-8 w-8 rounded-lg bg-gray-50 dark:bg-white/5 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all border border-gray-100 dark:border-white/5"
-                                                                title="Reassign Shop"
-                                                            >
-                                                                <RefreshCw className="h-4 w-4" />
-                                                            </button>
+
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1382,16 +1380,6 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                             Track Porter Details
                                                         </Link>
                                                     </div>
-                                                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-2">
-                                                        <LogisticsToggleCell 
-                                                            orderId={order.orderId} 
-                                                            initialValue={!!order.isShopLogistics} 
-                                                        />
-                                                        <ChatToggleCell 
-                                                            orderId={order.orderId} 
-                                                            initialValue={order.isShopChatEnabled !== false} 
-                                                        />
-                                                    </div>
                                                 </div>
                                             </TableCell>
 
@@ -1415,8 +1403,8 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                         );
                                                     })()}
                                                     <div className="space-y-1">
-                                                        <div className="text-theme-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Admin Note</div>
-                                                        <AdminNotesCell orderId={order.orderId} initialNotes={order.adminNotes} />
+                                                        <div className="text-theme-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Shop Note</div>
+                                                        <AdminNotesCell orderId={order.orderId} initialNotes={order.shopNotes || order.adminNotes} />
                                                     </div>
 
                                                     {/* Rapido OTP — shown for all non-terminal orders */}
@@ -1665,64 +1653,16 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                         </div>
                                                     )}
 
-                                                    <div className="flex gap-4">
-                                                        {/* LEFT SIDE: Lead Shop Payout */}
-                                                        <div className="flex-1">
-                                                            <OrderServiceView 
-                                                                services={order.services} 
-                                                                title="Lead Shop Payout" 
-                                                                themeColor="amber" 
-                                                                showShopPrices
-                                                            />
-                                                        </div>
-
-                                                        {/* RIGHT SIDE: Customer Bill */}
-                                                        <div className="flex-1">
-                                                            <OrderServiceView 
-                                                                services={order.services} 
-                                                                title={order.reviewSnapshot?.services?.length ? "Current Customer Bill" : "Customer Bill"} 
-                                                                themeColor="brand" 
-                                                            />
-                                                        </div>
+                                                    <div>
+                                                        {/* Customer Bill */}
+                                                        <OrderServiceView 
+                                                            services={order.services} 
+                                                            title={order.reviewSnapshot?.services?.length ? "Current Customer Bill" : "Customer Bill"} 
+                                                            themeColor="brand" 
+                                                        />
                                                     </div>
                                                 </div>
                                             </TableCell>
-
-                                            {/* B2B Fulfillment (Pushed back) */}
-                                            <TableCell className="px-4 py-3 text-start align-top">
-                                                <div className="space-y-4 min-w-[540px] max-w-4xl">
-                                                    {order.fulfillmentCart && order.fulfillmentCart.length > 0 ? (
-                                                        <div className="flex gap-4">
-                                                            {/* LEFT SIDE: Fulfillment Shop Payout */}
-                                                            <div className="flex-1">
-                                                                <OrderServiceView 
-                                                                    services={order.fulfillmentCart} 
-                                                                    title="Fulfillment Payout" 
-                                                                    themeColor="amber"
-                                                                    showShopPrices
-                                                                />
-                                                            </div>
-                                                            {/* RIGHT SIDE: What user would have paid at this shop */}
-                                                            <div className="flex-1">
-                                                                <OrderServiceView 
-                                                                    services={order.fulfillmentCart} 
-                                                                    title="Fulfillment User Bill" 
-                                                                    themeColor="brand"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="bg-gray-50/50 dark:bg-white/[0.01] border border-dashed border-gray-200 dark:border-gray-800 rounded-xl p-8 flex flex-col items-center justify-center text-center opacity-40">
-                                                            <RefreshCw size={24} className="text-gray-300 mb-3" />
-                                                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Not Transferred</span>
-                                                            <p className="text-[9px] text-gray-400 mt-1 max-w-[150px]">Fulfillment cart is only built after B2B transfer.</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </TableCell>
-
-
-
                                         </TableRow>
                                     );
                                 })

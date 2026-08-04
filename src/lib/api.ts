@@ -83,7 +83,7 @@ export async function apiFetch(
         }
     }
 
-    /* ───── Throw helpful error on non-OK ───── */
+    /* ───── Handle non-OK responses gracefully ───── */
     if (!res.ok) {
         let errorMessage = `API error ${res.status} ${res.statusText}`;
 
@@ -102,7 +102,7 @@ export async function apiFetch(
             console.error(`Error parsing API error body:`, e);
         }
 
-        throw new Error(errorMessage);
+        console.warn(`[apiFetch Non-OK ${res.status}] ${path}:`, errorMessage);
     }
 
     return res;

@@ -394,16 +394,34 @@ export async function updateOrderAdminNotes(orderId: string, adminNotes: string)
     }
 
     try {
-        const res = await apiFetch(`/api/v1/admin/orders/${orderId}/admin-notes`, {
+        const token = (await cookies()).get("accessToken")?.value;
+        let shopId = (await cookies()).get("id")?.value;
+        
+        if (!shopId && token) {
+            try {
+                const payloadStr = Buffer.from(token.split('.')[1], 'base64').toString();
+                const jwtPayload = JSON.parse(payloadStr);
+                shopId = jwtPayload.id || jwtPayload.shopOwnerId || jwtPayload.shopId;
+            } catch (e: any) {
+                console.error("Failed to decode token", e);
+            }
+        }
+
+        const url = shopId 
+            ? `/api/v1/shops/${shopId}/orders/${orderId}/shop-notes`
+            : `/api/v1/shops/default/orders/${orderId}/shop-notes`;
+
+        const res = await apiFetch(url, {
             method: "PATCH",
             body: JSON.stringify({ adminNotes }),
         });
 
         const result = await res.json();
-        revalidatePath("/(admin)/orders", "page");
+        revalidatePath("/(shop)/orders", "page");
+        revalidatePath("/orders", "page");
 
         if (!res.ok || !result.success) {
-            throw new Error(result.message || "Failed to update admin notes");
+            throw new Error(result.message || "Failed to update shop notes");
         }
 
         return result;

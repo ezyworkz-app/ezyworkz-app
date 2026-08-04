@@ -222,6 +222,8 @@ export interface Order {
     address: Address;
     notes?: string;
     customerAsks?: string;
+    itemPhotos?: string[];
+    shopNotes?: string;
     adminNotes?: string;
 
     /* ---------------------------- Feedback --------------------------- */

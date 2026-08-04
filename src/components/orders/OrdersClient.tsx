@@ -547,7 +547,8 @@ const OrdersClient = ({
         const orderId = formData.get("orderId") as string;
         
         const compensationAmount = parseFloat(formData.get("compensationAmount") as string) || 0;
-        const shopPayout = parseFloat(formData.get("shopPayout") as string) || 0;
+        const shopPayoutVal = formData.get("shopPayout");
+        const shopPayout = shopPayoutVal ? parseFloat(shopPayoutVal as string) : undefined;
         const logisticsCost = parseFloat(formData.get("logisticsCost") as string) || 0;
         const shopLogisticsCost = parseFloat(formData.get("shopLogisticsCost") as string) || 0;
         const discountAmount = parseFloat(formData.get("discountAmount") as string) || 0;
@@ -558,7 +559,7 @@ const OrdersClient = ({
                 setOrders(prev => prev.map(o => o.orderId === orderId ? {
                     ...o,
                     compensationAmount,
-                    shopPayout,
+                    ...(shopPayout !== undefined ? { shopPayout } : {}),
                     logisticsCost,
                     shopLogisticsCost,
                     discountAmount,
@@ -917,8 +918,8 @@ const OrdersClient = ({
                                                 <input type="number" step="0.01" name="compensationAmount" defaultValue={selectedOrder.compensationAmount ?? 0} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm font-bold" />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Shop Payout ₹</label>
-                                                <input type="number" step="0.01" name="shopPayout" defaultValue={selectedOrder.shopPayout ?? 0} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm font-bold" />
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Shop Discount ₹</label>
+                                                <input type="number" step="0.01" name="discountAmount" defaultValue={selectedOrder.discountAmount ?? 0} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm font-bold" />
                                             </div>
                                             <div className="space-y-2 col-span-2 bg-blue-50/50 dark:bg-brand-500/5 p-4 rounded-2xl border border-blue-100 dark:border-brand-500/10">
                                                 <div className="flex justify-between items-center mb-3">
@@ -980,10 +981,6 @@ const OrdersClient = ({
                                                         Reset
                                                     </button>
                                                 </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Admin Discount ₹</label>
-                                                <input type="number" step="0.01" name="discountAmount" defaultValue={selectedOrder.discountAmount ?? 0} className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm font-bold" />
                                             </div>
                                         </div>
                                         <Button className="w-full" type="submit">Save Financials</Button>
