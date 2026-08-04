@@ -279,7 +279,7 @@ const OrderServiceView = ({
                                                 <div className="flex justify-between">
                                                     <span className="font-medium">{item.itemName} x{item.qty}</span>
                                                     <span className="font-bold text-gray-900 dark:text-white">
-                                                        ₹{(showShopPrices ? (item.originalUnitPrice || 0) * item.qty : (item.totalPrice ?? 0)).toFixed(2)}
+                                                        ₹{(showShopPrices ? ((item.originalUnitPrice ?? item.unitPrice ?? 0) * item.qty) : (item.totalPrice ?? item.itemTotal ?? item.itemSubtotal ?? ((item.unitPrice || 0) * item.qty))).toFixed(2)}
                                                     </span>
                                                 </div>
                                                 {item.addons && item.addons.length > 0 && (
@@ -1634,34 +1634,34 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                 </div>
                                             </TableCell>
 
-                                            {/* Cart Items (Pushed back) */}
+                                            {/* Cart Items */}
                                             <TableCell className="px-4 py-3 text-start align-top">
-                                                <div className="space-y-4 min-w-[540px] max-w-4xl">
-                                                    {/* Snapshot (History) at the top if exists */}
-                                                    {order.reviewSnapshot?.services?.length && (
-                                                        <div className="space-y-4">
+                                                {order.reviewSnapshot?.services?.length ? (
+                                                    <div className="grid grid-cols-2 gap-4 min-w-[640px] max-w-5xl items-start">
+                                                        <div>
                                                             <OrderServiceView 
                                                                 services={order.reviewSnapshot.services} 
                                                                 title="Original Order (Snapshot)" 
                                                                 themeColor="gray" 
                                                             />
-                                                            <div className="flex justify-center -my-2 relative z-10">
-                                                                <div className="bg-white dark:bg-gray-900 p-1 rounded-full border border-gray-200 dark:border-gray-800 shadow-sm">
-                                                                    <ArrowDown size={12} className="text-brand-500" />
-                                                                </div>
-                                                            </div>
                                                         </div>
-                                                    )}
-
-                                                    <div>
-                                                        {/* Customer Bill */}
+                                                        <div>
+                                                            <OrderServiceView 
+                                                                services={order.services} 
+                                                                title="Current Customer Bill" 
+                                                                themeColor="brand" 
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="min-w-[320px] max-w-xl">
                                                         <OrderServiceView 
                                                             services={order.services} 
-                                                            title={order.reviewSnapshot?.services?.length ? "Current Customer Bill" : "Customer Bill"} 
+                                                            title="Customer Bill" 
                                                             themeColor="brand" 
                                                         />
                                                     </div>
-                                                </div>
+                                                )}
                                             </TableCell>
                                         </TableRow>
                                     );

@@ -67,7 +67,10 @@ export interface OrderItem {
     totalPrice: number;
     markedUnitPrice?: number;
     originalUnitPrice?: number;
-    unit: "piece" | "kg" | "sft";
+    unitPrice?: number;
+    itemTotal?: number;
+    itemSubtotal?: number;
+    unit: "piece" | "kg" | "sft" | string;
 }
 
 /* ------------------------------------------------------------------ */

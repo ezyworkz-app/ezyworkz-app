@@ -9,6 +9,22 @@ import { getShopServiceById } from "./shops";
 
 // Adapter: Map ezyworks-backend Order format to ezyworkz-admin-web Order format expected by the UI
 const mapSingleOrder = (order: any): Order => {
+    const mapItems = (items: any[]) => (items || []).map((item: any) => ({
+        ...item,
+        totalPrice: item.totalPrice !== undefined ? item.totalPrice : (item.itemTotal !== undefined ? item.itemTotal : (item.itemSubtotal !== undefined ? item.itemSubtotal : ((item.unitPrice || 0) * (item.qty || 1)))),
+        originalUnitPrice: item.originalUnitPrice !== undefined ? item.originalUnitPrice : item.unitPrice,
+    }));
+
+    const mapServices = (services: any[]) => (services || []).map((service: any) => ({
+        ...service,
+        deliveryTypes: service.deliveryTypes || service.deliveryType || {},
+        selectedDeliveryKey: service.selectedDeliveryKey || (service.deliveryType ? Object.keys(service.deliveryType)[0] : undefined),
+        categories: (service.categories || []).map((category: any) => ({
+            ...category,
+            items: mapItems(category.items),
+        })),
+    }));
+
     return {
         ...order,
         // 1. Map Customer info
@@ -17,21 +33,13 @@ const mapSingleOrder = (order: any): Order => {
             phoneNumber: order.customerPhoneNumber || "No Phone",
         },
         // 2. Map Services and Items
-        services: (order.services || []).map((service: any) => ({
-            ...service,
-            // Map deliveryType to deliveryTypes
-            deliveryTypes: service.deliveryTypes || service.deliveryType || {},
-            selectedDeliveryKey: service.selectedDeliveryKey || (service.deliveryType ? Object.keys(service.deliveryType)[0] : undefined),
-            categories: (service.categories || []).map((category: any) => ({
-                ...category,
-                items: (category.items || []).map((item: any) => ({
-                    ...item,
-                    totalPrice: item.totalPrice !== undefined ? item.totalPrice : item.itemTotal,
-                    originalUnitPrice: item.originalUnitPrice !== undefined ? item.originalUnitPrice : item.unitPrice,
-                })),
-            })),
-        })),
-        // 3. Optional: Map other fields that might be missing but used in the UI
+        services: mapServices(order.services),
+        // 3. Map Review Snapshot if present
+        reviewSnapshot: order.reviewSnapshot ? {
+            ...order.reviewSnapshot,
+            services: mapServices(order.reviewSnapshot.services),
+        } : undefined,
+        // 4. Optional: Map other fields
         shopPayout: order.shopPayout !== undefined ? order.shopPayout : (order.grandTotalPaid || 0),
     };
 };
