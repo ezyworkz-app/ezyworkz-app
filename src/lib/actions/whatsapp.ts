@@ -120,3 +120,18 @@ export async function requestDedicatedNumberAction(shopId: string, phone: string
   }
 }
 
+export async function handleWhatsAppOAuthAction(shopId: string, code: string, phoneNumberId?: string) {
+  try {
+    const res = await apiFetch(`/api/v1/shops/${shopId}/whatsapp-config/oauth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, phoneNumberId }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || data.error);
+    return { success: true, data: data };
+  } catch (e: any) {
+    console.error("[handleWhatsAppOAuthAction]", e);
+    return { success: false, error: e.message || "Failed to authenticate WhatsApp account" };
+  }
+}

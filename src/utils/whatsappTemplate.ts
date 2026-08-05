@@ -201,61 +201,51 @@ Any specific instructions? Reply here and we'll pass it along.
 
     // READY TO DELIVER
     if (status === "ready_to_deliver") {
-        const deliveryLine = order.address
-            ? `Our delivery partner will reach you shortly. No need to do anything \u2014 we'll come to you.`
-            : `Your fresh clothes are waiting at *${shop}*. Come by whenever you're ready.`;
-        const paymentReminder = outstanding > 0.05
-            ? `\n\n*Payment Due: \u20B9${outstanding.toFixed(2)}*\n_Please keep the amount ready for a smooth handover._`
-            : `\n\n_Your account is settled. Nothing to pay!_`;
-        return `*Your Laundry is Ready \u2014 #${orderIdShort}*
+        const invLink = invoiceUrl || "https://ezyworkz.com/order/" + orderIdShort;
+        return `*Order Ready for Delivery*
 
-Hi *${userName}*,
+Dear *${userName}*, thank you for choosing *${shop}*.
 
-Fresh, clean and ready to go.
+We are pleased to inform you that your order #*${orderIdShort}* has been processed and your garments are fresh, clean, and ready for handover.
 
-${deliveryLine}${paymentReminder}
+You may access your official invoice and order details here: *${invLink}*
 
-${invoiceUrl ? `*Invoice:* ${invoiceUrl}\n` : ""}\u2014 *${shop}*${footer}`;
+Our delivery team will be arriving shortly, or you are welcome to pick up your garments at your convenience.
+
+—  *${shop}* Team.
+_Powered by EzyWorkz_`;
     }
 
     // OUT FOR DELIVERY
     if (status === "out_for_delivery") {
-        return `*Out for Delivery \u2014 #${orderIdShort}*
+        return `*Out for Delivery*
 
-Hi *${userName}*,
+Dear *${userName}*, thank you for choosing *${shop}*.
 
-Your order is on its way! Our partner will be at your doorstep soon.
+Your order #${orderIdShort} is on its way! Our delivery partner will be at your doorstep shortly.
 
-Please keep ${outstanding > 0.05 ? `\u20B9${outstanding.toFixed(2)} ready for payment and ` : ""}your phone accessible in case they call.
+You may access your official invoice and order details here:
+${invoiceUrl || "https://ezyworkz.com/order/" + orderIdShort}
 
-${invoiceUrl ? `*Invoice:* ${invoiceUrl}\n` : ""}\u2014 *${shop}*${footer}`;
+${outstanding > 0.05 ? `*Payment Due:* ₹${outstanding.toFixed(2)}\n_Please keep your payment ready for a smooth handover._\n\n` : ""}— *${shop}* Team.
+_Powered by EzyWorkz_`;
     }
 
     // DELIVERED
     if (status === "delivered") {
-        if (outstanding > 0.05) {
-            return `*Order Delivered \u2014 #${orderIdShort}*
+        return `*Order Delivered*
 
-Hi *${userName}*,
+Dear *${userName}*, thank you for choosing *${shop}*.
 
-Your laundry has been delivered. Hope everything looks great!
+We are pleased to inform you that your order #${orderIdShort} has been successfully delivered. We hope your garments came back looking fresh and crisp!
 
-*Outstanding: \u20B9${outstanding.toFixed(2)}*
-_Kindly settle this at your earliest convenience._
+You may access your official invoice and order summary here:
+${invoiceUrl || "https://ezyworkz.com/order/" + orderIdShort}
 
-${invoiceUrl ? `*Invoice:* ${invoiceUrl}\n` : ""}We'd love to hear your feedback \u2014 it helps us do better.
+${outstanding > 0.05 ? `*Outstanding Balance:* ₹${outstanding.toFixed(2)}\n_Kindly settle this at your earliest convenience._\n\n` : ""}We look forward to serving you again.
 
-\u2014 *${shop}*${footer}`;
-        }
-        return `*Order Delivered \u2014 #${orderIdShort}*
-
-Hi *${userName}*,
-
-Your laundry has been delivered and your account is fully settled.
-
-${invoiceUrl ? `*Invoice:* ${invoiceUrl}\n` : ""}We hope your clothes came back looking their best. See you next time!
-
-\u2014 *${shop}*${footer}`;
+— *${shop}* Team.
+_Powered by EzyWorkz_`;
     }
 
     // WAITING USER REVIEW

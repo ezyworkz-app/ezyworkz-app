@@ -309,9 +309,14 @@ const AppSidebar: React.FC = () => {
                   unoptimized
                 />
               ) : (
-                <div className="w-10 h-10 bg-teal-500/10 dark:bg-teal-400/10 rounded-xl flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
-                  <Store className="w-5 h-5" />
-                </div>
+                <Image
+                  src="/ezyworkz_logo_png.png"
+                  alt="Ezyworkz Logo"
+                  width={40}
+                  height={40}
+                  className="object-contain rounded-lg shrink-0"
+                  unoptimized
+                />
               )}
               <span className="text-xl font-bold font-outfit text-gray-900 dark:text-white truncate max-w-[170px]">
                 {selectedShop?.name || "Ezyworkz"}
@@ -327,9 +332,14 @@ const AppSidebar: React.FC = () => {
               unoptimized
             />
           ) : (
-            <div className="w-10 h-10 bg-teal-500/10 dark:bg-teal-400/10 rounded-xl flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
-              <Store className="w-5 h-5" />
-            </div>
+            <Image
+              src="/ezyworkz_logo_png.png"
+              alt="Ezyworkz Logo"
+              width={40}
+              height={40}
+              className="object-contain rounded-lg shrink-0"
+              unoptimized
+            />
           )}
         </Link>
       </div>

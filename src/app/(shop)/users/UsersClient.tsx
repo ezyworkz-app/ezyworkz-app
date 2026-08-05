@@ -39,7 +39,7 @@ type SortField = "date" | "orders" | "spent" | "name";
 type SortDir = "asc" | "desc";
 
 export default function UsersClient({ initialCustomers, error: initialError }: { initialCustomers: Customer[], error?: string }) {
-    const { selectedShopId, isLoading: shopLoading } = useShop();
+    const { selectedShopId, userRole, isLoading: shopLoading } = useShop();
     const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(initialError || "");
@@ -451,13 +451,15 @@ export default function UsersClient({ initialCustomers, error: initialError }: {
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleDeleteCustomer(customer.customerId, customer.name)}
-                                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors dark:hover:bg-red-500/10"
-                                                        title="Remove Customer"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    {userRole !== 'staff' && (
+                                                        <button
+                                                            onClick={() => handleDeleteCustomer(customer.customerId, customer.name)}
+                                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors dark:hover:bg-red-500/10"
+                                                            title="Remove Customer"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>

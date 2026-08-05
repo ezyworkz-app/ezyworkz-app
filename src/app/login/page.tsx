@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, Mail, Loader2, AlertCircle, Store } from "lucide-react";
+import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
     const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -25,72 +27,89 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex-1 min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-background relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-[#0b0f19] relative overflow-hidden transition-colors">
+            {/* Ambient Background Glows */}
+            <div className="absolute -top-40 -right-40 w-96 h-96 bg-brand-500/15 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-brand-700/15 rounded-full blur-[120px] pointer-events-none" />
 
-            <div className="sm:mx-auto sm:w-full sm:max-w-md text-center relative z-10 animate-fade-in-up">
-                <div className="flex justify-center">
-                    <div className="bg-[#0e1424] border border-card-border p-4 rounded-2xl shadow-lg relative">
-                        <div className="absolute inset-0 bg-teal-500/20 blur-xl rounded-2xl" />
-                        <Store className="w-10 h-10 text-teal-400 relative z-10" />
+            <div className="w-full max-w-md space-y-8 relative z-10">
+                {/* Header / Logo */}
+                <div className="text-center space-y-3">
+                    <div className="flex justify-center">
+                        <div className="p-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl shadow-brand-500/10 flex items-center justify-center">
+                            <Image
+                                src="/ezyworkz_logo_png.png"
+                                alt="Ezyworkz Logo"
+                                width={140}
+                                height={45}
+                                className="h-10 w-auto object-contain"
+                                priority
+                                unoptimized
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                            Shop Portal
+                        </h2>
+                        <p className="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            Sign in to manage your store, orders & operations
+                        </p>
                     </div>
                 </div>
-                <h2 className="mt-6 text-3xl font-extrabold text-white">
-                    Shop Portal
-                </h2>
-                <p className="mt-2 text-sm text-slate-400">
-                    Sign in to manage your laundromat
-                </p>
-            </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                <div className="bg-[#0e1424] py-8 px-4 shadow-2xl sm:rounded-3xl sm:px-10 border border-card-border backdrop-blur-sm relative overflow-hidden">
-                    <div className="absolute -right-16 -top-16 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
-
+                {/* Card Container */}
+                <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl py-8 px-6 shadow-2xl shadow-gray-200/50 dark:shadow-none sm:rounded-3xl sm:px-10 border border-gray-200/80 dark:border-gray-800">
                     {errorMsg && (
-                        <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3 relative z-10">
-                            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                            <div className="text-sm font-medium text-red-400">{errorMsg}</div>
+                        <div className="mb-6 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-2xl p-4 flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5" />
+                            <div className="text-xs font-semibold text-rose-600 dark:text-rose-400">{errorMsg}</div>
                         </div>
                     )}
 
-                    <form className="space-y-6 relative z-10" onSubmit={handleSubmit}>
+                    <form className="space-y-5" onSubmit={handleSubmit}>
                         <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                            <label className="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
                                 Email Address
                             </label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Mail className="h-5 w-5 text-slate-500" />
+                            <div className="relative rounded-xl shadow-sm">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <Mail className="h-4 w-4 text-gray-400" />
                                 </div>
                                 <input
                                     type="email"
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="block w-full pl-11 pr-4 py-3 border border-card-border rounded-xl focus:outline-none focus:border-teal-500/50 sm:text-sm text-white bg-[#0e1424] transition-colors"
+                                    className="block w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 transition-all"
                                     placeholder="shop@ezyworkz.com"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-1.5">
+                            <label className="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 ml-1">
                                 Password
                             </label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-slate-500" />
+                            <div className="relative rounded-xl shadow-sm">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <Lock className="h-4 w-4 text-gray-400" />
                                 </div>
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="block w-full pl-11 pr-4 py-3 border border-card-border rounded-xl focus:outline-none focus:border-teal-500/50 sm:text-sm text-white bg-[#0e1424] transition-colors"
+                                    className="block w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 transition-all"
                                     placeholder="••••••••"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
                             </div>
                         </div>
 
@@ -98,16 +117,22 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                className="w-full flex justify-center items-center py-3.5 px-4 rounded-xl shadow-lg shadow-brand-500/25 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] transition-all"
                             >
                                 {loading ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
                                 ) : (
-                                    "Sign In"
+                                    "Sign In to Portal"
                                 )}
                             </button>
                         </div>
                     </form>
+                </div>
+
+                {/* Footer note */}
+                <div className="text-center flex items-center justify-center gap-1.5 text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                    <ShieldCheck size={14} className="text-brand-500" />
+                    <span>Ezyworkz Secure Shop Authentication</span>
                 </div>
             </div>
         </div>

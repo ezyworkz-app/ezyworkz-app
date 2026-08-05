@@ -99,9 +99,14 @@ const AppHeader: React.FC = () => {
                   unoptimized
                 />
               ) : (
-                <div className="w-8 h-8 bg-teal-500/10 dark:bg-teal-400/10 rounded-lg flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0">
-                  <Store className="w-4 h-4" />
-                </div>
+                <Image
+                  width={32}
+                  height={32}
+                  src="/ezyworkz_logo_png.png"
+                  alt="Ezyworkz Logo"
+                  className="object-contain rounded-lg shrink-0"
+                  unoptimized
+                />
               )}
               {selectedShop?.name || "Ezyworkz"}
             </h1>

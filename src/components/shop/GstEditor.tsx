@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Shop } from "@/types/Shop";
 import { updateShopDetails } from "@/lib/actions/shops";
+import { useShop } from "@/context/ShopContext";
 
 const GST_RATES = [5, 12, 18, 28];
 
@@ -23,10 +24,31 @@ export default function GstEditor({ shop }: Props) {
     const [baseDeliveryRadius, setBaseDeliveryRadius] = useState<number>(shop.baseDeliveryRadius ?? 0);
     const [deliveryFeePerKm, setDeliveryFeePerKm] = useState<number>(shop.deliveryFeePerKm ?? 0);
     const [lowCartFeeEnabled, setLowCartFeeEnabled] = useState<boolean>(shop.lowCartFeeEnabled ?? false);
+    // Default ON for new shops (field absent), OFF only when explicitly saved as false.
+    const [autoWhatsappEnabled, setAutoWhatsappEnabled] = useState<boolean>(shop.autoWhatsappEnabled !== false);
+
+    // Re-sync whenever the parent shop prop changes (e.g. context finishes loading after mount)
+    useEffect(() => {
+        setGstEnabled(shop.gstEnabled ?? false);
+        setGstNumber(shop.gstNumber ?? "");
+        setGstRate(shop.gstRate ?? 18);
+        setDeliveryFeeEnabled(shop.deliveryFeeEnabled ?? false);
+        setBaseDeliveryFee(shop.baseDeliveryFee ?? 0);
+        setFreeDeliveryRadius(shop.freeDeliveryRadius ?? 0);
+        setBaseDeliveryRadius(shop.baseDeliveryRadius ?? 0);
+        setDeliveryFeePerKm(shop.deliveryFeePerKm ?? 0);
+        setLowCartFeeEnabled(shop.lowCartFeeEnabled ?? false);
+        // Read the exact saved boolean: false stays false, undefined defaults to true.
+        setAutoWhatsappEnabled(shop.autoWhatsappEnabled !== false);
+    }, [shop.shopId, shop.autoWhatsappEnabled, shop.gstEnabled, shop.gstNumber,
+        shop.gstRate, shop.deliveryFeeEnabled, shop.baseDeliveryFee,
+        shop.freeDeliveryRadius, shop.baseDeliveryRadius, shop.deliveryFeePerKm,
+        shop.lowCartFeeEnabled]);
 
     const [saving, setSaving]         = useState(false);
     const [msg, setMsg]               = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+    const { refreshShop } = useShop();
     const gstinValid = !gstEnabled || !gstNumber || GSTIN_REGEX.test(gstNumber.toUpperCase());
 
     const handleSave = async () => {
@@ -48,9 +70,12 @@ export default function GstEditor({ shop }: Props) {
                 baseDeliveryRadius: deliveryFeeEnabled ? baseDeliveryRadius : 0,
                 deliveryFeePerKm: deliveryFeeEnabled ? deliveryFeePerKm : 0,
                 lowCartFeeEnabled,
+                autoWhatsappEnabled,
             });
             if (res.success) {
                 setMsg({ type: "success", text: "Billing & preferences saved successfully." });
+                // Re-fetch shop so context reflects the confirmed server state
+                refreshShop().catch(() => {});
             } else {
                 setMsg({ type: "error", text: res.error || "Save failed." });
             }
@@ -323,6 +348,29 @@ export default function GstEditor({ shop }: Props) {
                     >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow ${
                             lowCartFeeEnabled ? "translate-x-6" : "translate-x-1"
+                        }`} />
+                    </button>
+                </div>
+
+                {/* Automated WhatsApp Messages Toggle */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-white/10 mt-4">
+                    <div>
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">Automated WhatsApp Messages</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            {autoWhatsappEnabled
+                                ? "Automated WhatsApp order status updates & digital receipts are enabled (default)"
+                                : "Automated WhatsApp order notifications are disabled for this shop"}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => { setAutoWhatsappEnabled(v => !v); setMsg(null); }}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                            autoWhatsappEnabled ? "bg-brand-500" : "bg-gray-300 dark:bg-gray-600"
+                        }`}
+                    >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow ${
+                            autoWhatsappEnabled ? "translate-x-6" : "translate-x-1"
                         }`} />
                     </button>
                 </div>

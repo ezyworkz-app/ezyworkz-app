@@ -52,6 +52,7 @@ export interface Shop {
     baseDeliveryRadius?: number;
     deliveryFeePerKm?: number;
     lowCartFeeEnabled?: boolean;
+    autoWhatsappEnabled?: boolean;
 
     /* Domains */
     customDomain?: string;

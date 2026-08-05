@@ -6,6 +6,7 @@ import {
   updateShopWhatsAppConfigAction,
   testShopWhatsAppConfigAction,
   requestDedicatedNumberAction,
+  handleWhatsAppOAuthAction,
 } from "@/lib/actions/whatsapp";
 import {
   CheckCircle2,
@@ -22,6 +23,9 @@ import {
   CircleDot,
   AlertCircle,
   ArrowRight,
+  Link2,
+  KeyRound,
+  ExternalLink,
 } from "lucide-react";
 
 interface Props {
@@ -31,16 +35,39 @@ interface Props {
 }
 
 type RequestStatus = "submitted" | "under_review" | "verified" | "active" | "rejected";
+type CustomSubMode = "managed" | "coexistence";
+
+declare global {
+  interface Window {
+    fbAsyncInit: () => void;
+    FB: any;
+  }
+}
 
 export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry Studio", subdomain = "thelaundrystudio" }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [enabled, setEnabled] = useState(true);
   const [mode, setMode] = useState<"platform" | "custom">("platform");
+
+  // Sub-mode for custom: "managed" (ezyworkz handles setup) or "coexistence" (self-service)
+  const [customSubMode, setCustomSubMode] = useState<CustomSubMode>("managed");
+
+  // Coexistence credentials
+  const [phoneNumberId, setPhoneNumberId] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+  const [showToken, setShowToken] = useState(false);
+
   const [statuses, setStatuses] = useState<string[]>(["in_process", "ready_to_deliver", "delivered"]);
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Embedded Signup state
+  const [fbSDKLoaded, setFbSDKLoaded] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const [oauthError, setOauthError] = useState<string | null>(null);
+  const embeddedPhoneIdRef = React.useRef("");
 
   // Dedicated number request state
   const [requestPhone, setRequestPhone] = useState("");
@@ -74,22 +101,80 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
           setRequestPhone(data.dedicatedNumberRequest.phone || "");
           setRequestDisplayName(data.dedicatedNumberRequest.displayName || shopName);
         }
+        // Detect coexistence mode: custom + has own phoneNumberId
+        if (data.mode === "custom" && data.phoneNumberId) {
+          setCustomSubMode("coexistence");
+          setPhoneNumberId(data.phoneNumberId || "");
+          setAccessToken(data.accessToken || "");
+        } else if (data.mode === "custom") {
+          setCustomSubMode("managed");
+        }
       }
       setLoading(false);
     }
     loadConfig();
   }, [shopId]);
 
+  useEffect(() => {
+    // Listen for the session info from Meta's popup
+    const messageListener = (event: MessageEvent) => {
+      if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'WA_EMBEDDED_SIGNUP' && data.event === 'FINISH') {
+           embeddedPhoneIdRef.current = data.data?.phone_number_id;
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('message', messageListener);
+
+    // Initialize Facebook SDK
+    window.fbAsyncInit = function () {
+      window.FB.init({
+        appId: "27640429408950430",
+        cookie: true,
+        xfbml: true,
+        version: "v19.0",
+      });
+      setFbSDKLoaded(true);
+    };
+
+    if (!document.getElementById("facebook-jssdk")) {
+      const script = document.createElement("script");
+      script.id = "facebook-jssdk";
+      script.src = "https://connect.facebook.net/en_US/sdk.js";
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    } else if (window.FB) {
+      setFbSDKLoaded(true);
+    }
+
+    return () => window.removeEventListener('message', messageListener);
+  }, []);
+
   const handleSave = async () => {
     setSaving(true);
     setSaveSuccess(false);
     setSaveError(null);
 
-    const res = await updateShopWhatsAppConfigAction(shopId, {
+    const payload: Parameters<typeof updateShopWhatsAppConfigAction>[1] = {
       enabled,
       mode,
       statuses,
-    });
+    };
+
+    if (mode === "custom" && customSubMode === "coexistence") {
+      if (!phoneNumberId || !accessToken) {
+        setSaveError("Phone Number ID and Access Token are required for coexistence mode.");
+        setSaving(false);
+        return;
+      }
+      payload.phoneNumberId = phoneNumberId.trim();
+      payload.accessToken = accessToken.trim();
+    }
+
+    const res = await updateShopWhatsAppConfigAction(shopId, payload);
 
     setSaving(false);
     if (res && !res.error) {
@@ -98,6 +183,36 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
     } else {
       setSaveError(res?.error || "Failed to save configuration");
     }
+  };
+
+  const launchWhatsAppSignup = () => {
+    if (!window.FB) return;
+    setOauthLoading(true);
+    setOauthError(null);
+
+    window.FB.login((response: any) => {
+      if (response.authResponse) {
+        const code = response.authResponse.code;
+        const phoneId = embeddedPhoneIdRef.current;
+        
+        handleWhatsAppOAuthAction(shopId, code, phoneId).then(res => {
+          setOauthLoading(false);
+          if (res.success) {
+            window.location.reload(); // Reload to fetch updated config
+          } else {
+            setOauthError(res.error || "Failed to link WhatsApp account.");
+          }
+        });
+      } else {
+        setOauthLoading(false);
+        setOauthError("Facebook login was cancelled or failed.");
+      }
+    }, {
+      config_id: '1615068986995950',
+      response_type: 'code',
+      override_default_response_type: true,
+      extras: { "version": "v4" }
+    });
   };
 
   const handleRequestNumber = async () => {
@@ -145,6 +260,8 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
   // Determine the active sender name for WhatsApp preview
   const activeSenderName = (mode === "custom" && dedicatedRequest?.status === "active")
     ? dedicatedRequest.displayName
+    : (mode === "custom" && customSubMode === "coexistence" && phoneNumberId)
+    ? shopName
     : "EzyWorkz";
 
   if (loading) {
@@ -201,7 +318,7 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* ── Option A: EzyWorkz Gateway ── */}
               <div
                 onClick={() => setMode("platform")}
@@ -213,7 +330,7 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2.5 py-1 rounded-full">
-                    Default · Instant
+                    Default · Free
                   </span>
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${mode === "platform" ? "border-green-500 bg-green-500" : "border-gray-300"}`}>
                     {mode === "platform" && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
@@ -222,41 +339,161 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white text-base">Send via EzyWorkz</h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                    Messages are sent from the <strong>EzyWorkz</strong> verified WhatsApp number. The message body still features <strong>{shopName}</strong>, your invoice link, and shop branding. Zero setup required.
+                    Messages sent from the <strong>EzyWorkz</strong> verified number. Your shop name & invoice link appear in the message. Zero setup.
                   </p>
                 </div>
               </div>
 
-              {/* ── Option B: Dedicated Shop Number ── */}
+              {/* ── Option B: Coexistence (self-service) ── */}
               <div
-                onClick={() => setMode("custom")}
+                onClick={() => { setMode("custom"); setCustomSubMode("coexistence"); }}
                 className={`cursor-pointer rounded-2xl border-2 p-5 transition-all flex flex-col space-y-3 ${
-                  mode === "custom"
-                    ? "border-green-500 bg-green-50/50 dark:bg-green-950/20 shadow-md shadow-green-500/5"
+                  mode === "custom" && customSubMode === "coexistence"
+                    ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 shadow-md shadow-blue-500/5"
+                    : "border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 hover:border-gray-200 dark:hover:border-gray-700"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2.5 py-1 rounded-full">
+                    Coexistence · Self-setup
+                  </span>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${mode === "custom" && customSubMode === "coexistence" ? "border-blue-500 bg-blue-500" : "border-gray-300"}`}>
+                    {mode === "custom" && customSubMode === "coexistence" && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 dark:text-white text-base">Your Own WhatsApp Number</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                    Connect your existing WhatsApp number via Meta Cloud API. Your phone keeps working normally — coexistence mode means both your device <em>and</em> the API can send messages.
+                  </p>
+                </div>
+              </div>
+
+              {/* ── Option C: Managed Dedicated Number ── */}
+              <div
+                onClick={() => { setMode("custom"); setCustomSubMode("managed"); }}
+                className={`cursor-pointer rounded-2xl border-2 p-5 transition-all flex flex-col space-y-3 ${
+                  mode === "custom" && customSubMode === "managed"
+                    ? "border-purple-500 bg-purple-50/50 dark:bg-purple-950/20 shadow-md shadow-purple-500/5"
                     : "border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 hover:border-gray-200 dark:hover:border-gray-700"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40 px-2.5 py-1 rounded-full">
-                    Your Own Brand
+                    Managed · EzyWorkz handles it
                   </span>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${mode === "custom" ? "border-green-500 bg-green-500" : "border-gray-300"}`}>
-                    {mode === "custom" && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${mode === "custom" && customSubMode === "managed" ? "border-purple-500 bg-purple-500" : "border-gray-300"}`}>
+                    {mode === "custom" && customSubMode === "managed" && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 dark:text-white text-base">Send via Your Shop Name</h4>
+                  <h4 className="font-bold text-gray-900 dark:text-white text-base">Dedicated Shop Number</h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                    Messages are sent from your shop's own dedicated WhatsApp number. Customers see <strong>"{shopName}"</strong> at the top of the chat. Submit your phone number below and we handle all Meta setup and billing.
+                    Submit your number and EzyWorkz handles 100% of the Meta setup, verification, and billing on your behalf.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* ── Dedicated Number Request Section ── */}
-            {mode === "custom" && (
+            {/* ── Coexistence Credentials Section ── */}
+            {mode === "custom" && customSubMode === "coexistence" && (
+              <div className="mt-2 p-5 bg-blue-50 dark:bg-blue-950/20 rounded-2xl border border-blue-200 dark:border-blue-800/50 space-y-5">
+                <div className="flex items-start gap-3">
+                  <Link2 className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">Connect via WhatsApp Coexistence</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                      Your WhatsApp number continues to work on your phone normally. Paste your Meta Cloud API credentials below to also enable automated order messages.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step guide */}
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-blue-100 dark:border-blue-900/40 p-4 space-y-2">
+                  <p className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <Info className="w-4 h-4 text-blue-500" /> How to get your credentials
+                  </p>
+                  <ol className="text-xs text-gray-500 dark:text-gray-400 list-decimal list-inside space-y-1 leading-relaxed">
+                    <li>Go to <a href="https://developers.facebook.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline inline-flex items-center gap-0.5">developers.facebook.com <ExternalLink className="w-3 h-3" /></a></li>
+                    <li>Create a Meta App → Add the <strong>WhatsApp</strong> product</li>
+                    <li>In <strong>WhatsApp → API Setup</strong>, add your phone number with <strong>Coexistence enabled</strong></li>
+                    <li>Verify via OTP sent to your phone</li>
+                    <li>Copy the <strong>Phone Number ID</strong> from the dashboard</li>
+                    <li>Create a <strong>System User</strong> → generate a <strong>permanent token</strong> with <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">whatsapp_business_messaging</code> permission</li>
+                  </ol>
+                </div>
+
+                {/* Embedded Signup Flow Button */}
+                <div className="bg-white dark:bg-gray-900 border border-blue-100 dark:border-blue-900/40 rounded-xl p-5 flex items-center justify-between gap-4">
+                  <div>
+                    <h5 className="font-bold text-gray-900 dark:text-white text-sm">Automated Connect (Recommended)</h5>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Log in with Facebook to automatically link your WhatsApp Business account. No manual copy-pasting required.
+                    </p>
+                    {oauthError && <p className="text-xs text-red-500 mt-2 font-semibold">❌ {oauthError}</p>}
+                  </div>
+                  <button
+                    onClick={launchWhatsAppSignup}
+                    disabled={!fbSDKLoaded || oauthLoading}
+                    className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-600/20 transition-all disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {oauthLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Connect with Facebook"}
+                  </button>
+                </div>
+
+                {/* Credentials form */}
+                <div className="grid grid-cols-1 gap-4 pt-4 border-t border-blue-200 dark:border-blue-900/40">
+                  <h5 className="font-bold text-gray-700 dark:text-gray-300 text-xs">Or Enter Credentials Manually</h5>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5" /> Phone Number ID <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={phoneNumberId}
+                      onChange={(e) => setPhoneNumberId(e.target.value)}
+                      placeholder="e.g. 123456789012345"
+                      className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1">Found in Meta for Developers → WhatsApp → API Setup → Phone Number ID</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1">
+                      <KeyRound className="w-3.5 h-3.5" /> Permanent System User Access Token <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showToken ? "text" : "password"}
+                        value={accessToken}
+                        onChange={(e) => setAccessToken(e.target.value)}
+                        placeholder="EAAxxxxxxxxxxxxxxxxxxxxxxx..."
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-3.5 py-2.5 pr-16 text-sm text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowToken((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-blue-600 hover:text-blue-800"
+                      >
+                        {showToken ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1">Use a <strong>permanent</strong> system user token — not the temporary test token. Never share this.</p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Important:</strong> You are responsible for your own Meta API costs. Meta charges per conversation (~₹0.58–₹1.50 per 24-hour window). EzyWorkz does not bill you separately for coexistence mode.
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* ── Managed Dedicated Number Request Section ── */}
+            {mode === "custom" && customSubMode === "managed" && (
               <div className="mt-2 space-y-4">
-                {/* Already has an active/submitted request */}
                 {dedicatedRequest ? (
                   <div className="p-5 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-5">
                     <div className="flex items-center justify-between">
@@ -266,7 +503,6 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
                       <StatusBadge status={dedicatedRequest.status} />
                     </div>
 
-                    {/* Request Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-white dark:bg-gray-900 rounded-xl p-3 border border-gray-100 dark:border-gray-800">
                         <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Phone Number</p>
@@ -278,10 +514,8 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
                       </div>
                     </div>
 
-                    {/* Progress Tracker */}
                     <ProgressTracker status={dedicatedRequest.status} />
 
-                    {/* Rejection reason */}
                     {dedicatedRequest.status === "rejected" && dedicatedRequest.rejectionReason && (
                       <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -289,7 +523,6 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
                       </div>
                     )}
 
-                    {/* Allow resubmission if rejected */}
                     {dedicatedRequest.status === "rejected" && (
                       <button
                         onClick={() => setDedicatedRequest(null)}
@@ -300,7 +533,6 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
                     )}
                   </div>
                 ) : (
-                  /* New request form */
                   <div className="p-5 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -464,15 +696,15 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
 
                 {/* Message Bubble */}
                 <div className="bg-[#005c4b] text-white rounded-2xl rounded-tl-none p-3.5 text-xs leading-relaxed space-y-2 max-w-[88%] shadow-md">
-                  <p className="font-bold text-emerald-200">Order Received</p>
+                  <p className="font-bold text-emerald-200">Laundry Fresh & Ready 🧺</p>
                   <p>Dear <strong>Rahul</strong>, thank you for choosing <strong>{shopName}</strong>.</p>
-                  <p>We are pleased to confirm that your order <strong>#ORD1024</strong> has been received and is currently being processed by our specialist team.</p>
+                  <p>We are pleased to inform you that your order <strong>#ORD1024</strong> has been processed and your garments are fresh, clean, and ready for handover.</p>
                   <p className="text-emerald-100">
-                    You may monitor your order status and access your official invoice here:<br />
+                    Access your official invoice and order details here:<br />
                     <span className="underline text-emerald-200">https://{subdomain}.ezyworkz.com/invoice/ORD1024</span>
                   </p>
-                  <p>We will notify you as soon as your garments are fresh and ready.</p>
-                  <p className="text-emerald-300 font-semibold">— The {shopName} Team.</p>
+                  <p>Our delivery team will be arriving shortly, or you are welcome to pick up your garments at your convenience.</p>
+                  <p className="text-emerald-300 font-semibold">— {shopName} Team.</p>
                   <div className="pt-2 border-t border-emerald-500/30 flex items-center justify-between text-[10px] text-emerald-300">
                     <span>Powered by EzyWorkz</span>
                     <span>12:45 PM ✓✓</span>
@@ -482,10 +714,19 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
 
               {/* Sender indicator */}
               <div className="flex items-center gap-2 text-xs">
-                <div className={`w-2 h-2 rounded-full ${mode === "custom" && dedicatedRequest?.status === "active" ? "bg-purple-500" : "bg-green-500"}`}></div>
+                <div className={`w-2 h-2 rounded-full ${
+                  mode === "custom" && customSubMode === "coexistence" && phoneNumberId
+                    ? "bg-blue-500"
+                    : mode === "custom" && dedicatedRequest?.status === "active"
+                    ? "bg-purple-500"
+                    : "bg-green-500"
+                }`}></div>
                 <span className="text-gray-500 dark:text-gray-400">
                   Sending as <strong className="text-gray-700 dark:text-gray-200">{activeSenderName}</strong>
-                  {mode === "custom" && dedicatedRequest?.status !== "active" && (
+                  {mode === "custom" && customSubMode === "coexistence" && !phoneNumberId && (
+                    <span className="text-amber-500 ml-1">(credentials not configured — currently via EzyWorkz)</span>
+                  )}
+                  {mode === "custom" && customSubMode === "managed" && dedicatedRequest?.status !== "active" && (
                     <span className="text-amber-500 ml-1">(pending activation — currently via EzyWorkz)</span>
                   )}
                 </span>
