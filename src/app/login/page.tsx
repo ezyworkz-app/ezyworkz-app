@@ -38,7 +38,7 @@ export default function LoginPage() {
                     <div className="flex justify-center">
                         <div className="p-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl shadow-brand-500/10 flex items-center justify-center">
                             <Image
-                                src="/ezyworkz_logo_png.png"
+                                src="/logo-dark.png"
                                 alt="Ezyworkz Logo"
                                 width={140}
                                 height={45}
