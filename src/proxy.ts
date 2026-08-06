@@ -9,6 +9,10 @@ export function proxy(request: NextRequest) {
     const isPublicAsset = pathname.startsWith("/_next") ||
         pathname.startsWith("/images") ||
         pathname.includes("favicon.ico") ||
+        pathname.endsWith(".png") ||
+        pathname.endsWith(".svg") ||
+        pathname.endsWith(".jpg") ||
+        pathname.endsWith(".jpeg") ||
         pathname.startsWith("/api");
 
     // 1. If user is authenticated and tries to access signin/signup, redirect to dashboard
