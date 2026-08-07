@@ -23,19 +23,19 @@ export function haversineKm(
 
 /* -----------------------------------------------------------------
  * Delivery fee rule:
- *   • Base fare            : ₹ 50
- *   • Variable per‑km fare : ₹ 10 for **every** km (rounded UP)
+ *   • Base fare            : ₹ 50 (up to 3km)
+ *   • Variable per‑km fare : ₹ 15 for **every** km (rounded UP)
  *
  *   examples ──────────────────────────────────────────────
- *     0.6 km  →  50 + 1×10  = ₹ 60
- *     2.4 km  →  50 + 3×10  = ₹ 80
- *     7.0 km  →  50 + 7×10  = ₹ 120
+ *     0.6 km  →  50
+ *     3.4 km  →  50 + 1×15  = ₹ 65
+ *     7.0 km  →  50 + 4×15  = ₹ 110
  * ----------------------------------------------------------------*/
 export function tieredFee(distanceKm: number): number {
   if (distanceKm <= 0 || Number.isNaN(distanceKm)) return 50;
 
-  if (distanceKm <= 2) return 50;
+  if (distanceKm <= 3) return 50;
 
-  const extraKm = Math.max(0, distanceKm - 2);
+  const extraKm = Math.max(0, distanceKm - 3);
   return 50 + Math.ceil(extraKm) * 15;
 }
