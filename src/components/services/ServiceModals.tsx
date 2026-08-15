@@ -153,22 +153,48 @@ function AddServiceModal({ shopId, globalServices, shopServices, closeModal, onR
 }
 
 function EditServiceModal({ shopId, service, closeModal, onRefresh }: any) {
+    const DELIVERY_TYPES = ["express", "oneDay", "standard"] as const;
+    const DEFAULT_DELIVERY: Record<string, { priceMultiplier: number; duration: string }> = {
+        express: { priceMultiplier: 2, duration: "4-8 hrs" },
+        oneDay: { priceMultiplier: 1.5, duration: "16-24 hrs" },
+        standard: { priceMultiplier: 1, duration: "48-72 hrs" },
+    };
+
     const [submitting, setSubmitting] = useState(false);
-    const [deliveryTypes, setDeliveryTypes] = useState<any>(
-        service.deliveryTypes || {
-            express: { priceMultiplier: 2, duration: "4-8 hrs" },
-            oneDay: { priceMultiplier: 1.5, duration: "16-24 hrs" },
-            standard: { priceMultiplier: 1, duration: "48-72 hrs" },
+    const [deliveryTypes, setDeliveryTypes] = useState<any>(() => {
+        const base = service.deliveryTypes || DEFAULT_DELIVERY;
+        const merged: any = {};
+        for (const t of DELIVERY_TYPES) {
+            merged[t] = base[t] || DEFAULT_DELIVERY[t];
         }
+        return merged;
+    });
+    const [enabled, setEnabled] = useState<Record<string, boolean>>(() =>
+        Object.fromEntries(
+            DELIVERY_TYPES.map((t) => [t, Boolean((service.deliveryTypes || DEFAULT_DELIVERY)[t])])
+        )
     );
-  
+
+    const toggleEnabled = (type: string) => {
+        setEnabled((p) => {
+            const next = { ...p, [type]: !p[type] };
+            if (!Object.values(next).some(Boolean)) {
+                alert("At least one delivery type must stay enabled.");
+                return p;
+            }
+            return next;
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setSubmitting(true);
       try {
         await apiClient.put(`/shops/${shopId}/services/${service.shopServiceId || service.serviceID || service.id}`, {
           deliveryTypes: Object.fromEntries(
-            Object.entries(deliveryTypes).map(([k, v]: any) => [k, { ...v, priceMultiplier: parseFloat(v.priceMultiplier) }])
+            Object.entries(deliveryTypes)
+              .filter(([k]) => enabled[k])
+              .map(([k, v]: any) => [k, { ...v, priceMultiplier: parseFloat(v.priceMultiplier) }])
           ),
         });
         onRefresh();
@@ -215,35 +241,58 @@ function EditServiceModal({ shopId, service, closeModal, onRefresh }: any) {
           </div>
   
           <div className="mb-6 space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            {(["express", "oneDay", "standard"] as const).map((type) => {
+            {DELIVERY_TYPES.map((type) => {
               const meta = getMeta(type);
+              const isOn = enabled[type];
               return (
-                <div key={type} className="grid grid-cols-2 gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all shadow-sm">
-                  <div className="col-span-2 flex items-center gap-2">
+                <div
+                  key={type}
+                  className={`grid grid-cols-2 gap-4 p-5 rounded-2xl border transition-all shadow-sm ${
+                    isOn ? "bg-slate-50 border-slate-200/80 hover:border-slate-300" : "bg-slate-50/50 border-slate-200/50 opacity-60"
+                  }`}
+                >
+                  <div className="col-span-2 flex items-center justify-between gap-2">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${meta.badgeClass}`}>
                       {meta.icon}
                       {meta.label}
                     </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isOn}
+                      onClick={() => toggleEnabled(type)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        isOn ? "bg-teal-500" : "bg-slate-300"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          isOn ? "translate-x-5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Multiplier</label>
                     <input
                       type="number"
                       step="0.1"
-                      required
+                      required={isOn}
+                      disabled={!isOn}
                       value={deliveryTypes[type]?.priceMultiplier ?? ""}
                       onChange={(e) => setDeliveryTypes((p: any) => ({ ...p, [type]: { ...p[type], priceMultiplier: e.target.value } }))}
-                      className="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-3 py-2 text-slate-800 text-sm font-medium outline-none transition-all"
+                      className="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-3 py-2 text-slate-800 text-sm font-medium outline-none transition-all disabled:bg-slate-100 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Duration</label>
                     <input
                       type="text"
-                      required
+                      required={isOn}
+                      disabled={!isOn}
                       value={deliveryTypes[type]?.duration ?? ""}
                       onChange={(e) => setDeliveryTypes((p: any) => ({ ...p, [type]: { ...p[type], duration: e.target.value } }))}
-                      className="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-3 py-2 text-slate-800 text-sm font-medium outline-none transition-all"
+                      className="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-xl px-3 py-2 text-slate-800 text-sm font-medium outline-none transition-all disabled:bg-slate-100 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>

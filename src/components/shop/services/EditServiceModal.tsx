@@ -27,30 +27,57 @@ export default function EditServiceModal({
   const [addons, setAddons] = useState(service.addons || []);
   const { isOpen, openModal, closeModal: closeSubModal } = useModal();
 
-  const [delivery, setDelivery] = useState(
-    () =>
-      Object.fromEntries(
-        Object.entries(service.deliveryTypes ?? {}).map(([k, v]: any) => [
-          k,
-          {
-            priceMultiplier: v?.priceMultiplier?.toString?.() || "1",
-            duration: v?.duration ?? "",
-          },
-        ])
-      ) as Record<string, { priceMultiplier: string; duration: string }>
+  const DELIVERY_TYPES = ["express", "oneDay", "standard"] as const;
+
+  const [delivery, setDelivery] = useState(() => {
+    const existing = Object.fromEntries(
+      Object.entries(service.deliveryTypes ?? {}).map(([k, v]: any) => [
+        k,
+        {
+          priceMultiplier: v?.priceMultiplier?.toString?.() || "1",
+          duration: v?.duration ?? "",
+        },
+      ])
+    ) as Record<string, { priceMultiplier: string; duration: string }>;
+
+    for (const t of DELIVERY_TYPES) {
+      if (!existing[t]) {
+        existing[t] = { priceMultiplier: "1", duration: "" };
+      }
+    }
+    return existing;
+  });
+
+  const [deliveryEnabled, setDeliveryEnabled] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(
+      DELIVERY_TYPES.map((t) => [t, Boolean(service.deliveryTypes?.[t])])
+    )
   );
+
+  function toggleDeliveryType(type: string, checked: boolean) {
+    setDeliveryEnabled((p) => {
+      const next = { ...p, [type]: checked };
+      if (!Object.values(next).some(Boolean)) {
+        alert("At least one delivery type must stay enabled.");
+        return p;
+      }
+      return next;
+    });
+  }
 
   async function handleUpdate() {
     setSaving(true);
     try {
       const cleaned = Object.fromEntries(
-        Object.entries(delivery).map(([k, v]) => [
-          k,
-          {
-            priceMultiplier: parseFloat(v.priceMultiplier),
-            duration: v.duration,
-          },
-        ])
+        Object.entries(delivery)
+          .filter(([k]) => deliveryEnabled[k])
+          .map(([k, v]) => [
+            k,
+            {
+              priceMultiplier: parseFloat(v.priceMultiplier),
+              duration: v.duration,
+            },
+          ])
       );
       await editShopService(shopId, service.serviceID, {
         deliveryTypes: cleaned,
@@ -136,48 +163,62 @@ export default function EditServiceModal({
           </h3>
           
           <div className="grid gap-4">
-            {(["express", "oneDay", "standard"] as const).map((t) => (
-              <div key={t} className="p-4 rounded-xl border border-gray-100 bg-white shadow-sm hover:border-brand-100 transition-colors group">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-bold text-gray-800 capitalize flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-brand-400"></span>
-                    {t}
-                  </span>
-                  <Badge variant="neutral" className="bg-gray-50 text-[9px]">Multiplier</Badge>
-                </div>
-                
-                <div className="flex gap-3">
-                  <div className="relative flex-1">
-                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-brand-400 transition-colors" size={14} />
-                    <input
-                      value={delivery[t]?.priceMultiplier}
-                      onChange={(e) =>
-                        setDelivery((p) => ({
-                          ...p,
-                          [t]: { ...p[t], priceMultiplier: e.target.value },
-                        }))
-                      }
-                      placeholder="x1.5"
-                      className="w-full h-10 pl-9 pr-4 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all"
+            {DELIVERY_TYPES.map((t) => {
+              const isOn = deliveryEnabled[t];
+              return (
+                <div
+                  key={t}
+                  className={`p-4 rounded-xl border bg-white shadow-sm transition-colors group ${
+                    isOn ? "border-gray-100 hover:border-brand-100" : "border-gray-100 opacity-60"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-bold text-gray-800 capitalize flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${isOn ? "bg-brand-400" : "bg-gray-300"}`}></span>
+                      {t}
+                    </span>
+                    <Switch
+                      label=""
+                      checked={isOn}
+                      onChange={(checked) => toggleDeliveryType(t, checked)}
                     />
                   </div>
-                  <div className="relative flex-[1.5]">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-brand-400 transition-colors" size={14} />
-                    <input
-                      value={delivery[t]?.duration}
-                      onChange={(e) =>
-                        setDelivery((p) => ({
-                          ...p,
-                          [t]: { ...p[t], duration: e.target.value },
-                        }))
-                      }
-                      placeholder="e.g. 24 Hours"
-                      className="w-full h-10 pl-9 pr-4 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all"
-                    />
+
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-brand-400 transition-colors" size={14} />
+                      <input
+                        value={delivery[t]?.priceMultiplier}
+                        disabled={!isOn}
+                        onChange={(e) =>
+                          setDelivery((p) => ({
+                            ...p,
+                            [t]: { ...p[t], priceMultiplier: e.target.value },
+                          }))
+                        }
+                        placeholder="x1.5"
+                        className="w-full h-10 pl-9 pr-4 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                    <div className="relative flex-[1.5]">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-brand-400 transition-colors" size={14} />
+                      <input
+                        value={delivery[t]?.duration}
+                        disabled={!isOn}
+                        onChange={(e) =>
+                          setDelivery((p) => ({
+                            ...p,
+                            [t]: { ...p[t], duration: e.target.value },
+                          }))
+                        }
+                        placeholder="e.g. 24 Hours"
+                        className="w-full h-10 pl-9 pr-4 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
