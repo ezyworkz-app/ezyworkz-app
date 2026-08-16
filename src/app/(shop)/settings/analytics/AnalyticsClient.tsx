@@ -17,12 +17,14 @@ export default function AnalyticsClient() {
     const [googleAnalyticsId, setGoogleAnalyticsId] = useState<string>(shopData.googleAnalyticsId || "");
     const [googleAdsId, setGoogleAdsId] = useState<string>(shopData.googleAdsId || "");
     const [googleAdsCheckoutLabel, setGoogleAdsCheckoutLabel] = useState<string>(shopData.googleAdsCheckoutLabel || "");
+    const [googleAdsPurchaseLabel, setGoogleAdsPurchaseLabel] = useState<string>(shopData.googleAdsPurchaseLabel || "");
 
     useEffect(() => {
         if (selectedShop) {
             setGoogleAnalyticsId(selectedShop.googleAnalyticsId || "");
             setGoogleAdsId(selectedShop.googleAdsId || "");
             setGoogleAdsCheckoutLabel(selectedShop.googleAdsCheckoutLabel || "");
+            setGoogleAdsPurchaseLabel(selectedShop.googleAdsPurchaseLabel || "");
         }
     }, [selectedShop]);
 
@@ -37,6 +39,7 @@ export default function AnalyticsClient() {
             googleAnalyticsId,
             googleAdsId,
             googleAdsCheckoutLabel,
+            googleAdsPurchaseLabel,
         };
 
         const result = await updateShopDetails(activeShopId, payload);
@@ -131,6 +134,20 @@ export default function AnalyticsClient() {
                                 />
                                 <p className="mt-2 text-xs text-gray-500">
                                     Enter the specific conversion label for the "Begin checkout" or "Order placed" event to track successful checkouts in Google Ads.
+                                </p>
+                            </div>
+                            <hr className="border-gray-100" />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Google Ads Purchase Conversion Label</label>
+                                <input 
+                                    type="text" 
+                                    value={googleAdsPurchaseLabel}
+                                    onChange={(e) => setGoogleAdsPurchaseLabel(e.target.value)}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all"
+                                    placeholder="e.g. y02wDKxzxNVdFO775JAF"
+                                />
+                                <p className="mt-2 text-xs text-gray-500">
+                                    Enter the specific conversion label for the "Purchase" event to track successful payments in Google Ads.
                                 </p>
                             </div>
                         </div>

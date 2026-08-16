@@ -66,6 +66,7 @@ export interface Shop {
     googleAnalyticsId?: string;
     googleAdsId?: string;
     googleAdsCheckoutLabel?: string;
+    googleAdsPurchaseLabel?: string;
 }
 
 export interface CommissionHistoryEntry {
