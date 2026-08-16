@@ -14,10 +14,10 @@ export async function getShopCustomers(shopId: string): Promise<{ users: User[],
         if (!res.ok || !data.success) {
             throw new Error(data.message || "Failed to fetch customers");
         }
-        const users = data.data || [];
+        const users = Array.isArray(data.data) ? data.data : (data.data?.data || []);
         return {
             users: users.map((u: any) => ({ ...u, phoneNumber: u.phone || u.phoneNumber })),
-            totalCount: users.length,
+            totalCount: data.data?.pagination?.total || users.length,
         };
     } catch (error) {
         console.error("[getShopCustomers]", error);
