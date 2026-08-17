@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User } from "@/types/user";
 import { Shop } from "@/types/Shop";
 import UserSelector from "@/components/admin/UserSelector";
@@ -94,6 +94,21 @@ export default function CreateOrderClient() {
         loadInitialData();
     }, [selectedShopId]);
 
+    const [searchingUsers, setSearchingUsers] = useState(false);
+
+    const handleSearchUsers = useCallback(async (query: string) => {
+        if (!selectedShopId) return;
+        setSearchingUsers(true);
+        try {
+            const customersRes = await getShopCustomers(selectedShopId, query);
+            setUsers(customersRes.users || []);
+        } catch (error) {
+            console.error("Failed to search users", error);
+        } finally {
+            setSearchingUsers(false);
+        }
+    }, [selectedShopId]);
+
     const handleUserSelect = async (user: User) => {
         setSelectedUser(user);
         setUserId(user.userId);
@@ -155,6 +170,8 @@ export default function CreateOrderClient() {
                 {step === "user" && (
                     <UserSelector 
                         users={users} 
+                        loading={searchingUsers}
+                        onSearch={handleSearchUsers}
                         onSelect={handleUserSelect} 
                         onCreateNewUser={async (name, phone, email) => {
                             if (!selectedShopId) return null;

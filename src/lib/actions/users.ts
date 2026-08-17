@@ -4,10 +4,15 @@ import { User } from "../../types/user";
 import { apiFetch } from "../api";
 import { cookies } from "next/headers";
 
-export async function getShopCustomers(shopId: string): Promise<{ users: User[], totalCount: number }> {
+export async function getShopCustomers(shopId: string, search?: string): Promise<{ users: User[], totalCount: number }> {
     try {
         const token = (await cookies()).get("accessToken")?.value;
-        const res = await apiFetch(`/api/v1/customers/${shopId}`, {
+        const queryParams = new URLSearchParams({ limit: '50' });
+        if (search) {
+            queryParams.append('search', search);
+        }
+        
+        const res = await apiFetch(`/api/v1/customers/${shopId}?${queryParams.toString()}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();

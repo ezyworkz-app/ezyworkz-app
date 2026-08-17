@@ -1,16 +1,18 @@
 "use client";
 
 import { User } from "@/types/user";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Loader2 } from "lucide-react";
 
 interface Props {
     users: User[];
+    loading?: boolean;
+    onSearch?: (search: string) => void;
     onSelect: (user: User) => void;
     onCreateNewUser?: (name: string, phone: string, email?: string) => Promise<User | null>;
 }
 
-export default function UserSelector({ users, onSelect, onCreateNewUser }: Props) {
+export default function UserSelector({ users, loading, onSearch, onSelect, onCreateNewUser }: Props) {
     const [search, setSearch] = useState("");
     const [isCreating, setIsCreating] = useState(false);
     const [createName, setCreateName] = useState("");
@@ -18,9 +20,18 @@ export default function UserSelector({ users, onSelect, onCreateNewUser }: Props
     const [createEmail, setCreateEmail] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    useEffect(() => {
+        if (onSearch) {
+            const timeout = setTimeout(() => {
+                onSearch(search);
+            }, 400);
+            return () => clearTimeout(timeout);
+        }
+    }, [search, onSearch]);
+
     const query = search.toLowerCase();
 
-    const filtered = users.filter((u) => {
+    const filtered = onSearch ? users : users.filter((u) => {
         const name = u.name?.toLowerCase() || "";
         const email = u.email?.toLowerCase() || "";
         const phone = u.phoneNumber || "";
@@ -123,7 +134,12 @@ export default function UserSelector({ users, onSelect, onCreateNewUser }: Props
 
             {!isCreating && (
                 <div className="max-h-96 overflow-y-auto rounded-lg border border-gray-200">
-                {filtered.length === 0 ? (
+                {loading ? (
+                    <div className="p-8 flex flex-col items-center justify-center text-gray-500">
+                        <Loader2 className="animate-spin mb-2" size={24} />
+                        <p>Searching...</p>
+                    </div>
+                ) : filtered.length === 0 ? (
                     <div className="p-4 text-center text-gray-500">
                         No users found.
                     </div>
