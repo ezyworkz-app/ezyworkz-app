@@ -1,13 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient, { STORAGE_KEYS, setupAxiosInterceptors } from '@/lib/api/client';
+import { LoginCredentials } from '@/types';
 
 interface AuthContextType {
     isAuthenticated: boolean;
     loading: boolean;
-    login: (credentials: any) => Promise<void>;
+    login: (credentials: LoginCredentials) => Promise<void>;
     logout: () => void;
 }
 
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    const handleLogout = () => {
+    const handleLogout = useCallback(() => {
         setIsAuthenticated(false);
         if (typeof window !== 'undefined') {
             localStorage.removeItem(STORAGE_KEYS.TOKEN);
@@ -33,7 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             document.cookie = "id=; path=/; max-age=0;";
         }
         router.push('/login');
-    };
+    }, [router]);
 
     useEffect(() => {
         setupAxiosInterceptors(handleLogout);
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         initAuth();
     }, []);
 
-    const login = async (credentials: any) => {
+    const login = useCallback(async (credentials: any) => {
         const response = await apiClient.post('/shop-auth/login', credentials);
         if (response.data?.token) {
             if (typeof window !== 'undefined') {
@@ -70,10 +71,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else {
             throw new Error('No token received');
         }
-    };
+    }, [router]);
+
+    // Memoize context value to prevent unnecessary re-renders of all consumers
+    const value = useMemo(() => ({
+        isAuthenticated,
+        loading,
+        login,
+        logout: handleLogout
+    }), [isAuthenticated, loading, login, handleLogout]);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, loading, login, logout: handleLogout }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

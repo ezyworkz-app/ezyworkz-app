@@ -98,6 +98,12 @@ function formatDateTime(dateStr: string) {
 }
 
 export default function UserProfileClient({ userData, error }: { userData: UserProfileData | null; error?: string }) {
+    // IMPORTANT: Call all hooks before any early returns to comply with React Rules of Hooks
+    const chartMax = useMemo(() => {
+        if (!userData?.monthlyTrend?.length) return 1;
+        return Math.max(...userData.monthlyTrend.map(m => m.orders), 1);
+    }, [userData?.monthlyTrend]);
+
     if (error || !userData) {
         return (
             <ProtectedRoute>
@@ -119,7 +125,6 @@ export default function UserProfileClient({ userData, error }: { userData: UserP
     }
 
     const user = userData;
-    const chartMax = useMemo(() => Math.max(...user.monthlyTrend.map(m => m.orders), 1), [user.monthlyTrend]);
 
     return (
         <ProtectedRoute>

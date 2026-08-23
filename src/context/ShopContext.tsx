@@ -1,12 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import apiClient from '@/lib/api/client';
 import { useAuth } from './AuthContext';
+import { Shop, ShopUser } from '@/types';
 
 interface ShopContextType {
     selectedShopId: string | null;
-    selectedShop: any | null;
+    selectedShop: (Shop & { role?: ShopUser['role'] }) | null;
     userRole: "owner" | "manager" | "staff" | "user" | null;
     isLoading: boolean;
     refreshShop: () => Promise<void>;
@@ -60,10 +61,17 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
         await loadShops();
     }, [loadShops]);
 
-
+    // Memoize context value to prevent unnecessary re-renders of all consumers
+    const value = useMemo(() => ({
+        selectedShopId,
+        selectedShop,
+        userRole,
+        isLoading,
+        refreshShop
+    }), [selectedShopId, selectedShop, userRole, isLoading, refreshShop]);
 
     return (
-        <ShopContext.Provider value={{ selectedShopId, selectedShop, userRole, isLoading, refreshShop }}>
+        <ShopContext.Provider value={value}>
             {children}
         </ShopContext.Provider>
     );
