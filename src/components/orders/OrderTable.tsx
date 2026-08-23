@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import { Search, Edit3, DollarSign, FileText, MessageCircle, MapPin, Phone, StickyNote, Check, Loader2, ExternalLink, RefreshCw, X, ArrowDown, ArrowUp, AlertCircle, Truck, ChevronDown, Trash2, Ticket } from "lucide-react";
 import InputField from "@/components/form/input/InputField";
 import { Order, OrderService } from "@/types/order";
-import { Shop } from "@/types/Shop";
+// Import from @/types (not @/types/Shop): ShopContext returns that shape, and
+// the two Shop declarations are structurally incompatible.
+import { Shop } from "@/types";
 import { getAllShops } from "@/lib/actions/shops";
 import { updateOrderAdminNotes, updateOrderLogisticsType, updateOrderChatType, refundManual, refundOverpaidAmount, refundViaCashfree, updateOrderDetailsByAdmin, verifyOrderItemCount, deleteOrder, updateRiderAssignment, updateOrderDate } from "@/lib/actions/orders";
 import Badge from "@/components/ui/badge/Badge";

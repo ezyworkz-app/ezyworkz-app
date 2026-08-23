@@ -25,7 +25,9 @@ import ChatWindow from "../chat/ChatWindow";
 import Pagination from "../tables/Pagination";
 import { useBreadcrumb } from "@/context/BreadcrumbContext";
 import { getAllShops } from "@/lib/actions/shops";
-import { Shop } from "@/types/Shop";
+// Import from @/types (not @/types/Shop): ShopContext returns that shape, and
+// the two Shop declarations are structurally incompatible.
+import { Shop } from "@/types";
 import { useShop } from "@/context/ShopContext";
 
 const TabButton = ({

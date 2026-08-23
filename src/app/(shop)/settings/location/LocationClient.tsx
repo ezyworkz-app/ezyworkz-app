@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useShop } from "@/context/ShopContext";
+import type { Shop } from "@/types";
 import { updateShopDetails } from "@/lib/actions/shops";
 import { Loader2, Save, CheckCircle2, MapPin, Clock, Search, Navigation, Building2, Crosshair } from "lucide-react";
 import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
@@ -27,7 +28,9 @@ export default function LocationClient() {
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-    const shopData = selectedShop || {};
+    // `|| {}` widened the type to `{}`, so every property read below became a
+    // compile error. Partial<Shop> keeps the fields visible and optional.
+    const shopData: Partial<Shop> = selectedShop ?? {};
 
     const [address, setAddress] = useState({
         building: shopData.address?.building || "",

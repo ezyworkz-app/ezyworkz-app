@@ -30,7 +30,16 @@ export default function BillingClient() {
 
                 <div className="pb-12 max-w-3xl space-y-8">
                     <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 md:p-8">
-                        <GstEditor shop={selectedShop || {}} />
+                        {/* GstEditor reads shop.shopId and saves against it, so an
+                            empty-object fallback was not just a type error — it
+                            would have called updateShopDetails(undefined). */}
+                        {selectedShop ? (
+                            <GstEditor shop={selectedShop} />
+                        ) : (
+                            <p className="text-gray-500">
+                                Select a shop to manage its tax and billing settings.
+                            </p>
+                        )}
                     </div>
                 </div>
             </main>

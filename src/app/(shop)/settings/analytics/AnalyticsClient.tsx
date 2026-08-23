@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useShop } from "@/context/ShopContext";
+import type { Shop } from "@/types";
 import { updateShopDetails } from "@/lib/actions/shops";
 import { Loader2, Save, CheckCircle2 } from "lucide-react";
 
@@ -12,7 +13,9 @@ export default function AnalyticsClient() {
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-    const shopData = selectedShop || {};
+    // `|| {}` widened the type to `{}`, so every property read below became a
+    // compile error. Partial<Shop> keeps the fields visible and optional.
+    const shopData: Partial<Shop> = selectedShop ?? {};
 
     const [googleAnalyticsId, setGoogleAnalyticsId] = useState<string>(shopData.googleAnalyticsId || "");
     const [googleAdsId, setGoogleAdsId] = useState<string>(shopData.googleAdsId || "");

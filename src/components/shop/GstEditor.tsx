@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Shop } from "@/types/Shop";
+// Matches the shape ShopContext provides — see the note in @/types/index.ts
+import { Shop } from "@/types";
 import { updateShopDetails } from "@/lib/actions/shops";
 import { useShop } from "@/context/ShopContext";
 

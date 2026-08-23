@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useShop } from "@/context/ShopContext";
+import type { Shop } from "@/types";
 import { uploadShopAsset, updateShopDetails } from "@/lib/actions/shops";
 import { Loader2, Upload, Save, CheckCircle2, Building2 } from "lucide-react";
 import Image from "next/image";
@@ -14,7 +15,9 @@ export default function GeneralClient() {
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
-    const shopData = selectedShop || {};
+    // `|| {}` widened the type to `{}`, so every property read below became a
+    // compile error. Partial<Shop> keeps the fields visible and optional.
+    const shopData: Partial<Shop> = selectedShop ?? {};
 
     const [logoUrl, setLogoUrl] = useState<string>(shopData.logoUrl || "");
     const [faviconUrl, setFaviconUrl] = useState<string>(shopData.faviconUrl || "");
