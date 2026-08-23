@@ -88,12 +88,17 @@ export async function updateShopWhatsAppConfigAction(shopId: string, payload: {
   }
 }
 
-export async function testShopWhatsAppConfigAction(shopId: string, phone: string, name?: string) {
+export async function testShopWhatsAppConfigAction(
+  shopId: string, 
+  phone: string, 
+  name?: string,
+  credentials?: { mode?: string, phoneNumberId?: string, accessToken?: string }
+) {
   try {
     const res = await apiFetch(`/api/v1/shops/${shopId}/whatsapp-config/test`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, name }),
+      body: JSON.stringify({ phone, name, ...credentials }),
     });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.message);

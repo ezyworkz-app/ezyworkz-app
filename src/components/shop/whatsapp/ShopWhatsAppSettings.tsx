@@ -291,7 +291,11 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
     setTestSending(true);
     setTestFeedback(null);
 
-    const res = await testShopWhatsAppConfigAction(shopId, testPhone, shopName);
+    const credentials = mode === "custom" && customSubMode === "coexistence" 
+      ? { mode: "custom", phoneNumberId: phoneNumberId.trim(), accessToken: accessToken.trim() }
+      : undefined;
+
+    const res = await testShopWhatsAppConfigAction(shopId, testPhone, shopName, credentials);
     setTestSending(false);
 
     if (res.success) {
