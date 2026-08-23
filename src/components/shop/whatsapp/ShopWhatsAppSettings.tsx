@@ -164,7 +164,7 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
         appId: "27640429408950430",
         cookie: true,
         xfbml: true,
-        version: "v19.0",
+        version: "v20.0",
       });
       setFbSDKLoaded(true);
     };
@@ -256,7 +256,7 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
       config_id: '1615068986995950',
       response_type: 'code',
       override_default_response_type: true,
-      extras: { setup: {}, featureType: '', sessionInfoVersion: '3' },
+      extras: { sessionInfoVersion: '3' },
     });
   };
 
