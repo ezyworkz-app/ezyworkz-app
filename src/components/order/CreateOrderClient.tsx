@@ -53,7 +53,11 @@ export default function CreateOrderClient() {
         clearCart();
         setUserId(null);
         setSavedAddr(null);
-        setPaymentMethod(null);
+        // Reset to the default, NOT null. The API validates paymentMethod as an
+        // optional enum: `undefined` is accepted but `null` is rejected, so
+        // resetting to null made every "Place Order" fail with
+        // "paymentMethod: Invalid option".
+        setPaymentMethod("cod");
         setNotes("");
         setCouponCode("");
         setDiscountAmount(0);

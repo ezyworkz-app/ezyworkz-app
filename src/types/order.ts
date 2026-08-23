@@ -164,7 +164,7 @@ export interface Order {
     cancelReason?: string;
 
     /* ---------------------------- Payment ---------------------------- */
-    paymentMethod: "cod" | "upi" | "card";
+    paymentMethod: "cod" | "online" | "card";
     paymentReferenceId?: string;
     paymentStatus: PaymentStatus;
     amountPaid?: number;

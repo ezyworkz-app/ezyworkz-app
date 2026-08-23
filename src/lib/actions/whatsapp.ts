@@ -120,12 +120,21 @@ export async function requestDedicatedNumberAction(shopId: string, phone: string
   }
 }
 
-export async function handleWhatsAppOAuthAction(shopId: string, code: string, phoneNumberId?: string) {
+export async function handleWhatsAppOAuthAction(
+  shopId: string,
+  code: string,
+  session: { phoneNumberId?: string; wabaId?: string; businessId?: string } = {}
+) {
   try {
     const res = await apiFetch(`/api/v1/shops/${shopId}/whatsapp-config/oauth`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, phoneNumberId }),
+      body: JSON.stringify({
+        code,
+        phoneNumberId: session.phoneNumberId,
+        wabaId: session.wabaId,
+        businessId: session.businessId,
+      }),
     });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.message || data.error);

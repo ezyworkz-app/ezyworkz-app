@@ -86,8 +86,8 @@ type Ctx = {
   setNotes: (s: string | undefined) => void;
   tokenNumber: string | undefined;
   setTokenNumber: (s: string | undefined) => void;
-  paymentMethod: "cod" | "upi" | "card";
-  setPaymentMethod: (p: "cod" | "upi" | "card") => void;
+  paymentMethod: "cod" | "online" | "card";
+  setPaymentMethod: (p: "cod" | "online" | "card") => void;
 
   totals: Totals;
 
@@ -179,7 +179,7 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
   const [couponCode, setCouponCode] = useState<string>();
   const [notes, setNotes] = useState<string>();
   const [tokenNumber, setTokenNumber] = useState<string>();
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "upi" | "card">(
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online" | "card">(
     "cod"
   );
 

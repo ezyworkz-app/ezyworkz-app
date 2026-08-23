@@ -68,6 +68,10 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
   const [oauthLoading, setOauthLoading] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const embeddedPhoneIdRef = React.useRef("");
+  // waba_id / business_id also arrive in the WA_EMBEDDED_SIGNUP payload; the
+  // server needs waba_id to subscribe webhooks.
+  const embeddedWabaIdRef = React.useRef("");
+  const embeddedBusinessIdRef = React.useRef("");
 
   // Dedicated number request state
   const [requestPhone, setRequestPhone] = useState("");
@@ -121,8 +125,34 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
       if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") return;
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'WA_EMBEDDED_SIGNUP' && data.event === 'FINISH') {
-           embeddedPhoneIdRef.current = data.data?.phone_number_id;
+        if (data.type !== 'WA_EMBEDDED_SIGNUP') return;
+
+        // Meta emits several terminal events, not just FINISH. Previously only
+        // FINISH was handled, so cancellations and errors were silent and the
+        // user was left staring at a spinner.
+        // https://developers.facebook.com/documentation/business-messaging/whatsapp/embedded-signup/implementation
+        const FINISH_EVENTS = [
+          'FINISH',
+          'FINISH_ONLY_WABA',
+          'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING',
+          'FINISH_OBO_MIGRATION',
+          'FINISH_GRANT_ONLY_API_ACCESS',
+        ];
+
+        if (FINISH_EVENTS.includes(data.event)) {
+          // waba_id is required server-side to subscribe webhooks. It was
+          // previously discarded, which left every connection without webhooks.
+          embeddedPhoneIdRef.current = data.data?.phone_number_id ?? "";
+          embeddedWabaIdRef.current = data.data?.waba_id ?? "";
+          embeddedBusinessIdRef.current = data.data?.business_id ?? "";
+        } else if (data.event === 'CANCEL') {
+          setOauthLoading(false);
+          setOauthError(
+            `Setup was cancelled${data.data?.current_step ? ` at: ${data.data.current_step}` : ''}.`
+          );
+        } else if (data.event === 'ERROR') {
+          setOauthLoading(false);
+          setOauthError(data.data?.error_message || 'WhatsApp signup failed.');
         }
       } catch (e) {}
     };
@@ -191,27 +221,42 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
     setOauthError(null);
 
     window.FB.login((response: any) => {
-      if (response.authResponse) {
-        const code = response.authResponse.code;
-        const phoneId = embeddedPhoneIdRef.current;
-        
-        handleWhatsAppOAuthAction(shopId, code, phoneId).then(res => {
-          setOauthLoading(false);
-          if (res.success) {
-            window.location.reload(); // Reload to fetch updated config
-          } else {
-            setOauthError(res.error || "Failed to link WhatsApp account.");
-          }
-        });
-      } else {
+      if (!response.authResponse) {
         setOauthLoading(false);
         setOauthError("Facebook login was cancelled or failed.");
+        return;
       }
+
+      // The exchangeable code has a 30-SECOND TTL, so it is sent immediately.
+      // The session details (phone/waba id) arrive on a separate postMessage
+      // event; blocking on that risked the code expiring before exchange.
+      // The server falls back to debug_token if waba_id has not landed yet.
+      const code = response.authResponse.code;
+
+      handleWhatsAppOAuthAction(shopId, code, {
+        phoneNumberId: embeddedPhoneIdRef.current,
+        wabaId: embeddedWabaIdRef.current,
+        businessId: embeddedBusinessIdRef.current,
+      }).then(res => {
+        setOauthLoading(false);
+        if (res.success) {
+          // Surface partial failures instead of silently reloading — the
+          // connection may exist while webhooks or registration failed.
+          const warnings: string[] = res.data?.warnings ?? [];
+          if (warnings.length) {
+            setOauthError(`Connected, but: ${warnings.join(' ')}`);
+            return;
+          }
+          window.location.reload();
+        } else {
+          setOauthError(res.error || "Failed to link WhatsApp account.");
+        }
+      });
     }, {
       config_id: '1615068986995950',
       response_type: 'code',
       override_default_response_type: true,
-      extras: { "version": "v4" }
+      extras: { setup: {}, featureType: '', sessionInfoVersion: '3' },
     });
   };
 

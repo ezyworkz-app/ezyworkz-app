@@ -68,7 +68,7 @@ export function cartToOrderPayload(
   cart: CartLine[],
   deliveryBySvc: Record<string, DeliveryKey>,
   opts: {
-    paymentMethod: "cod" | "upi" | "card";
+    paymentMethod: "cod" | "online" | "card";
     address?: Address | null;
     deliveryCharges: number | undefined;
     baseAmount: number;
