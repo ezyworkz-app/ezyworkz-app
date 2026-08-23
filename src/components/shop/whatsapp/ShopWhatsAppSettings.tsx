@@ -164,7 +164,7 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
         appId: "27640429408950430",
         cookie: true,
         xfbml: true,
-        version: "v20.0",
+        version: "v26.0",
       });
       setFbSDKLoaded(true);
     };
