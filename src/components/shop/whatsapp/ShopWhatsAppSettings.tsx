@@ -105,11 +105,12 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
           setRequestPhone(data.dedicatedNumberRequest.phone || "");
           setRequestDisplayName(data.dedicatedNumberRequest.displayName || shopName);
         }
+        if (data.phoneNumberId) setPhoneNumberId(data.phoneNumberId);
+        if (data.accessToken) setAccessToken(data.accessToken);
+
         // Detect coexistence mode: custom + has own phoneNumberId
         if (data.mode === "custom" && data.phoneNumberId) {
           setCustomSubMode("coexistence");
-          setPhoneNumberId(data.phoneNumberId || "");
-          setAccessToken(data.accessToken || "");
         } else if (data.mode === "custom") {
           setCustomSubMode("managed");
         }
