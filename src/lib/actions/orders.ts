@@ -738,13 +738,43 @@ export async function createOrder(payload: CreateOrderPayload) {
     const token = (await cookies()).get("accessToken")?.value;
     if (!token) return { error: "You must be logged in." };
 
-    const res = await apiFetch(`/api/v1/shops/${payload.shopId}/orders`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    try {
+        const res = await apiFetch(`/api/v1/shops/${payload.shopId}/orders`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+        });
 
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+        const raw = await res.text();
+
+        if (!res.ok) {
+            // Do NOT throw here.
+            //
+            // This is a Server Action, and Next.js strips thrown error messages
+            // in production builds — the client only ever saw "An error occurred
+            // in the Server Components render. The specific message is omitted
+            // in production builds", which hid the real API error (e.g. a
+            // validation failure naming the offending field).
+            //
+            // Returning the message keeps it visible, matching how
+            // calculateOrderBreakdown below already behaves.
+            let message = raw;
+            try {
+                const parsed = JSON.parse(raw);
+                message = parsed?.message || parsed?.error || raw;
+            } catch {
+                /* not JSON — fall back to the raw body */
+            }
+
+            console.error(`[createOrder] ${res.status} from API:`, message);
+            return { error: message || `Request failed with status ${res.status}` };
+        }
+
+        return JSON.parse(raw);
+    } catch (e: any) {
+        // Network/DNS/timeout — also must not escape as a thrown error.
+        console.error("[createOrder]", e);
+        return { error: e?.message || "Could not reach the server." };
+    }
 }
 
 export async function calculateOrderBreakdown(payload: any) {
