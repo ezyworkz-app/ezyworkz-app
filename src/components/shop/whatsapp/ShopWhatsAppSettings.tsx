@@ -258,8 +258,8 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
       override_default_response_type: true,
       extras: { 
         sessionInfoVersion: '3',
-        version: 'v3',
-        featureType: 'whatsapp_business_messaging'
+        version: 'v4', // v4 is standard for recent coexistence, though v3 works too
+        featureType: 'whatsapp_business_app_onboarding'
       },
     });
   };
