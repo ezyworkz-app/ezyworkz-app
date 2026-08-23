@@ -1,9 +1,15 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 let baseApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+if (typeof window !== 'undefined') {
+    baseApiUrl = ''; // Use relative URL in browser to hit Next.js rewrite proxy
+}
+
 // Automatically ensure the URL ends with /api/v1 so it works regardless of how it's defined in Vercel
-if (!baseApiUrl.endsWith('/api/v1')) {
+if (baseApiUrl && !baseApiUrl.endsWith('/api/v1')) {
     baseApiUrl = baseApiUrl.replace(/\/$/, '') + '/api/v1';
+} else if (!baseApiUrl) {
+    baseApiUrl = '/api/v1';
 }
 const API_URL = baseApiUrl;
 
