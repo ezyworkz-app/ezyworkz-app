@@ -256,7 +256,11 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
       config_id: '1615068986995950',
       response_type: 'code',
       override_default_response_type: true,
-      extras: { sessionInfoVersion: '3' },
+      extras: { 
+        sessionInfoVersion: '3',
+        version: 'v3',
+        featureType: 'whatsapp_business_messaging'
+      },
     });
   };
 
