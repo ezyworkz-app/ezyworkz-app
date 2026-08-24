@@ -99,7 +99,14 @@ export default function ShopWhatsAppSettings({ shopId, shopName = "Your Laundry 
       if (data) {
         setEnabled(data.enabled !== false);
         setMode(data.mode === "custom" ? "custom" : "platform");
-        if (Array.isArray(data.statuses)) setStatuses(data.statuses);
+        if (Array.isArray(data.statuses)) {
+          // If the DB has waiting_confirmation, make sure we only rely on in_process for the UI toggle
+          const loadedStatuses = data.statuses.filter((s: string) => s !== "waiting_confirmation");
+          if (data.statuses.includes("waiting_confirmation") && !loadedStatuses.includes("in_process")) {
+            loadedStatuses.push("in_process");
+          }
+          setStatuses(loadedStatuses);
+        }
         if (data.dedicatedNumberRequest) {
           setDedicatedRequest(data.dedicatedNumberRequest);
           setRequestPhone(data.dedicatedNumberRequest.phone || "");

@@ -7,7 +7,11 @@ import { cookies } from "next/headers";
 export async function getShopCustomers(shopId: string, search?: string): Promise<{ users: User[], totalCount: number }> {
     try {
         const token = (await cookies()).get("accessToken")?.value;
-        const queryParams = new URLSearchParams({ limit: '50' });
+        // This list is the user PICKER — it renders only name, phone and email.
+        // Order counts / total spent are never displayed here, and computing
+        // them forces the API to read every order for the shop, which is what
+        // made this step slow to load.
+        const queryParams = new URLSearchParams({ limit: '50', includeStats: 'false' });
         if (search) {
             queryParams.append('search', search);
         }
