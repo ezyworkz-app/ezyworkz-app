@@ -692,8 +692,6 @@ const OrdersClient = ({
                                 <option value="all">All ({counts.all})</option>
                                 <option value="user_unpaid">User Unpaid ({counts.user_unpaid})</option>
                                 <option value="user_paid">User Paid ({counts.user_paid})</option>
-                                <option value="shop_unpaid">Shop Unpaid ({counts.shop_unpaid})</option>
-                                <option value="shop_paid">Shop Paid ({counts.shop_paid})</option>
                                 <option value="wait_refund">Wait Refund ({counts.wait_refund})</option>
                                 <option value="uncollectible">Bad Debt ({counts.uncollectible})</option>
                             </select>
@@ -706,8 +704,10 @@ const OrdersClient = ({
                             <TabButton active={selectedTab === "all"} onClick={() => handleTabChange("all")} label="All" count={counts.all} />
                             <TabButton active={selectedTab === "user_unpaid"} onClick={() => handleTabChange("user_unpaid")} label="User Unpaid" count={counts.user_unpaid} />
                             <TabButton active={selectedTab === "user_paid"} onClick={() => handleTabChange("user_paid")} label="User Paid" count={counts.user_paid} />
-                            <TabButton active={selectedTab === "shop_unpaid"} onClick={() => handleTabChange("shop_unpaid")} label="Shop Unpaid" count={counts.shop_unpaid} />
-                            <TabButton active={selectedTab === "shop_paid"} onClick={() => handleTabChange("shop_paid")} label="Shop Paid" count={counts.shop_paid} />
+                            {/* "Shop Unpaid" / "Shop Paid" removed — shop-side
+                                settlement is not tracked from this screen. The
+                                underlying filters remain supported so any saved
+                                link or bookmark using them still resolves. */}
                             <TabButton active={selectedTab === "wait_refund"} onClick={() => handleTabChange("wait_refund")} label="Wait Refund" count={counts.wait_refund} />
                             <TabButton active={selectedTab === "uncollectible"} onClick={() => handleTabChange("uncollectible")} label="Bad Debt" count={counts.uncollectible} />
                         </div>

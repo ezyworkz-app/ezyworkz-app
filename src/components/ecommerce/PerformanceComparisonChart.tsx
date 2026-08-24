@@ -114,7 +114,7 @@ export default function PerformanceComparisonChart({ revenueTrend, profitTrend }
                     <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Current Total</span>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-gray-800 dark:text-white">₹{formatCurrency(totalCurrent)}</span>
+                    <span className="text-2xl font-bold text-gray-800 dark:text-white">{formatCurrency(totalCurrent)}</span>
                     {activeTab === "revenue" && (
                         <span className={`flex items-center text-xs font-bold ${growth >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                             {growth >= 0 ? '+' : ''}{growth.toFixed(1)}%
@@ -129,7 +129,7 @@ export default function PerformanceComparisonChart({ revenueTrend, profitTrend }
                     <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Previous Total</span>
                 </div>
                 <div>
-                    <span className="text-xl font-bold text-gray-600 dark:text-gray-400">₹{formatCurrency(totalPrevious)}</span>
+                    <span className="text-xl font-bold text-gray-600 dark:text-gray-400">{formatCurrency(totalPrevious)}</span>
                 </div>
             </div>
           </div>

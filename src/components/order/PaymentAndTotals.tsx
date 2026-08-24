@@ -130,13 +130,13 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
             <div className="mt-1">
               <div className="flex justify-between text-gray-700 font-medium">
                 <span>Extra Add-ons</span>
-                <span>₹{formatCurrency(addonsTotal)}</span>
+                <span>{formatCurrency(addonsTotal)}</span>
               </div>
               <ul className="mt-1 ml-4 space-y-0.5 text-xs text-gray-500 italic">
                 {Object.values(addonsBySvc).flat().map((a, i) => (
                   <li key={i} className="flex justify-between">
                     <span>{a.name} {a.variationName ? `(${a.variationName})` : ""} × {a.qty}</span>
-                    <span>₹{formatCurrency(a.price * a.qty)}</span>
+                    <span>{formatCurrency(a.price * a.qty)}</span>
                   </li>
                 ))}
               </ul>
@@ -178,7 +178,7 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
                   {lowCartFeeBreakdown.breakdown.map((b, i) => (
                     <li key={i} className="flex justify-between">
                       <span>{b.service}</span>
-                      <span>₹{formatCurrency(b.fee)}</span>
+                      <span>{formatCurrency(b.fee)}</span>
                     </li>
                   ))}
                 </ul>
@@ -207,7 +207,7 @@ export default function PaymentAndTotals({ token }: { token?: string }) {
 
           <div className="flex justify-between pt-2 text-base font-semibold">
             <span>Grand Total</span>
-            <span>₹{formatCurrency(grand)}</span>
+            <span>{formatCurrency(grand)}</span>
           </div>
         </div>
       </section>

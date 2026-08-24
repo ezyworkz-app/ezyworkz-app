@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { getDashboardStats } from "@/lib/actions/dashboard";
 
-import DashboardRangeSelector from "@/components/dashboard/DashboardRangeSelector";
+import DashboardRangeSelector, { DEFAULT_DASHBOARD_RANGE } from "@/components/dashboard/DashboardRangeSelector";
 import PerformanceComparisonChart from "@/components/ecommerce/PerformanceComparisonChart";
 import { OrderDetailedMetrics } from "@/components/ecommerce/OrderDetailedMetrics";
 import { CancellationAnalytics } from "@/components/ecommerce/CancellationAnalytics";
@@ -59,7 +59,7 @@ export default function OrdersDashboardClient({ initialStats }: { initialStats: 
         async function fetchDashboard() {
             setIsLoading(true);
             try {
-                const options = (startDate && endDate) ? { startDate, endDate } : (range || "Last 30 days");
+                const options = (startDate && endDate) ? { startDate, endDate } : (range || DEFAULT_DASHBOARD_RANGE);
                 const res = await getDashboardStats(options);
                 setStats(res);
             } catch (err) {

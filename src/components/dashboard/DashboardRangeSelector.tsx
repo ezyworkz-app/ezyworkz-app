@@ -12,11 +12,22 @@ const RANGE_OPTIONS = [
     { value: "custom", label: "📅 Custom Range..." },
 ];
 
+/**
+ * The range used when the URL carries no `range` param.
+ *
+ * MUST match the fallback used when fetching (OrdersDashboardClient) and the
+ * default in the backend's getDashboardStats. This selector used to fall back
+ * to "Last 7 days" while both of those defaulted to "Last 30 days", so a fresh
+ * page load showed a dropdown reading "Weekly (Last 7 days)" above a chart
+ * containing 30 days of data.
+ */
+export const DEFAULT_DASHBOARD_RANGE = "Last 30 days";
+
 export default function DashboardRangeSelector() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const currentRange = searchParams.get("range") || "Last 7 days";
+    const currentRange = searchParams.get("range") || DEFAULT_DASHBOARD_RANGE;
     const currentStart = searchParams.get("startDate") || "";
     const currentEnd = searchParams.get("endDate") || "";
 
@@ -99,7 +110,7 @@ export default function DashboardRangeSelector() {
                                 setShowCustom(false);
                                 setStartDate("");
                                 setEndDate("");
-                                router.push("?range=Last+7+days");
+                                router.push(`?range=${encodeURIComponent(DEFAULT_DASHBOARD_RANGE)}`);
                             }}
                             className="h-10 px-3 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         >

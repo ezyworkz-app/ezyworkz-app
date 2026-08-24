@@ -20,7 +20,10 @@ interface DashboardPageProps {
 
 export default async function OrdersDashboard({ searchParams }: DashboardPageProps) {
     const params = await searchParams;
-    const range = params.range || "Last 7 days";
+    // Keep in step with DEFAULT_DASHBOARD_RANGE in DashboardRangeSelector and
+    // with ../page.tsx — a different default here means the range dropdown and
+    // the data it labels disagree on a fresh load.
+    const range = params.range || "Last 30 days";
     const { startDate, endDate } = params;
 
     let stats = null;

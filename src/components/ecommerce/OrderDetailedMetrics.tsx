@@ -267,7 +267,7 @@ export const OrderDetailedMetrics = ({ stats }: DetailedMetricsProps) => {
                                     )}
                                 </div>
                                 <h4 className="mt-2 text-3xl font-black text-gray-900 dark:text-white">
-                                    ₹{formatCurrency(financials?.totalSales || 0)}
+                                    {formatCurrency(financials?.totalSales || 0)}
                                 </h4>
                                 <p className="mt-1 text-xs font-medium text-gray-400">Total cash collected after all discounts</p>
                             </div>
@@ -291,7 +291,7 @@ export const OrderDetailedMetrics = ({ stats }: DetailedMetricsProps) => {
                                     )}
                                 </div>
                                 <h4 className="mt-2 text-3xl font-black text-gray-900 dark:text-white">
-                                    ₹{formatCurrency(financials?.totalProfitStored || 0)}
+                                    {formatCurrency(financials?.totalProfitStored || 0)}
                                 </h4>
                                 <p className="mt-1 text-xs font-medium text-gray-400">Your actual bottom line profit</p>
                             </div>
@@ -315,7 +315,7 @@ export const OrderDetailedMetrics = ({ stats }: DetailedMetricsProps) => {
                                     )}
                                 </div>
                                 <h4 className="mt-2 text-3xl font-black text-gray-900 dark:text-white">
-                                    ₹{formatCurrency(financials?.totalMarketingSpend || 0)}
+                                    {formatCurrency(financials?.totalMarketingSpend || 0)}
                                 </h4>
                                 <p className="mt-1 text-xs font-medium text-gray-400">Google Ads acquisition investment</p>
                             </div>
