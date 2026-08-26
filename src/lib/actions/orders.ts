@@ -7,6 +7,39 @@ import { CreateOrderPayload } from "@/utils/cartToOrder";
 import { DeliveryKey, DeliveryType } from "@/types/common";
 import { getShopServiceById } from "./shops";
 
+/**
+ * Resolve the shop the signed-in owner is acting on.
+ *
+ * The "id" cookie holds the SHOP OWNER id — auth.ts sets it from
+ * `shopOwner.shopOwnerId` — but several callers here treated it as a shop id
+ * and built `/api/v1/shops/{shopOwnerId}/...`, which never resolves, so the
+ * request 404s and the caller reports "not found". Decoding the JWT did not
+ * help either: `payload.id` is likewise the owner id.
+ *
+ * Shop ids are prefixed "shp_", so accept a candidate only when it looks like
+ * one and otherwise ask the API which shops this owner actually has (the same
+ * approach dashboard.ts already uses).
+ */
+async function resolveShopId(explicit?: string): Promise<string | undefined> {
+    if (explicit?.startsWith("shp_")) return explicit;
+
+    const cookieStore = await cookies();
+    const candidate =
+        cookieStore.get("shopId")?.value ?? cookieStore.get("id")?.value;
+    if (candidate?.startsWith("shp_")) return candidate;
+
+    try {
+        const res = await apiFetch("/api/v1/shops/my-shops");
+        if (!res.ok) return undefined;
+        const data = await res.json();
+        const shops = Array.isArray(data?.data) ? data.data : data?.data?.shops;
+        return Array.isArray(shops) && shops.length > 0 ? shops[0].shopId : undefined;
+    } catch (e) {
+        console.warn("[resolveShopId] Failed to resolve shopId from my-shops", e);
+        return undefined;
+    }
+}
+
 // Adapter: Map ezyworks-backend Order format to ezyworkz-admin-web Order format expected by the UI
 const mapSingleOrder = (order: any): Order => {
     const mapItems = (items: any[]) => (items || []).map((item: any) => ({
@@ -71,15 +104,7 @@ export async function getAllOrders(
         const token = (await cookies()).get("accessToken")?.value;
         if (!token) throw new Error("Not authenticated");
 
-        let resolvedShopId = shopId || (await cookies()).get("id")?.value;
-        if (!resolvedShopId) {
-            try {
-                const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-                resolvedShopId = payload.id || payload.shopOwnerId;
-            } catch (e) {
-                console.warn("[getAllOrders] Failed to decode token to get shopId");
-            }
-        }
+        const resolvedShopId = await resolveShopId(shopId);
 
         let url = resolvedShopId 
             ? `/api/v1/shops/${resolvedShopId}/orders?limit=${limit}` 
@@ -223,26 +248,11 @@ export async function getOrderByOrderId(
 ): Promise<Order | null> {
     try {
         const token = (await cookies()).get("accessToken")?.value;
-        let shopId = (await cookies()).get("id")?.value;
-        
         if (!token) throw new Error("Not authenticated");
 
-        // Fallback: If shopId cookie is missing, decode the token payload
-        if (!shopId) {
-            try {
-                const payloadStr = Buffer.from(token.split('.')[1], 'base64').toString();
-                const payload = JSON.parse(payloadStr);
-                shopId = payload.id || payload.shopOwnerId || payload.shopId;
-                if (!shopId) {
-                    throw new Error(`[DEBUG] Token decoded but no shopId found. Payload: ${payloadStr}`);
-                }
-            } catch (e: any) {
-                if (e.message.includes("[DEBUG]")) throw e;
-                throw new Error(`[DEBUG] Failed to decode token: ${e.message}`);
-            }
-        }
-        
-        const url = shopId 
+        const shopId = await resolveShopId();
+
+        const url = shopId
             ? `/api/v1/shops/${shopId}/orders/${orderId}`
             : `/api/v1/admin/orders/details/${orderId}`;
             
@@ -356,19 +366,9 @@ export async function updateOrderFinancials(formData: FormData) {
 
     try {
         const token = (await cookies()).get("accessToken")?.value;
-        let shopId = (await cookies()).get("id")?.value;
-        
         if (!token) throw new Error("Not authenticated");
 
-        if (!shopId) {
-            try {
-                const payloadStr = Buffer.from(token.split('.')[1], 'base64').toString();
-                const jwtPayload = JSON.parse(payloadStr);
-                shopId = jwtPayload.id || jwtPayload.shopOwnerId || jwtPayload.shopId;
-            } catch (e: any) {
-                console.error("Failed to decode token", e);
-            }
-        }
+        const shopId = await resolveShopId();
 
         if (!shopId) throw new Error("Shop ID is required for shop operations.");
         const url = `/api/v1/shops/${shopId}/orders/${orderId}/financials`;
@@ -403,17 +403,7 @@ export async function updateOrderAdminNotes(orderId: string, adminNotes: string)
 
     try {
         const token = (await cookies()).get("accessToken")?.value;
-        let shopId = (await cookies()).get("id")?.value;
-        
-        if (!shopId && token) {
-            try {
-                const payloadStr = Buffer.from(token.split('.')[1], 'base64').toString();
-                const jwtPayload = JSON.parse(payloadStr);
-                shopId = jwtPayload.id || jwtPayload.shopOwnerId || jwtPayload.shopId;
-            } catch (e: any) {
-                console.error("Failed to decode token", e);
-            }
-        }
+        const shopId = await resolveShopId();
 
         const url = shopId 
             ? `/api/v1/shops/${shopId}/orders/${orderId}/shop-notes`
