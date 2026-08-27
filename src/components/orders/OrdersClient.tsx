@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Order } from "@/types/order";
 import Button from "@/components/ui/button/Button";
 import Select from "@/components/form/Select";
-import { X, Search, RefreshCw, Check, ChevronDown, Calendar, Filter, ArrowUp, ArrowDown } from "lucide-react";
+import { X, Search, RefreshCw, Check, ChevronDown, Calendar, Filter, ArrowUp, ArrowDown, Printer } from "lucide-react";
+import { printOrderLabel, printOrderLabels } from "@/lib/print/printLabels";
 import {
     updateOrderStatus,
     updateOrderPaymentStatus,
@@ -134,6 +135,36 @@ const OrdersClient = ({
 
     // UI State
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+    // ─── Bag-tag printing ────────────────────────────────────────────────
+    const [selectedForPrint, setSelectedForPrint] = useState<string[]>([]);
+
+    const labelShop = useMemo(
+        () => ({ name: selectedShop?.name, phone: selectedShop?.phone }),
+        [selectedShop?.name, selectedShop?.phone]
+    );
+
+    const toggleSelectForPrint = (orderId: string) =>
+        setSelectedForPrint((prev) =>
+            prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId]
+        );
+
+    // Select-all acts on the rows currently visible: if every one is already
+    // ticked this clears them, otherwise it adds the missing ones. Selections
+    // on other tabs/pages are preserved either way.
+    const toggleSelectAllForPrint = (orderIds: string[]) =>
+        setSelectedForPrint((prev) => {
+            const allSelected = orderIds.length > 0 && orderIds.every((id) => prev.includes(id));
+            return allSelected
+                ? prev.filter((id) => !orderIds.includes(id))
+                : [...new Set([...prev, ...orderIds])];
+        });
+
+    const handlePrintSelected = () => {
+        const toPrint = orders.filter((o) => selectedForPrint.includes(o.orderId));
+        if (toPrint.length === 0) return;
+        printOrderLabels(toPrint as any, labelShop);
+    };
     const [activeSection, setActiveSection] = useState<
         "status" | "payment" | "financials" | "chat" | "reassign"
     >("status");
@@ -715,6 +746,30 @@ const OrdersClient = ({
                 </div>
             </div>
 
+            {/* Bulk print bar — only present once something is ticked */}
+            {selectedForPrint.length > 0 && (
+                <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 dark:border-brand-500/30 dark:bg-brand-500/10">
+                    <span className="text-sm font-semibold text-brand-700 dark:text-brand-300">
+                        {selectedForPrint.length} order{selectedForPrint.length > 1 ? "s" : ""} selected
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setSelectedForPrint([])}
+                            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        >
+                            Clear
+                        </button>
+                        <button
+                            onClick={handlePrintSelected}
+                            className="flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-brand-600"
+                        >
+                            <Printer size={14} />
+                            Print {selectedForPrint.length} tag{selectedForPrint.length > 1 ? "s" : ""}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Status Tabs with Orders */}
             <OrderTabs
                 orders={orders}
@@ -736,6 +791,10 @@ const OrdersClient = ({
                 isPorterLoading={isPorterLoading}
                 isStatusUpdating={isStatusUpdating}
                 shopsMap={shopsMap}
+                selectedOrderIds={selectedForPrint}
+                onToggleSelect={toggleSelectForPrint}
+                onToggleSelectAll={toggleSelectAllForPrint}
+                onPrintLabel={(order) => printOrderLabel(order as any, labelShop)}
             />
 
             {/* Pagination Controls */}

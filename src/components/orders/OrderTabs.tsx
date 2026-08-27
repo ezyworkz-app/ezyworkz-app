@@ -23,6 +23,10 @@ interface OrderTabsProps {
     isPorterLoading: Record<string, "pickup" | "delivery" | null>;
     isStatusUpdating: Record<string, boolean>;
     shopsMap: Record<string, any>;
+    selectedOrderIds?: string[];
+    onToggleSelect?: (orderId: string) => void;
+    onToggleSelectAll?: (orderIds: string[]) => void;
+    onPrintLabel?: (order: Order) => void;
 }
 
 const OrderTabs: React.FC<OrderTabsProps> = ({
@@ -44,7 +48,11 @@ const OrderTabs: React.FC<OrderTabsProps> = ({
     onDelete,
     isPorterLoading,
     isStatusUpdating,
-    shopsMap
+    shopsMap,
+    selectedOrderIds,
+    onToggleSelect,
+    onToggleSelectAll,
+    onPrintLabel,
 }) => {
     return (
         <Tabs 
@@ -81,6 +89,10 @@ const OrderTabs: React.FC<OrderTabsProps> = ({
                             isPorterLoading={isPorterLoading}
                             isStatusUpdating={isStatusUpdating}
                             shopsMap={shopsMap}
+                            selectedOrderIds={selectedOrderIds}
+                            onToggleSelect={onToggleSelect}
+                            onToggleSelectAll={onToggleSelectAll}
+                            onPrintLabel={onPrintLabel}
                         />
                     </Tab>
                 );

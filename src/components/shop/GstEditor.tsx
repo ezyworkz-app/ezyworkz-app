@@ -27,6 +27,9 @@ export default function GstEditor({ shop }: Props) {
     const [lowCartFeeEnabled, setLowCartFeeEnabled] = useState<boolean>(shop.lowCartFeeEnabled ?? false);
     // Default ON for new shops (field absent), OFF only when explicitly saved as false.
     const [autoWhatsappEnabled, setAutoWhatsappEnabled] = useState<boolean>(shop.autoWhatsappEnabled !== false);
+    // Defaults OFF: a shop without a thermal printer should not get a print
+    // dialog thrown at it on every order.
+    const [autoPrintEnabled, setAutoPrintEnabled] = useState<boolean>(shop.autoPrintEnabled === true);
 
     // Re-sync whenever the parent shop prop changes (e.g. context finishes loading after mount)
     useEffect(() => {
@@ -41,7 +44,8 @@ export default function GstEditor({ shop }: Props) {
         setLowCartFeeEnabled(shop.lowCartFeeEnabled ?? false);
         // Read the exact saved boolean: false stays false, undefined defaults to true.
         setAutoWhatsappEnabled(shop.autoWhatsappEnabled !== false);
-    }, [shop.shopId, shop.autoWhatsappEnabled, shop.gstEnabled, shop.gstNumber,
+        setAutoPrintEnabled(shop.autoPrintEnabled === true);
+    }, [shop.shopId, shop.autoWhatsappEnabled, shop.autoPrintEnabled, shop.gstEnabled, shop.gstNumber,
         shop.gstRate, shop.deliveryFeeEnabled, shop.baseDeliveryFee,
         shop.freeDeliveryRadius, shop.baseDeliveryRadius, shop.deliveryFeePerKm,
         shop.lowCartFeeEnabled]);
@@ -72,6 +76,7 @@ export default function GstEditor({ shop }: Props) {
                 deliveryFeePerKm: deliveryFeeEnabled ? deliveryFeePerKm : 0,
                 lowCartFeeEnabled,
                 autoWhatsappEnabled,
+                autoPrintEnabled,
             });
             if (res.success) {
                 setMsg({ type: "success", text: "Billing & preferences saved successfully." });
@@ -372,6 +377,29 @@ export default function GstEditor({ shop }: Props) {
                     >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow ${
                             autoWhatsappEnabled ? "translate-x-6" : "translate-x-1"
+                        }`} />
+                    </button>
+                </div>
+
+                {/* Auto-print bag tag on order creation */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-white/10 mt-4">
+                    <div>
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">Auto-Print Bag Tag</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            {autoPrintEnabled
+                                ? "The print dialog opens automatically when an order is created"
+                                : "Tags are printed manually from the orders list (off by default)"}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => { setAutoPrintEnabled(v => !v); setMsg(null); }}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                            autoPrintEnabled ? "bg-brand-500" : "bg-gray-300 dark:bg-gray-600"
+                        }`}
+                    >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow ${
+                            autoPrintEnabled ? "translate-x-6" : "translate-x-1"
                         }`} />
                     </button>
                 </div>

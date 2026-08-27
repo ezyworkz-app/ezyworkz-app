@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Edit3, DollarSign, FileText, MessageCircle, MapPin, Phone, StickyNote, Check, Loader2, ExternalLink, RefreshCw, X, ArrowDown, ArrowUp, AlertCircle, Truck, ChevronDown, Trash2, Ticket } from "lucide-react";
+import { Search, Edit3, DollarSign, FileText, MessageCircle, MapPin, Phone, StickyNote, Check, Loader2, ExternalLink, RefreshCw, X, ArrowDown, ArrowUp, AlertCircle, Truck, ChevronDown, Trash2, Ticket, Printer } from "lucide-react";
 import InputField from "@/components/form/input/InputField";
 import { Order, OrderService } from "@/types/order";
 // Import from @/types (not @/types/Shop): ShopContext returns that shape, and
@@ -31,6 +31,11 @@ interface OrderTableProps {
     isPorterLoading: Record<string, "pickup" | "delivery" | null>;
     isStatusUpdating: Record<string, boolean>;
     shopsMap: Record<string, Shop>;
+    /** Bag-tag printing. Optional so other callers of this table are unaffected. */
+    selectedOrderIds?: string[];
+    onToggleSelect?: (orderId: string) => void;
+    onToggleSelectAll?: (orderIds: string[]) => void;
+    onPrintLabel?: (order: Order) => void;
 }
 
 const AdminNotesCell = ({ orderId, initialNotes }: { orderId: string, initialNotes?: string }) => {
@@ -791,6 +796,10 @@ const OrderTable: React.FC<OrderTableProps> = ({
     isPorterLoading,
     isStatusUpdating,
     shopsMap,
+    selectedOrderIds,
+    onToggleSelect,
+    onToggleSelectAll,
+    onPrintLabel,
 }) => {
     const router = useRouter();
 
@@ -914,6 +923,22 @@ const OrderTable: React.FC<OrderTableProps> = ({
                     <Table>
                         <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                             <TableRow>
+                                {onToggleSelect && (
+                                    <TableCell isHeader className="px-3 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 w-10">
+                                        <input
+                                            type="checkbox"
+                                            aria-label="Select all orders for printing"
+                                            className="h-4 w-4 cursor-pointer accent-brand-500"
+                                            checked={
+                                                filteredOrders.length > 0 &&
+                                                filteredOrders.every((o: Order) => selectedOrderIds?.includes(o.orderId))
+                                            }
+                                            onChange={() =>
+                                                onToggleSelectAll?.(filteredOrders.map((o: Order) => o.orderId))
+                                            }
+                                        />
+                                    </TableCell>
+                                )}
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Order</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Customer</TableCell>
 
@@ -931,6 +956,17 @@ const OrderTable: React.FC<OrderTableProps> = ({
 
                                         return (
                                         <TableRow key={order?.orderId} className="hover:bg-gray-50/30 dark:hover:bg-white/[0.01] transition-colors align-top">
+                                            {onToggleSelect && (
+                                                <TableCell className="px-3 py-4 text-start">
+                                                    <input
+                                                        type="checkbox"
+                                                        aria-label={`Select order ${order.orderId} for printing`}
+                                                        className="h-4 w-4 cursor-pointer accent-brand-500"
+                                                        checked={!!selectedOrderIds?.includes(order.orderId)}
+                                                        onChange={() => onToggleSelect(order.orderId)}
+                                                    />
+                                                </TableCell>
+                                            )}
                                             {/* Order Info */}
                                             <TableCell className="px-5 py-4 sm:px-6 text-start">
                                                 <div className="space-y-1">
@@ -944,6 +980,15 @@ const OrderTable: React.FC<OrderTableProps> = ({
                                                         >
                                                             {copiedText === order.orderId ? <Check size={10} className="text-success-500" /> : <FileText size={10} />}
                                                         </button>
+                                                        {onPrintLabel && (
+                                                            <button
+                                                                onClick={() => onPrintLabel(order)}
+                                                                title="Print bag tag"
+                                                                className="p-1 text-gray-300 hover:text-brand-500 transition-all"
+                                                            >
+                                                                <Printer size={12} />
+                                                            </button>
+                                                        )}
                                                     </div>
 
                                                     {order.tokenNumbers?.length > 0 ? (

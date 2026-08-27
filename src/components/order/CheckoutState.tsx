@@ -22,6 +22,8 @@ import {
 } from "@/lib/actions/orders";
 import { cartToOrderPayload } from "@/utils/cartToOrder";
 import { CartLine, useCart } from "@/context/CartContext";
+import { useShop } from "@/context/ShopContext";
+import { printOrderLabel } from "@/lib/print/printLabels";
 import { Totals } from "@/utils/pricing";
 
 // import { getAddonsForService } from "@/lib/actions/shopServices";
@@ -160,6 +162,7 @@ export const useCheckout = () => {
 
 export function CheckoutProvider({ children }: { children: React.ReactNode }) {
   const { cartItems, clear } = useCart();
+  const { selectedShop } = useShop();
   const router = useRouter();
 
   const [editingOrderId, setEditingOrderId] = useState<string | undefined>();
@@ -596,6 +599,23 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
           }
           const res = await createOrder(payload);
           if (res?.error) throw new Error(res.error);
+
+          // Print the bag tag while the customer is still at the counter.
+          // Awaited so the print dialog is not torn down by the redirect
+          // below; failures here must never block a successfully placed order.
+          if (selectedShop?.autoPrintEnabled) {
+            try {
+              const created = res?.data?.order ?? res?.data;
+              if (created?.orderId) {
+                await printOrderLabel(created, {
+                  name: selectedShop?.name,
+                  phone: selectedShop?.phone,
+                });
+              }
+            } catch (printErr) {
+              console.error("[CheckoutState] Bag tag print failed", printErr);
+            }
+          }
         }
 
         // ✅ Success logic: Clear local state and navigate away

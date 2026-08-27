@@ -14,7 +14,11 @@ export default function DeliveryPicker({
   selected,
   onSelect,
 }: Props) {
-  const keys = ORDER.filter((k) => k in deliveryTypes);
+  // Hide tiers the shop has switched off. The backend already rejects an order
+  // that uses a disabled tier, but this picker never checked the flag — so a
+  // customer could pick one and only hit the problem as an error at checkout.
+  // Absent means enabled, so tiers saved before the toggle existed still show.
+  const keys = ORDER.filter((k) => k in deliveryTypes && deliveryTypes[k]?.enabled !== false);
 
   return (
     <div className="flex flex-wrap justify-between gap-2 rounded-2xl  border-purple-100">

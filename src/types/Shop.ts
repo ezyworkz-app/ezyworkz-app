@@ -1,14 +1,42 @@
+/**
+ * Superset of both status vocabularies in use.
+ *
+ * The BACKEND writes: pending_approval | active | suspended | rejected |
+ * inactive (see shop.model.ts). Older web code additionally compares against
+ * `in_progress` and `approved`, so both sets are kept until the vocabularies
+ * are reconciled — narrowing this makes otherwise-valid Shop objects
+ * unassignable.
+ */
 export type ShopStatus =
-    | "in_progress"
     | "pending_approval"
-    | "approved"
-    | "suspended";
+    | "active"
+    | "suspended"
+    | "rejected"
+    | "inactive"
+    | "in_progress"
+    | "approved";
 
+/**
+ * The single Shop type for this app.
+ *
+ * `types/index.ts` used to declare a second, near-identical Shop, and the two
+ * drifted — adding one field meant editing both, and missing one produced a
+ * type error in whichever half was forgotten. `index.ts` now re-exports this.
+ */
 export interface Shop {
-    distanceKm: string;
+    /** Only present on results from proximity search. */
+    distanceKm?: string;
 
     /* ID & auth */
     shopId: string;
+    /**
+     * Optional: not every endpoint returns it (e.g. getAllShops), and nothing
+     * reads it off a Shop — `shopOwnerId` is consumed from the auth
+     * `shopOwner` object instead.
+     */
+    shopOwnerId?: string;
+    /** Legacy alias for `logoUrl`, still returned by some endpoints. */
+    logo?: string;
     shopAuthId: string;
 
     /* public profile */
@@ -53,6 +81,8 @@ export interface Shop {
     deliveryFeePerKm?: number;
     lowCartFeeEnabled?: boolean;
     autoWhatsappEnabled?: boolean;
+    /** Auto-open the bag-tag print dialog as soon as an order is created. */
+    autoPrintEnabled?: boolean;
 
     /* Domains */
     customDomain?: string;
@@ -118,6 +148,18 @@ export interface ShopKyc {
     updatedAt?: string;
 }
 
+/**
+ * All fields optional on purpose.
+ *
+ * Addresses arrive from several endpoints in different shapes — some records
+ * predate `houseNo`/`label`/`line1`, others use `building`/`street`/`locality`.
+ * Marking any of them required made otherwise-valid Address objects
+ * unassignable across module boundaries, and consumers already guard their
+ * reads (`addr.houseNo || ""`), so optional matches reality.
+ *
+ * This is the union of every shape in use; `types/index.ts` re-exports it
+ * rather than declaring a second one.
+ */
 export interface Address {
     street?: string;
     area?: string;
@@ -128,6 +170,13 @@ export interface Address {
     country?: string;
     lat?: number;
     lng?: number;
+    /* Newer records */
+    houseNo?: string;
+    label?: string;
+    line1?: string;
+    block?: string;
+    /* Older records; the location settings form reads both spellings. */
+    building?: string;
 }
 
 export interface ShopTiming {
