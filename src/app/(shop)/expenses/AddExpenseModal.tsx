@@ -161,22 +161,47 @@ export function AddExpenseModal({ shopId, isOpen, onClose, onSuccess, expenseToE
                     </div>
                 )}
 
+                {/*
+                    Field order is Amount → Category → Date → Description, matching
+                    the mobile app's Add Expense screen. Date used to sit beside
+                    Amount with Category below, so the two surfaces asked for the
+                    same three things in a different sequence.
+
+                    Category and Date share a row so the form stays compact, and
+                    left-to-right they still read in that order.
+                */}
                 <form onSubmit={handleSubmit} className="space-y-4 relative">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1.5">Amount (₹)</label>
+                        <input
+                            type="number"
+                            required
+                            min="1"
+                            step="0.01"
+                            value={formData.amount}
+                            onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                            className="w-full px-4 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-900 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
+                            placeholder="0.00"
+                        />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1.5">Amount (₹)</label>
-                            <input
-                                type="number"
+                            <label className="block text-sm font-medium text-gray-600 mb-1.5">Category</label>
+                            <select
                                 required
-                                min="1"
-                                step="0.01"
-                                value={formData.amount}
-                                onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                                value={formData.category}
+                                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                                 className="w-full px-4 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-900 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
-                                placeholder="0.00"
-                            />
+                            >
+                                {CATEGORIES.map((cat) => (
+                                    <option key={cat.value} value={cat.value}>
+                                        {cat.label}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        
+
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1.5">Date</label>
                             <input
@@ -187,22 +212,6 @@ export function AddExpenseModal({ shopId, isOpen, onClose, onSuccess, expenseToE
                                 className="w-full px-4 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-900 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
                             />
                         </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1.5">Category</label>
-                        <select
-                            required
-                            value={formData.category}
-                            onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                            className="w-full px-4 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-900 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
-                        >
-                            {CATEGORIES.map((cat) => (
-                                <option key={cat.value} value={cat.value}>
-                                    {cat.label}
-                                </option>
-                            ))}
-                        </select>
                     </div>
 
                     {formData.category === "OTHER" && (
